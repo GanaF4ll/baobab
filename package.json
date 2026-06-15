@@ -11,8 +11,9 @@
     "backend": "cd backend && npm run start:dev",
     "frontend": "cd frontend && ng serve",
     "api:generate": "openapi-generator-cli generate -i backend/openapi.json -g typescript-angular -o frontend/src/api",
-    "docker:up": "docker compose -f docker/docker-compose.dev.yml up -d",
+    "docker:up": "docker compose -f docker/docker-compose.dev.yml up --build",
     "docker:down": "docker compose -f docker/docker-compose.dev.yml down",
+    "docker:reset": "docker compose -f docker/docker-compose.dev.yml down --volumes --remove-orphans",
     "docker:logs": "docker compose -f docker/docker-compose.dev.yml logs -f"
   },
   "devDependencies": {
