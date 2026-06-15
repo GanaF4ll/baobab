@@ -1,0 +1,114 @@
+services:
+  baobab-db:
+    image: pgvector/pgvector:pg16
+    container_name: baobab-db
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: ${DB_USER:-baobab}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-baobab}
+      POSTGRES_DB: ${DB_NAME:-baobab_db}
+      TZ: ${TZ:-Europe/Paris}
+      POSTGRES_LOG_STATEMENT: all
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-baobab} -d ${DB_NAME:-baobab_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  baobab-storage:
+    image: minio/minio:latest
+    container_name: baobab-storage
+    restart: always
+    ports:
+      - '9000:9000' # API
+      - '9001:9001' # Console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      TZ: ${TZ:-Europe/Paris}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  baobab-ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    container_name: baobab-ollama
+    restart: always
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+
+  baobab-backend:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    container_name: baobab-backend
+    restart: 'no'
+    ports:
+      - '2400:2400'
+    environment:
+      NODE_ENV: development
+      TZ: ${TZ:-Europe/Paris}
+      DB_HOST: baobab-db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-baobab}
+      DB_PASSWORD: ${DB_PASSWORD:-baobab}
+      DB_NAME: ${DB_NAME:-baobab_db}
+      MINIO_ENDPOINT: baobab-storage
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      OLLAMA_HOST: http://baobab-ollama:11434
+    volumes:
+      - ../backend:/app
+      - /app/node_modules
+    depends_on:
+      baobab-db:
+        condition: service_healthy
+      baobab-storage:
+        condition: service_healthy
+      baobab-ollama:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:2400/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  baobab-frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+    container_name: baobab-frontend
+    restart: 'no'
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: development
+      TZ: ${TZ:-Europe/Paris}
+      API_URL: http://localhost:2400
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    depends_on:
+      - baobab-backend
+
+volumes:
+  postgres-data:
+  minio-data:
+  ollama-data:
