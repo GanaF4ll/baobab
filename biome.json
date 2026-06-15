@@ -1,0 +1,60 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        }
+      },
+      "style": {
+        "useImportType": "off",
+        "useConst": "error",
+        "noNonNullAssertion": "warn"
+      },
+      "suspicious": { "noExplicitAny": "off" },
+      "complexity": { "noStaticOnlyClass": "off", "useLiteralKeys": "off" }
+    }
+  },
+  "javascript": {
+    "parser": { "unsafeParameterDecoratorsEnabled": true },
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always",
+      "bracketSpacing": true
+    }
+  },
+  "json": { "formatter": { "lineWidth": 200 } },
+  "overrides": [
+    {
+      "includes": ["**/*.html"],
+      "formatter": { "lineWidth": 120 }
+    },
+    {
+      "includes": ["frontend/src/api/**"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    }
+  ],
+  "files": {
+    "ignore": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "frontend/.angular/**"
+    ]
+  }
+}

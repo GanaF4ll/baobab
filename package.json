@@ -1,0 +1,22 @@
+{
+  "name": "baobab",
+  "version": "0.0.1",
+  "private": true,
+  "author": "Gana FALL",
+  "scripts": {
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "backend": "cd backend && npm run start:dev",
+    "frontend": "cd frontend && ng serve",
+    "api:generate": "openapi-generator-cli generate -i backend/openapi.json -g typescript-angular -o frontend/src/api",
+    "docker:up": "docker compose -f docker/docker-compose.dev.yml up -d",
+    "docker:down": "docker compose -f docker/docker-compose.dev.yml down",
+    "docker:logs": "docker compose -f docker/docker-compose.dev.yml logs -f"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@openapitools/openapi-generator-cli": "^2.15.0"
+  }
+}
