@@ -8,16 +8,23 @@ ENV CI=true
 
 RUN apk add --no-cache curl
 
-# Copy dependency files
-COPY backend/package.json backend/pnpm-lock.yaml* backend/.npmrc* ./
+# Copy workspace-level dependency files (monorepo root lockfile)
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY backend/package.json ./backend/
 
 RUN pnpm config set minimum-release-age 0 && \
-    pnpm install --frozen-lockfile
+    pnpm install --frozen-lockfile --filter backend
 
 # Copy source code
-COPY backend/ .
+COPY backend/ ./backend/
+
+# Copy startup scripts
+COPY docker/scripts/start-local.sh /scripts/start-local.sh
+RUN chmod +x /scripts/start-local.sh
+
+WORKDIR /app/backend
 
 EXPOSE 2400
 
 # Shell form to avoid Node.js entrypoint issues
-CMD pnpm run start:dev
+CMD ["sh", "/scripts/start-local.sh"]
