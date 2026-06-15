@@ -11,9 +11,9 @@ done
 
 echo "Ollama is ready. Pulling models..."
 # LLM model
-ollama pull llama3
+ollama pull ${OLLAMA_LLM_MODEL}
 # Embedding model
-ollama pull nomic-embed-text
+ollama pull ${OLLAMA_EMBEDDING_MODEL}
 
 echo "Models pulled successfully."
 
