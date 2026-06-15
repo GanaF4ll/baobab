@@ -6,8 +6,8 @@ export const SWAGGER_OPTIONS: SwaggerCustomOptions = {
 
 export function buildSwaggerDocument() {
   return new DocumentBuilder()
-    .setTitle('Ludora API')
-    .setDescription('API for the Ludora app')
+    .setTitle('Baobab API')
+    .setDescription('API for the Baobab app')
     .setVersion('0.0.1')
     .addBearerAuth(
       {

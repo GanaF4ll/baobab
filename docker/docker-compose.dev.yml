@@ -19,6 +19,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - baobab-network
 
   baobab-storage:
     image: minio/minio:latest
@@ -39,6 +41,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - baobab-network
 
   baobab-ollama:
     build:
@@ -54,6 +58,8 @@ services:
       TZ: ${TZ:-Europe/Paris}
       OLLAMA_LLM_MODEL: ${OLLAMA_LLM_MODEL:-mistral:7b}
       OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+    networks:
+      - baobab-network
 
   baobab-backend:
     build:
@@ -63,22 +69,26 @@ services:
     restart: 'no'
     ports:
       - '2400:2400'
-    environment:
-      NODE_ENV: development
-      TZ: ${TZ:-Europe/Paris}
-      DB_HOST: baobab-db
-      DB_PORT: 5432
-      DB_USER: ${DB_USER:-baobab}
-      DB_PASSWORD: ${DB_PASSWORD:-baobab}
-      DB_NAME: ${DB_NAME:-baobab_db}
-      MINIO_ENDPOINT: baobab-storage
-      MINIO_PORT: 9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      OLLAMA_HOST: http://baobab-ollama:11434
+    env_file:
+      - ../.env.dev
+    # environment:
+    #   NODE_ENV: debug
+    #   PORT: 2400
+    #   TZ: ${TZ:-Europe/Paris}
+    #   DB_HOST: baobab-db
+    #   DB_PORT: 5432
+    #   DB_USER: ${DB_USER:-baobab}
+    #   DB_PASSWORD: ${DB_PASSWORD:-baobab}
+    #   DB_NAME: ${DB_NAME:-baobab_db}
+    #   DATABASE_URL: postgres://${DB_USER:-baobab}:${DB_PASSWORD:-baobab}@baobab-db:5432/${DB_NAME:-baobab_db}
+    #   MINIO_ENDPOINT: baobab-storage
+    #   MINIO_PORT: 9000
+    #   MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+    #   MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    #   OLLAMA_HOST: http://baobab-ollama:11434
     volumes:
-      - ../backend:/app
-      - /app/node_modules
+      - ../backend:/app/backend
+      - /app/backend/node_modules
     depends_on:
       baobab-db:
         condition: service_healthy
@@ -92,6 +102,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
+    networks:
+      - baobab-network
 
   baobab-frontend:
     build:
@@ -110,6 +122,12 @@ services:
       - /app/node_modules
     depends_on:
       - baobab-backend
+    networks:
+      - baobab-network
+
+networks:
+  baobab-network:
+    driver: bridge
 
 volumes:
   postgres-data:

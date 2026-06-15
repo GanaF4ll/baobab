@@ -1,5 +1,3 @@
-// backend/src/shared/database/schema.ts
-
 import { relations } from 'drizzle-orm';
 import {
   index,

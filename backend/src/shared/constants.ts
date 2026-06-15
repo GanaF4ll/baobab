@@ -1,0 +1,11 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export enum TokenType {
+  ACCESS = 'access',
+  RESET = 'reset',
+}
+
+export abstract class ApiResponse<T> {
+  @ApiProperty({ readOnly: true, required: true })
+  readonly data: T;
+}
