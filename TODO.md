@@ -4,24 +4,24 @@
 
 ## Phase 1 — Fondations du projet
 
-- [ ] Initialiser le monorepo Git avec la structure de dossiers définie
-- [ ] Configurer le `docker-compose.yml` avec PostgreSQL, MinIO et Ollama
-- [ ] Configurer le `docker-compose.dev.yml` (ports exposés, volumes pour hot-reload)
-- [ ] Vérifier que les trois services démarrent correctement
-- [ ] Télécharger et tester un modèle Ollama (`llama3` ou `mistral`) via l'API REST
-- [ ] Télécharger et tester le modèle d'embedding (`nomic-embed-text`) via l'API REST
+- [X] Initialiser le monorepo Git avec la structure de dossiers définie
+- [X] Configurer le `docker-compose.yml` avec PostgreSQL, MinIO et Ollama
+- [x] Configurer le `docker-compose.dev.yml` (ports exposés, volumes pour hot-reload)
+- [X] Vérifier que les trois services démarrent correctement
+- [x] Télécharger et tester un modèle Ollama (`llama3` ou `mistral`) via l'API REST
+- [x] Télécharger et tester le modèle d'embedding (`nomic-embed-text`) via l'API REST
 
 ---
 
 ## Phase 2 — Backend : initialisation NestJS
 
-- [ ] Créer le projet NestJS dans `backend/`
-- [ ] Configurer `@nestjs/config` avec un fichier `.env`
-- [ ] Mettre en place Drizzle ORM + connexion PostgreSQL
-- [ ] Activer l'extension `pgvector` dans PostgreSQL
-- [ ] Écrire le schéma Drizzle complet (`users`, `documents`, `document_versions`, `chunks`, `conversations`, `messages`)
-- [ ] Générer et appliquer les migrations Drizzle
-- [ ] Configurer Swagger (`@nestjs/swagger`) avec génération automatique de `openapi.json`
+- [x] Créer le projet NestJS dans `backend/`
+- [x] Configurer `@nestjs/config` avec un fichier `.env`
+- [x] Mettre en place Drizzle ORM + connexion PostgreSQL
+- [x] Activer l'extension `pgvector` dans PostgreSQL
+- [x] Écrire le schéma Drizzle complet (`users`, `documents`, `document_versions`, `chunks`, `conversations`, `messages`)
+- [x] Générer et appliquer les migrations Drizzle
+- [x] Configurer Swagger (`@nestjs/swagger`) avec génération automatique de `openapi.json`
 
 ---
 
