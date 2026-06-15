@@ -41,11 +41,11 @@
   "json": { "formatter": { "lineWidth": 200 } },
   "overrides": [
     {
-      "includes": ["**/*.html"],
+      "include": ["**/*.html"],
       "formatter": { "lineWidth": 120 }
     },
     {
-      "includes": ["frontend/src/api/**"],
+      "include": ["frontend/src/api/**"],
       "linter": { "enabled": false },
       "formatter": { "enabled": false }
     }
