@@ -13,4 +13,4 @@ COPY frontend/ .
 EXPOSE 3000
 
 # Shell form to avoid Node.js entrypoint issues
-CMD npm run start -- --host 0.0.0.0 --port 3000 --allowed-hosts all
+CMD npm run start -- --host 0.0.0.0 --port 3000

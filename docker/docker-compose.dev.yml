@@ -51,6 +51,8 @@ services:
       - ollama-data:/root/.ollama
     environment:
       TZ: ${TZ:-Europe/Paris}
+      OLLAMA_LLM_MODEL: ${OLLAMA_LLM_MODEL:-mistral:7b}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
 
   baobab-backend:
     build:
