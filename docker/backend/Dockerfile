@@ -1,15 +1,18 @@
 FROM node:26-alpine
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@9
 
 WORKDIR /app
+
+ENV CI=true
 
 RUN apk add --no-cache curl
 
 # Copy dependency files
-COPY backend/package.json backend/pnpm-lock.yaml* ./
+COPY backend/package.json backend/pnpm-lock.yaml* backend/.npmrc* ./
 
-RUN pnpm config set minimum-release-age 0 && pnpm install --ignore-scripts
+RUN pnpm config set minimum-release-age 0 && \
+    pnpm install --frozen-lockfile
 
 # Copy source code
 COPY backend/ .
