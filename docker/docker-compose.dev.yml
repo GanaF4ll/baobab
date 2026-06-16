@@ -71,21 +71,6 @@ services:
       - '2400:2400'
     env_file:
       - ../.env.dev
-    # environment:
-    #   NODE_ENV: debug
-    #   PORT: 2400
-    #   TZ: ${TZ:-Europe/Paris}
-    #   DB_HOST: baobab-db
-    #   DB_PORT: 5432
-    #   DB_USER: ${DB_USER:-baobab}
-    #   DB_PASSWORD: ${DB_PASSWORD:-baobab}
-    #   DB_NAME: ${DB_NAME:-baobab_db}
-    #   DATABASE_URL: postgres://${DB_USER:-baobab}:${DB_PASSWORD:-baobab}@baobab-db:5432/${DB_NAME:-baobab_db}
-    #   MINIO_ENDPOINT: baobab-storage
-    #   MINIO_PORT: 9000
-    #   MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-    #   MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    #   OLLAMA_HOST: http://baobab-ollama:11434
     volumes:
       - ../backend:/app/backend
       - /app/backend/node_modules

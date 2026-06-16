@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from 'src/users/users.service';
 import { TokenType } from 'src/shared/constants';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as argon2 from 'argon2';
 
 // ---------------------------------------------------------------------------
@@ -20,7 +21,8 @@ jest.mock('argon2', () => ({
 // Helpers
 // ---------------------------------------------------------------------------
 
-const FAKE_TOKEN = 'signed.jwt.token';
+const FAKE_ACCESS_TOKEN = 'signed.access.token';
+const FAKE_REFRESH_TOKEN = 'signed.refresh.token';
 
 const mockUser = {
   id: 'user-uuid-1',
@@ -30,6 +32,27 @@ const mockUser = {
   passwordHash: 'hashed-secret',
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
+};
+
+const mockRefreshTokenRow = {
+  id: 'rt-uuid-1',
+  userId: mockUser.id,
+  token: FAKE_REFRESH_TOKEN,
+  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // valid: future date
+};
+
+// ---------------------------------------------------------------------------
+// Drizzle mock
+// ---------------------------------------------------------------------------
+
+const mockFindFirst = jest.fn();
+
+const mockDb = {
+  insert: jest.fn().mockReturnValue({ values: jest.fn().mockResolvedValue(undefined) }),
+  delete: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue(undefined) }),
+  query: {
+    refreshTokens: { findFirst: mockFindFirst },
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -50,13 +73,15 @@ describe('AuthService', () => {
           provide: UsersService,
           useValue: {
             findOneByEmail: jest.fn(),
+            findOneById: jest.fn(),
             create: jest.fn(),
           },
         },
         {
           provide: JwtService,
           useValue: {
-            sign: jest.fn().mockReturnValue(FAKE_TOKEN),
+            sign: jest.fn(),
+            verifyAsync: jest.fn(),
           },
         },
         {
@@ -64,6 +89,10 @@ describe('AuthService', () => {
           useValue: {
             getOrThrow: jest.fn().mockReturnValue('test'),
           },
+        },
+        {
+          provide: DRIZZLE,
+          useValue: mockDb,
         },
       ],
     }).compile();
@@ -86,7 +115,6 @@ describe('AuthService', () => {
     it('returns "1d" in non-production environments', () => {
       configService.getOrThrow.mockReturnValue('development');
 
-      // Access private getter via bracket notation
       const expiration = (service as any).TOKEN_EXPIRATION_TIME;
       expect(expiration).toBe('1d');
     });
@@ -115,12 +143,14 @@ describe('AuthService', () => {
       usersService.findOneByEmail.mockResolvedValue(undefined);
       usersService.create.mockResolvedValue({ id: mockUser.id } as any);
       (argon2.hash as jest.Mock).mockResolvedValue('hashed-secret');
+      jwtService.sign
+        .mockReturnValueOnce(FAKE_ACCESS_TOKEN)
+        .mockReturnValueOnce(FAKE_REFRESH_TOKEN);
     });
 
     it('throws ConflictException when email already exists', async () => {
       usersService.findOneByEmail.mockResolvedValue(mockUser as any);
 
-      // The service throws with the raw (non-lowercased) email it received
       await expect(service.register(dto)).rejects.toThrow(
         new ConflictException(`User with email "${dto.email}" already exists`),
       );
@@ -144,21 +174,29 @@ describe('AuthService', () => {
       );
     });
 
-    it('signs a JWT with the ACCESS token type and returns it', async () => {
-      const token = await service.register(dto);
+    it('signs a JWT with the ACCESS token type and returns access + refresh tokens', async () => {
+      const result = await service.register(dto);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         { id: mockUser.id, type: TokenType.ACCESS },
         expect.objectContaining({ expiresIn: expect.any(String) }),
       );
-      expect(token).toBe(FAKE_TOKEN);
+      expect(result).toEqual({
+        accessToken: FAKE_ACCESS_TOKEN,
+        refreshToken: FAKE_REFRESH_TOKEN,
+      });
     });
 
     it('checks for existing user with the raw email (normalization happens after the check)', async () => {
       await service.register(dto);
 
-      // findOneByEmail is called before toLowerCase() is applied
       expect(usersService.findOneByEmail).toHaveBeenCalledWith(dto.email);
+    });
+
+    it('stores the refresh token in the database', async () => {
+      await service.register(dto);
+
+      expect(mockDb.insert).toHaveBeenCalled();
     });
   });
 
@@ -175,6 +213,10 @@ describe('AuthService', () => {
     beforeEach(() => {
       usersService.findOneByEmail.mockResolvedValue(mockUser as any);
       (argon2.verify as jest.Mock).mockResolvedValue(true);
+      mockFindFirst.mockResolvedValue(null);
+      jwtService.sign
+        .mockReturnValueOnce(FAKE_ACCESS_TOKEN)
+        .mockReturnValueOnce(FAKE_REFRESH_TOKEN);
     });
 
     it('throws UnauthorizedException when user is not found', async () => {
@@ -205,14 +247,102 @@ describe('AuthService', () => {
       expect(argon2.verify).toHaveBeenCalledWith(mockUser.passwordHash, dto.password);
     });
 
-    it('signs a JWT with the ACCESS token type and returns it', async () => {
-      const token = await service.login(dto);
+    it('signs a JWT with the ACCESS token type and returns access + refresh tokens', async () => {
+      const result = await service.login(dto);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         { id: mockUser.id, type: TokenType.ACCESS },
         expect.objectContaining({ expiresIn: expect.any(String) }),
       );
-      expect(token).toBe(FAKE_TOKEN);
+      expect(result).toEqual({
+        accessToken: FAKE_ACCESS_TOKEN,
+        refreshToken: FAKE_REFRESH_TOKEN,
+      });
+    });
+
+    it('deletes existing refresh token before creating a new one', async () => {
+      mockFindFirst.mockResolvedValue(mockRefreshTokenRow);
+
+      await service.login(dto);
+
+      expect(mockDb.delete).toHaveBeenCalled();
+    });
+
+    it('stores the new refresh token in the database', async () => {
+      await service.login(dto);
+
+      expect(mockDb.insert).toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // refresh
+  // -------------------------------------------------------------------------
+
+  describe('refresh', () => {
+    const INCOMING_TOKEN = 'incoming.refresh.token';
+
+    beforeEach(() => {
+      jwtService.verifyAsync.mockResolvedValue({ id: mockUser.id, type: TokenType.REFRESH });
+      usersService.findOneById.mockResolvedValue(mockUser as any);
+      mockFindFirst.mockResolvedValue(mockRefreshTokenRow);
+      jwtService.sign
+        .mockReturnValueOnce(FAKE_ACCESS_TOKEN)
+        .mockReturnValueOnce(FAKE_REFRESH_TOKEN);
+    });
+
+    it('returns new access and refresh tokens on success', async () => {
+      const result = await service.refresh(INCOMING_TOKEN);
+
+      expect(result).toEqual({
+        accessToken: FAKE_ACCESS_TOKEN,
+        refreshToken: FAKE_REFRESH_TOKEN,
+      });
+    });
+
+    it('verifies the incoming token via jwtService.verifyAsync', async () => {
+      await service.refresh(INCOMING_TOKEN);
+
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith(INCOMING_TOKEN);
+    });
+
+    it('throws UnauthorizedException when token type is not REFRESH', async () => {
+      jwtService.verifyAsync.mockResolvedValue({ id: mockUser.id, type: TokenType.ACCESS });
+
+      await expect(service.refresh(INCOMING_TOKEN)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('throws UnauthorizedException when user does not exist', async () => {
+      usersService.findOneById.mockResolvedValue(null as any);
+
+      await expect(service.refresh(INCOMING_TOKEN)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('throws UnauthorizedException when refresh token is not found in DB', async () => {
+      mockFindFirst.mockResolvedValue(null);
+
+      await expect(service.refresh(INCOMING_TOKEN)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('throws UnauthorizedException when refresh token is expired', async () => {
+      mockFindFirst.mockResolvedValue({
+        ...mockRefreshTokenRow,
+        expiresAt: new Date(Date.now() - 1000), // past date
+      });
+
+      await expect(service.refresh(INCOMING_TOKEN)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('throws UnauthorizedException when verifyAsync throws (malformed token)', async () => {
+      jwtService.verifyAsync.mockRejectedValue(new Error('jwt malformed'));
+
+      await expect(service.refresh(INCOMING_TOKEN)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('stores the new refresh token in the database', async () => {
+      await service.refresh(INCOMING_TOKEN);
+
+      expect(mockDb.insert).toHaveBeenCalled();
     });
   });
 });

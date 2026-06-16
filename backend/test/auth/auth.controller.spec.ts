@@ -7,7 +7,10 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 // Helpers
 // ---------------------------------------------------------------------------
 
-const FAKE_TOKEN = 'signed.jwt.token';
+const FAKE_TOKENS = {
+  accessToken: 'signed.access.token',
+  refreshToken: 'signed.refresh.token',
+};
 
 const registerDto = {
   email: 'alice@example.com',
@@ -19,6 +22,10 @@ const registerDto = {
 const loginDto = {
   email: 'alice@example.com',
   password: 'secret',
+};
+
+const refreshDto = {
+  refreshToken: 'valid.refresh.jwt',
 };
 
 // ---------------------------------------------------------------------------
@@ -36,12 +43,16 @@ describe('AuthController', () => {
         {
           provide: AuthService,
           useValue: {
-            register: jest.fn().mockResolvedValue(FAKE_TOKEN),
-            login: jest.fn().mockResolvedValue(FAKE_TOKEN),
+            register: jest.fn().mockResolvedValue(FAKE_TOKENS),
+            login: jest.fn().mockResolvedValue(FAKE_TOKENS),
+            refresh: jest.fn().mockResolvedValue(FAKE_TOKENS),
           },
         },
       ],
-    }).overrideGuard(AuthGuard).useValue({ canActivate: jest.fn().mockReturnValue(true) }).compile();
+    })
+      .overrideGuard(AuthGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .compile();
 
     controller = module.get<AuthController>(AuthController);
     authService = module.get(AuthService);
@@ -63,10 +74,10 @@ describe('AuthController', () => {
       expect(authService.register).toHaveBeenCalledWith(registerDto);
     });
 
-    it('wraps the access token in a { data } envelope', async () => {
+    it('wraps the tokens in a { data } envelope', async () => {
       const result = await controller.register(registerDto as any);
 
-      expect(result).toEqual({ data: FAKE_TOKEN });
+      expect(result).toEqual({ data: FAKE_TOKENS });
     });
 
     it('propagates errors thrown by authService.register', async () => {
@@ -89,10 +100,10 @@ describe('AuthController', () => {
       expect(authService.login).toHaveBeenCalledWith(loginDto);
     });
 
-    it('wraps the access token in a { data } envelope', async () => {
+    it('wraps the tokens in a { data } envelope', async () => {
       const result = await controller.login(loginDto as any);
 
-      expect(result).toEqual({ data: FAKE_TOKEN });
+      expect(result).toEqual({ data: FAKE_TOKENS });
     });
 
     it('propagates errors thrown by authService.login', async () => {
@@ -100,6 +111,32 @@ describe('AuthController', () => {
       authService.login.mockRejectedValue(error);
 
       await expect(controller.login(loginDto as any)).rejects.toThrow(error);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // refresh
+  // -------------------------------------------------------------------------
+
+  describe('refresh', () => {
+    it('delegates to authService.refresh with the refreshToken from the DTO', async () => {
+      await controller.refresh(refreshDto as any);
+
+      expect(authService.refresh).toHaveBeenCalledTimes(1);
+      expect(authService.refresh).toHaveBeenCalledWith(refreshDto.refreshToken);
+    });
+
+    it('wraps the new tokens in a { data } envelope', async () => {
+      const result = await controller.refresh(refreshDto as any);
+
+      expect(result).toEqual({ data: FAKE_TOKENS });
+    });
+
+    it('propagates errors thrown by authService.refresh', async () => {
+      const error = new Error('token refresh failed');
+      authService.refresh.mockRejectedValue(error);
+
+      await expect(controller.refresh(refreshDto as any)).rejects.toThrow(error);
     });
   });
 });

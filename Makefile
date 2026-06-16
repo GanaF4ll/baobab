@@ -1,3 +1,6 @@
+COMPOSE = docker compose -f docker/docker-compose.dev.yml
+BACKEND = $(COMPOSE) exec baobab-backend
+
 ollama-sh: 
 	docker compose -f docker/docker-compose.dev.yml exec -it baobab-ollama bash
 
@@ -9,3 +12,12 @@ frontend:
 
 backend-restart:
 	docker compose -f docker/docker-compose.dev.yml up -d --build --no-deps baobab-backend
+
+db-generate:
+	$(BACKEND) pnpm run generate
+
+db-migrate:
+	$(BACKEND) pnpm run migrate
+
+db-push:
+	$(BACKEND) pnpm run db:push

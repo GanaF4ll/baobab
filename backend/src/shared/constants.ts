@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export enum TokenType {
   ACCESS = 'access',
   RESET = 'reset',
+  REFRESH = 'refresh',
 }
 
 export abstract class ApiResponse<T> {
