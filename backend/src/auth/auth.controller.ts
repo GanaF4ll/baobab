@@ -7,15 +7,17 @@ import { LoginDto } from './dto/input/login.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthGuard } from './guards/auth.guard';
+import { RefreshTokenDto } from './dto/input/refresh-token.dto';
+import { AUTH_SWAGGER_TAG } from 'src/swagger.config';
 
-@Controller('auth')
+@Controller(AUTH_SWAGGER_TAG)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @Public()
   @ApiOperation({
-    description: 'Register a new user',
+    summary: 'Register a new user',
   })
   @ApiConflictResponse({ description: 'User with email "email" already exists' })
   async register(@Body() dto: CreateUserDto): Promise<RegisterAndLoginResponseDto> {
@@ -30,10 +32,21 @@ export class AuthController {
   @Public()
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiOperation({
-    description: 'Login with existing user',
+    summary: 'Login with existing user',
   })
   async login(@Body() dto: LoginDto): Promise<RegisterAndLoginResponseDto> {
     const res = await this.authService.login(dto);
+
+    return {
+      data: res,
+    };
+  }
+
+  @Post('refresh')
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
+  async refresh(@Body() dto: RefreshTokenDto): Promise<RegisterAndLoginResponseDto> {
+    const res = await this.authService.refresh(dto.refreshToken);
 
     return {
       data: res,

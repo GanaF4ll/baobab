@@ -30,8 +30,8 @@
 - [x] Créer le module `auth/`
 - [x] Implémenter l'inscription et le hashage du mot de passe (`bcrypt`)
 - [x] Implémenter la connexion et la génération du JWT
-- [ ] Mettre en place le refresh token
-- [ ] Créer le `JwtAuthGuard` et le `CurrentUser` decorator
+- [x] Mettre en place le refresh token
+- [x] Créer le `JwtAuthGuard` et le `CurrentUser` decorator
 - [x] Tester les routes auth via Swagger
 
 ---
