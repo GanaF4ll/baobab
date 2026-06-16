@@ -17,6 +17,12 @@ export const mimeTypeEnum = pgEnum('mime_type', ['application/pdf', 'text/markdo
 
 export const messageRoleEnum = pgEnum('message_role', ['user', 'assistant']);
 
+export const llmModelStatusEnum = pgEnum('model_status', [
+  'not_downloaded',
+  'downloading',
+  'ready',
+]);
+
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
@@ -118,6 +124,14 @@ export const messages = pgTable('messages', {
   role: messageRoleEnum('role').notNull(),
   content: text('content').notNull(),
   sources: jsonb('sources'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const llmModels = pgTable('llm_models', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull().unique(),
+  status: llmModelStatusEnum('status').notNull().default('not_downloaded'),
+  sizeBytes: integer('size_bytes'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

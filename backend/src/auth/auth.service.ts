@@ -1,10 +1,11 @@
 import { CreateUserDto } from './../users/dto/create-user.dto';
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as argon2 from 'argon2';
 import { TokenType } from 'src/shared/constants';
 import { ConfigService } from '@nestjs/config';
+import { LoginDto } from './dto/input/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +19,7 @@ export class AuthService {
     return this.configService.getOrThrow<string>('NODE_ENV') === 'production' ? '15m' : '1d';
   }
 
-  async register(createUserDto: CreateUserDto) {
+  async register(createUserDto: CreateUserDto): Promise<string> {
     const { email, password, firstName, lastName } = createUserDto;
     const existingUser = await this.userService.findOneByEmail(email);
 
@@ -27,15 +28,43 @@ export class AuthService {
     }
 
     const hashedPassword = await argon2.hash(password);
+    const formattedFirstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+    const formattedLastName = lastName.toUpperCase();
+    const formattedEmail = email.toLowerCase();
+
     const newUser = await this.userService.create({
-      email,
+      email: formattedEmail,
       password: hashedPassword,
-      firstName,
-      lastName,
+      firstName: formattedFirstName,
+      lastName: formattedLastName,
     });
 
     const payload = { id: newUser.id };
 
+    const accessToken = this.jwt.sign(
+      { ...payload, type: TokenType.ACCESS },
+      { expiresIn: this.TOKEN_EXPIRATION_TIME },
+    );
+
+    return accessToken;
+  }
+
+  async login(dto: LoginDto): Promise<string> {
+    const { email, password } = dto;
+    const formattedEmail = email.toLowerCase();
+    const existingUser = await this.userService.findOneByEmail(formattedEmail);
+
+    if (!existingUser) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await argon2.verify(existingUser.passwordHash, password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = { id: existingUser.id };
     const accessToken = this.jwt.sign(
       { ...payload, type: TokenType.ACCESS },
       { expiresIn: this.TOKEN_EXPIRATION_TIME },

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsDateString, IsEmail, IsString, IsUUID } from 'class-validator';
 
 export class UserEntity {
   @IsUUID()
@@ -15,14 +15,12 @@ export class UserEntity {
   passwordHash: string;
 
   @IsString()
-  @IsOptional()
-  @ApiProperty({ description: 'First name of the user', required: false })
-  firstName?: string;
+  @ApiProperty({ description: 'First name of the user' })
+  firstName: string;
 
   @IsString()
-  @IsOptional()
-  @ApiProperty({ description: 'Last name of the user', required: false })
-  lastName?: string;
+  @ApiProperty({ description: 'Last name of the user' })
+  lastName: string;
 
   @IsDateString()
   @ApiProperty({ description: 'Creation date of the user' })
