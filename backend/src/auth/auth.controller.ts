@@ -1,15 +1,19 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { ApiConflictResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { RegisterAndLoginResponseDto } from './dto/output/register-and-login-response.dto';
 import { LoginDto } from './dto/input/login.dto';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { AuthGuard } from './guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Public()
   @ApiOperation({
     description: 'Register a new user',
   })
@@ -23,6 +27,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Public()
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiOperation({
     description: 'Login with existing user',
@@ -33,5 +38,11 @@ export class AuthController {
     return {
       data: res,
     };
+  }
+
+  @Get('test')
+  @UseGuards(AuthGuard)
+  async test(@CurrentUser('email') email: string): Promise<string> {
+    return email;
   }
 }

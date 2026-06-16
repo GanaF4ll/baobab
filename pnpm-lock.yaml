@@ -59,6 +59,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@types/pg@8.20.0)(pg@8.21.0)
+      fastify:
+        specifier: ^5.8.5
+        version: 5.8.5
       pg:
         specifier: ^8.21.0
         version: 8.21.0
