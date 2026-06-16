@@ -10,3 +10,7 @@ export abstract class ApiResponse<T> {
   @ApiProperty({ readOnly: true, required: true })
   readonly data: T;
 }
+
+export enum StorageFolderName {
+  DOCUMENTS = 'documents',
+}

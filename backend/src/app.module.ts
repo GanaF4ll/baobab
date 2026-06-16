@@ -6,9 +6,10 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { DocumentsModule } from './documents/documents.module';
+import { StorageModule } from './shared/storage/storage.module';
 
 @Module({
-  imports: [DrizzleModule, UsersModule, AuthModule, ConfigModule.forRoot({ isGlobal: true }), DocumentsModule],
+  imports: [DrizzleModule, UsersModule, AuthModule, ConfigModule.forRoot({ isGlobal: true }), DocumentsModule, StorageModule],
   controllers: [AppController],
   providers: [AppService],
 })
