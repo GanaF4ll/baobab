@@ -11,4 +11,4 @@ echo "▶ Seeding database..."
 pnpm run seed
 
 echo "▶ Starting NestJS..."
-pnpm exec nest start --watch --preserveWatchOutput
+pnpm run start:dev

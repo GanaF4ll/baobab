@@ -27,12 +27,12 @@
 
 ## Phase 3 — Backend : authentification
 
-- [ ] Créer le module `auth/`
-- [ ] Implémenter l'inscription et le hashage du mot de passe (`bcrypt`)
-- [ ] Implémenter la connexion et la génération du JWT
+- [x] Créer le module `auth/`
+- [x] Implémenter l'inscription et le hashage du mot de passe (`bcrypt`)
+- [x] Implémenter la connexion et la génération du JWT
 - [ ] Mettre en place le refresh token
 - [ ] Créer le `JwtAuthGuard` et le `CurrentUser` decorator
-- [ ] Tester les routes auth via Swagger
+- [x] Tester les routes auth via Swagger
 
 ---
 
