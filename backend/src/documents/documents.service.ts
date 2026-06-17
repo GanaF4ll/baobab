@@ -1,6 +1,7 @@
+import { StorageFolderName } from './../shared/constants';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateDocumentDto } from './dto/input/create-document.dto';
-import { UpdateDocumentDto } from './dto/input/update-document.dto';
+import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { StorageService } from 'src/shared/storage/storage.service';
@@ -9,6 +10,7 @@ import { CollectionResponseData } from 'src/shared/dto/output/api-collection-res
 import { DocumentEntity } from './entities/document.entity';
 import { and, count, eq } from 'drizzle-orm';
 import * as schema from 'src/drizzle/schema';
+import { FindOneWithVersionsResponseData } from './dto/output/find-one-with-versions-response.dto';
 
 @Injectable()
 export class DocumentsService {
@@ -18,6 +20,7 @@ export class DocumentsService {
   ) {}
   private logger = new Logger(DocumentsService.name);
   create(createDocumentDto: CreateDocumentDto) {
+    //todo: storage name should be documentId/version/fileName
     return 'This action adds a new document';
   }
 
@@ -77,7 +80,28 @@ export class DocumentsService {
     };
   }
 
-  async findOne(id: string, userId: string): Promise<DocumentEntity> {
+  async findOne(
+    id: string,
+    userId: string,
+  ): Promise<Pick<DocumentEntity, 'id' | 'currentVersion' | 'mimeType'>> {
+    const document = await this.db.query.documents.findFirst({
+      where: (documents, { eq, and }) => and(eq(documents.id, id), eq(documents.userId, userId)),
+      columns: {
+        id: true,
+        currentVersion: true,
+        mimeType: true,
+      },
+    });
+
+    if (!document) {
+      this.logger.error(`error finding document ${id} for user ${userId}`);
+      throw new NotFoundException('Document not found');
+    }
+
+    return document;
+  }
+
+  async findOneWithVersions(id: string, userId: string): Promise<FindOneWithVersionsResponseData> {
     const document = await this.db.query.documents.findFirst({
       where: (documents, { eq, and }) => and(eq(documents.id, id), eq(documents.userId, userId)),
       with: {
@@ -100,35 +124,45 @@ export class DocumentsService {
 
     return document;
   }
-  async findOneWithVersions(id: string, userId: string): Promise<DocumentEntity> {
-    const document = await this.db.query.documents.findFirst({
-      where: (documents, { eq, and }) => and(eq(documents.id, id), eq(documents.userId, userId)),
-      with: {
-        versions: {
-          columns: {
-            versionNumber: true,
-            id: true,
-            storageKey: true,
-            changeSummary: true,
-            createdAt: true,
-          },
-        },
-      },
-    });
 
-    if (!document) {
-      this.logger.error(`error finding document ${id} for user ${userId}`);
-      throw new NotFoundException('Document not found');
+  async updateTitle(id: string, userId: string, dto: UpdateDocumentTitleDto): Promise<void> {
+    const existingDoc = await this.findOne(id, userId);
+
+    await this.db
+      .update(schema.documents)
+      .set({ title: dto.title })
+      .where(eq(schema.documents.id, existingDoc.id))
+      .returning();
+  }
+
+  /*
+todo: method updateContent which allows to replace the content of a document without creating a new version. 
+! Can only be used on the last version
+
+  */
+
+  /**
+   * @description removes a document version.
+   * @param id document id
+   * @param userId user id
+   * @param versionNumber version number to remove
+   */
+  async removeVersion(id: string, userId: string, versionNumber: number): Promise<void> {
+    const existingDoc = await this.findOneWithVersions(id, userId);
+
+    const targetVersion = existingDoc.versions.find((v) => v.versionNumber === versionNumber);
+
+    if (!targetVersion) {
+      this.logger.error(
+        `error finding version ${versionNumber} for document ${id} and user ${userId}`,
+      );
+      throw new NotFoundException('Version not found');
     }
 
-    return document;
-  }
+    await this.db
+      .delete(schema.documentVersions)
+      .where(eq(schema.documentVersions.id, targetVersion.id));
 
-  update(id: string, updateDocumentDto: UpdateDocumentDto) {
-    return `This action updates a #${id} document`;
-  }
-
-  remove(id: string) {
-    return `This action removes a #${id} document`;
+    await this.storage.deleteFile(StorageFolderName.DOCUMENTS, targetVersion.storageKey);
   }
 }
