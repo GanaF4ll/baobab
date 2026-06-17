@@ -21,8 +21,6 @@
     "@openapitools/openapi-generator-cli": "^2.15.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
+    "onlyBuiltDependencies": ["esbuild"]
   }
 }

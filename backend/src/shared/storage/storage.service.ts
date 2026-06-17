@@ -1,10 +1,16 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DeleteObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
+import {
+  CreateBucketCommand,
+  DeleteObjectCommand,
+  HeadBucketCommand,
+  PutObjectCommand,
+  S3,
+} from '@aws-sdk/client-s3';
 import { StorageFolderName } from '../constants';
 
 @Injectable()
-export class StorageService {
+export class StorageService implements OnModuleInit {
   private readonly s3: S3;
 
   constructor(private readonly configService: ConfigService) {
@@ -17,6 +23,27 @@ export class StorageService {
       region: 'auto',
       forcePathStyle: true,
     });
+  }
+
+  async onModuleInit() {
+    await this.ensureBucketExists();
+  }
+
+  private async ensureBucketExists(): Promise<void> {
+    try {
+      await this.s3.send(new HeadBucketCommand({ Bucket: this.bucket }));
+    } catch (error: any) {
+      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+        try {
+          await this.s3.send(new CreateBucketCommand({ Bucket: this.bucket }));
+          console.log(`Bucket ${this.bucket} created successfully.`);
+        } catch (createError) {
+          console.error(`Failed to create bucket ${this.bucket}:`, createError);
+        }
+      } else {
+        console.error('Failed to check bucket existence:', error);
+      }
+    }
   }
 
   private get publicUrl(): string {

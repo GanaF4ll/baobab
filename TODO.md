@@ -41,7 +41,7 @@
 - [x] Créer le module `documents/`
 - [x] Créer le `StorageModule` (client MinIO, upload, download, suppression)
 - [x] Implémenter l'upload de fichier (PDF et Markdown)
-- [ ] Implémenter les routes CRUD (`GET /documents`, `GET /documents/:id`, `DELETE /documents/:id`)
+- [x] Implémenter les routes CRUD (`GET /documents`, `GET /documents/:id`, `DELETE /documents/:id`)
 - [ ] Implémenter le parsing du contenu (PDF → `pdf-parse`, Markdown → texte brut)
 - [ ] Implémenter le découpage en chunks (taille fixe avec overlap)
 - [ ] Créer le `OllamaModule` (client HTTP vers Ollama)

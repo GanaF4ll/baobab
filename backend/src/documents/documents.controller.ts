@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/input/create-document.dto';
-import { UpdateDocumentDto } from './dto/input/update-document.dto';
+import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { DocumentFilterDto } from './dto/input/document-filter.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -20,12 +20,16 @@ import {
   ApiBadRequestResponse,
   ApiNotFoundResponse,
   ApiOperation,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiCollectionResponseDto } from 'src/shared/dto/output/api-collection-response.dto';
 import { DocumentEntity } from './entities/document.entity';
+import { DOCUMENTS_SWAGGER_TAG } from 'src/swagger.config';
+import { FindOneWithVersionsResponseDto } from './dto/output/find-one-with-versions-response.dto';
 
 @Controller('documents')
+@ApiTags(DOCUMENTS_SWAGGER_TAG)
 @UseGuards(AuthGuard)
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
@@ -55,17 +59,35 @@ export class DocumentsController {
   @ApiOperation({ summary: 'get a single document by id, with its versions' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Document not found' })
-  findOne(@Param('id') id: string, @CurrentUser('id') userId: string) {
-    return this.documentsService.findOneWithVersions(id, userId);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+  ): Promise<FindOneWithVersionsResponseDto> {
+    const data = await this.documentsService.findOneWithVersions(id, userId);
+    return { data };
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDocumentDto: UpdateDocumentDto) {
-    return this.documentsService.update(id, updateDocumentDto);
+  @Protected()
+  update(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: UpdateDocumentTitleDto,
+  ) {
+    return this.documentsService.updateTitle(id, userId, dto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.documentsService.remove(id);
+  @Delete(':id/:versionNumber')
+  @Protected()
+  @ApiOperation({ summary: 'remove a document version' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @ApiNotFoundResponse({ description: 'Version not found' })
+  async removeVersion(
+    @Param('id') id: string,
+    @Param('versionNumber') versionNumber: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    await this.documentsService.removeVersion(id, userId, +versionNumber);
   }
 }
