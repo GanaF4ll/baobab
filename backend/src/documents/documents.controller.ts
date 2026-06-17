@@ -8,9 +8,10 @@ import {
   Delete,
   Query,
   UseGuards,
+  UseInterceptors,
+  Req,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
-import { CreateDocumentDto } from './dto/input/create-document.dto';
 import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { DocumentFilterDto } from './dto/input/document-filter.dto';
@@ -18,6 +19,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Protected } from 'src/auth/decorators/protected.decorator';
 import {
   ApiBadRequestResponse,
+  ApiConsumes,
   ApiNotFoundResponse,
   ApiOperation,
   ApiTags,
@@ -27,6 +29,9 @@ import { ApiCollectionResponseDto } from 'src/shared/dto/output/api-collection-r
 import { DocumentEntity } from './entities/document.entity';
 import { DOCUMENTS_SWAGGER_TAG } from 'src/swagger.config';
 import { FindOneWithVersionsResponseDto } from './dto/output/find-one-with-versions-response.dto';
+import { FastifyFilesInterceptor } from 'src/shared/storage/interceptors/fastify-file.interceptor';
+import { FastifyRequest } from 'fastify';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('documents')
 @ApiTags(DOCUMENTS_SWAGGER_TAG)
@@ -34,9 +39,13 @@ import { FindOneWithVersionsResponseDto } from './dto/output/find-one-with-versi
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
-  @Post()
-  create(@Body() createDocumentDto: CreateDocumentDto) {
-    return this.documentsService.create(createDocumentDto);
+  @Post('test')
+  @Public()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(new FastifyFilesInterceptor('file'))
+  create(@Req() request: FastifyRequest) {
+    const files = (request as any).incomingFiles;
+    return this.documentsService.create(files[0]);
   }
 
   @Get('collection')
