@@ -34,11 +34,7 @@ export class StorageService {
    * @param file: file to send
    * @returns { data: string }
    */
-  async upload(
-    folder: StorageFolderName,
-    filename: string,
-    file: Buffer,
-  ): Promise<{ data: string }> {
+  async upload(folder: StorageFolderName, filename: string, file: Buffer): Promise<string> {
     try {
       const key = `${folder}/${filename}`;
 
@@ -50,7 +46,7 @@ export class StorageService {
         }),
       );
 
-      const response = { data: `${this.publicUrl}/${key}` };
+      const response = `${this.publicUrl}/${key}`;
       return response;
     } catch (error) {
       console.error('Erreur upload:', error);
@@ -62,12 +58,13 @@ export class StorageService {
    * @description Deletes a file from the S3 bucket
    * @param filename
    */
-  async deleteFile(filename: string): Promise<void> {
+  async deleteFile(folder: StorageFolderName, filename: string): Promise<void> {
+    const key = `${folder}/${filename}`;
     try {
       await this.s3.send(
         new DeleteObjectCommand({
           Bucket: this.bucket,
-          Key: filename,
+          Key: key,
         }),
       );
     } catch (error) {

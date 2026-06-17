@@ -39,8 +39,8 @@
 ## Phase 4 — Backend : gestion des documents
 
 - [x] Créer le module `documents/`
-- [ ] Créer le `StorageModule` (client MinIO, upload, download, suppression)
-- [ ] Implémenter l'upload de fichier (PDF et Markdown) via Multer → MinIO
+- [x] Créer le `StorageModule` (client MinIO, upload, download, suppression)
+- [x] Implémenter l'upload de fichier (PDF et Markdown)
 - [ ] Implémenter les routes CRUD (`GET /documents`, `GET /documents/:id`, `DELETE /documents/:id`)
 - [ ] Implémenter le parsing du contenu (PDF → `pdf-parse`, Markdown → texte brut)
 - [ ] Implémenter le découpage en chunks (taille fixe avec overlap)
