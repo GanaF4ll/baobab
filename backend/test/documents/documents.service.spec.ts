@@ -5,11 +5,15 @@ import { StorageService } from 'src/shared/storage/storage.service';
 import { NotFoundException } from '@nestjs/common';
 import * as schema from 'src/drizzle/schema';
 import { StorageFolderName, OrderFilter } from 'src/shared/constants';
+import { ParserFactory } from 'src/documents/parsers/parser.factory';
+import { ChunkerService } from 'src/documents/chunking/chunker.service';
 
 describe('DocumentsService', () => {
   let service: DocumentsService;
   let dbMock: any;
   let storageServiceMock: jest.Mocked<StorageService>;
+  let parserFactoryMock: any;
+  let chunkerServiceMock: any;
 
   beforeEach(async () => {
     // Re-create mocks for each test to avoid pollution
@@ -30,6 +34,14 @@ describe('DocumentsService', () => {
       deleteFile: jest.fn(),
     } as any;
 
+    parserFactoryMock = {
+      getParser: jest.fn(),
+    };
+
+    chunkerServiceMock = {
+      chunkText: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DocumentsService,
@@ -40,6 +52,14 @@ describe('DocumentsService', () => {
         {
           provide: StorageService,
           useValue: storageServiceMock,
+        },
+        {
+          provide: ParserFactory,
+          useValue: parserFactoryMock,
+        },
+        {
+          provide: ChunkerService,
+          useValue: chunkerServiceMock,
         },
       ],
     }).compile();
@@ -55,9 +75,78 @@ describe('DocumentsService', () => {
   // create
   // -------------------------------------------------------------------------
   describe('create', () => {
-    it('returns the placeholder create message', () => {
-      const result = service.create({} as any);
-      expect(result).toBe('This action adds a new document');
+    const userId = 'user-123';
+    const mockFile = {
+      buffer: Buffer.from('test'),
+      mimetype: 'application/pdf',
+      originalname: 'test.pdf',
+    };
+
+    it('successfully creates a new document and its first version if documentId is not provided', async () => {
+      const mockDoc = { id: 'new-doc-id', title: 'test.pdf', currentVersion: 1 };
+      const mockVersion = {
+        id: 'new-version-id',
+        documentId: 'new-doc-id',
+        versionNumber: 1,
+        storageKey: 'new-doc-id/1/test.pdf',
+      };
+
+      const returningMock = jest
+        .fn()
+        .mockResolvedValueOnce([mockDoc]) // For documents insert
+        .mockResolvedValueOnce([mockVersion]); // For documentVersions insert
+      const valuesMock = jest.fn().mockReturnValue({ returning: returningMock });
+      dbMock.insert = jest.fn().mockReturnValue({ values: valuesMock });
+
+      storageServiceMock.upload.mockResolvedValue('new-doc-id/1/test.pdf');
+
+      const result = await service.create(userId, mockFile);
+
+      expect(dbMock.insert).toHaveBeenCalledTimes(2);
+      expect(storageServiceMock.upload).toHaveBeenCalledWith(
+        StorageFolderName.DOCUMENTS,
+        'new-doc-id/1/test.pdf',
+        mockFile.buffer,
+      );
+      expect(result).toEqual(mockDoc);
+    });
+
+    it('successfully adds a new version to an existing document if documentId is provided', async () => {
+      const docId = 'doc-123';
+      const mockDoc = { id: docId, currentVersion: 1 };
+      const mockVersion = {
+        id: 'new-version-id',
+        documentId: docId,
+        versionNumber: 2,
+        storageKey: 'doc-123/2/test.pdf',
+      };
+
+      dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
+
+      const returningMock = jest.fn().mockResolvedValue([mockVersion]);
+      const valuesMock = jest.fn().mockReturnValue({ returning: returningMock });
+      dbMock.insert = jest.fn().mockReturnValue({ values: valuesMock });
+
+      storageServiceMock.upload.mockResolvedValue('doc-123/2/test.pdf');
+
+      const result = await service.create(userId, mockFile, docId);
+
+      expect(dbMock.query.documents.findFirst).toHaveBeenCalled();
+      expect(dbMock.insert).toHaveBeenCalledTimes(1);
+      expect(storageServiceMock.upload).toHaveBeenCalledWith(
+        StorageFolderName.DOCUMENTS,
+        'doc-123/2/test.pdf',
+        mockFile.buffer,
+      );
+      expect(result).toEqual(mockVersion);
+    });
+
+    it('throws NotFoundException if documentId is provided but document is not found', async () => {
+      dbMock.query.documents.findFirst.mockResolvedValue(null);
+
+      await expect(service.create(userId, mockFile, 'non-existent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

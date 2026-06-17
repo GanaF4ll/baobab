@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentsController } from 'src/documents/documents.controller';
 import { DocumentsService } from 'src/documents/documents.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { CreateDocumentDto } from 'src/documents/dto/input/create-document.dto';
 import { UpdateDocumentTitleDto } from 'src/documents/dto/input/update-document-title.dto';
 import { DocumentFilterDto } from 'src/documents/dto/input/document-filter.dto';
 
@@ -44,13 +43,26 @@ describe('DocumentsController', () => {
   // create
   // -------------------------------------------------------------------------
   describe('create', () => {
-    it('calls service.create with CreateDocumentDto', async () => {
-      const dto: CreateDocumentDto = {} as any;
+    it('calls service.create with the first incoming file from request', async () => {
+      const mockFile = { buffer: Buffer.from('test'), mimetype: 'application/pdf', originalname: 'test.pdf' } as any;
+      const request = { incomingFiles: [mockFile] } as any;
       serviceMock.create.mockReturnValue('Mocked response' as any);
 
-      const result = await controller.create(dto);
+      const result = await controller.create(request, 'debug-user-id');
 
-      expect(serviceMock.create).toHaveBeenCalledWith(dto);
+      expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, undefined);
+      expect(result).toBe('Mocked response');
+    });
+
+    it('calls service.create with documentId when provided', async () => {
+      const mockFile = { buffer: Buffer.from('test'), mimetype: 'application/pdf', originalname: 'test.pdf' } as any;
+      const request = { incomingFiles: [mockFile] } as any;
+      const docId = 'doc-123';
+      serviceMock.create.mockReturnValue('Mocked response' as any);
+
+      const result = await controller.create(request, 'debug-user-id', docId);
+
+      expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, docId);
       expect(result).toBe('Mocked response');
     });
   });
