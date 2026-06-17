@@ -1,6 +1,5 @@
 import { StorageFolderName } from './../shared/constants';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { CreateDocumentDto } from './dto/input/create-document.dto';
 import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
@@ -11,17 +10,20 @@ import { DocumentEntity } from './entities/document.entity';
 import { and, count, eq } from 'drizzle-orm';
 import * as schema from 'src/drizzle/schema';
 import { FindOneWithVersionsResponseData } from './dto/output/find-one-with-versions-response.dto';
+import { ParserFactory } from './parsers/parser.factory';
 
 @Injectable()
 export class DocumentsService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly storage: StorageService,
+    private readonly parserFactory: ParserFactory,
   ) {}
   private logger = new Logger(DocumentsService.name);
-  create(createDocumentDto: CreateDocumentDto) {
+  create(dto: any) {
     //todo: storage name should be documentId/version/fileName
-    return 'This action adds a new document';
+    const mimeType = this.resolveMimeType(dto.mimetype, dto.originalname);
+    return this.extractContent(dto.buffer, mimeType);
   }
 
   async findAll(
@@ -164,5 +166,21 @@ todo: method updateContent which allows to replace the content of a document wit
       .where(eq(schema.documentVersions.id, targetVersion.id));
 
     await this.storage.deleteFile(StorageFolderName.DOCUMENTS, targetVersion.storageKey);
+  }
+
+  private async extractContent(fileBuffer: Buffer, mimeType: string): Promise<string> {
+    const parser = this.parserFactory.getParser(mimeType);
+    return parser.parse(fileBuffer);
+  }
+
+  private resolveMimeType(mimetype: string, filename: string): string {
+    const cleanMime = mimetype?.toLowerCase().trim();
+    if (cleanMime === 'application/pdf' || cleanMime === 'text/markdown') {
+      return cleanMime;
+    }
+    const ext = filename?.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') return 'application/pdf';
+    if (ext === 'md' || ext === 'markdown') return 'text/markdown';
+    return mimetype;
   }
 }
