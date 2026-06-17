@@ -31,7 +31,6 @@ import { DOCUMENTS_SWAGGER_TAG } from 'src/swagger.config';
 import { FindOneWithVersionsResponseDto } from './dto/output/find-one-with-versions-response.dto';
 import { FastifyFilesInterceptor } from 'src/shared/storage/interceptors/fastify-file.interceptor';
 import { FastifyRequest } from 'fastify';
-import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('documents')
 @ApiTags(DOCUMENTS_SWAGGER_TAG)
@@ -39,13 +38,17 @@ import { Public } from 'src/auth/decorators/public.decorator';
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
-  @Post('test')
-  @Public()
+  @Post(':documentId')
+  @Protected()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(new FastifyFilesInterceptor('file'))
-  create(@Req() request: FastifyRequest) {
+  create(
+    @Req() request: FastifyRequest,
+    @CurrentUser('id') userId: string,
+    @Param('documentId') documentId?: string,
+  ) {
     const files = (request as any).incomingFiles;
-    return this.documentsService.create(files[0]);
+    return this.documentsService.create(userId, files[0], documentId);
   }
 
   @Get('collection')

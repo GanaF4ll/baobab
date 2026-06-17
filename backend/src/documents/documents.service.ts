@@ -4,13 +4,15 @@ import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { StorageService } from 'src/shared/storage/storage.service';
-import { DocumentFilterDto } from './dto/input/document-filter.dto';
-import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
 import { DocumentEntity } from './entities/document.entity';
 import { and, count, eq } from 'drizzle-orm';
 import * as schema from 'src/drizzle/schema';
 import { FindOneWithVersionsResponseData } from './dto/output/find-one-with-versions-response.dto';
 import { ParserFactory } from './parsers/parser.factory';
+import { ChunkerService } from './chunking/chunker.service';
+import { CreateFileDto } from 'src/shared/storage/dto/create-file.dto';
+import { DocumentFilterDto } from './dto/input/document-filter.dto';
+import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
 
 @Injectable()
 export class DocumentsService {
@@ -18,12 +20,104 @@ export class DocumentsService {
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly storage: StorageService,
     private readonly parserFactory: ParserFactory,
+    private readonly chunkerService: ChunkerService,
   ) {}
+
   private logger = new Logger(DocumentsService.name);
-  create(dto: any) {
+
+  async store(dto: CreateFileDto) {
     //todo: storage name should be documentId/version/fileName
     const mimeType = this.resolveMimeType(dto.mimetype, dto.originalname);
-    return this.extractContent(dto.buffer, mimeType);
+    const text = await this.extractContent(dto.buffer, mimeType);
+    const chunks = this.chunkerService.chunkText(text);
+
+    // TODO: implement chunk insertion in the database
+    // for (const chunk of chunks) {
+    //   await this.db.insert(...)
+    // }
+
+    return chunks;
+  }
+
+  async create(userId: string, file: CreateFileDto, documentId?: string) {
+    let newVersionNumber = 1;
+
+    if (documentId) {
+      const existingDoc = await this.db.query.documents.findFirst({
+        where: (documents, { eq, and }) =>
+          and(eq(documents.id, documentId), eq(documents.userId, userId)),
+        columns: {
+          currentVersion: true,
+          id: true,
+        },
+      });
+
+      if (!existingDoc) {
+        this.logger.error(`error finding document [${documentId}] for user [${userId}]`);
+        throw new NotFoundException('Document not found');
+      }
+
+      newVersionNumber = existingDoc.currentVersion + 1;
+
+      this.logger.log(
+        `Document [${existingDoc.id}] found, new version [${newVersionNumber}] will be created`,
+      );
+
+      //? if the document already exist we create a new version
+      const fileName = `${documentId}/${newVersionNumber}/${file.originalname}`;
+      const storageKey = await this.storage.upload(
+        StorageFolderName.DOCUMENTS,
+        fileName,
+        file.buffer,
+      );
+
+      const [newDocVersion] = await this.db
+        .insert(schema.documentVersions)
+        .values({
+          documentId: existingDoc.id,
+          versionNumber: newVersionNumber,
+          storageKey,
+        })
+        .returning();
+
+      return newDocVersion;
+    }
+
+    //? if the document does not exist yet we create the new doc and its first version
+    this.logger.log('No existing document found, creating new document and its first version');
+
+    const resolvedMimeType = this.resolveMimeType(
+      file.mimetype,
+      file.originalname,
+    ) as (typeof schema.mimeTypeEnum.enumValues)[number];
+
+    const [newDoc] = await this.db
+      .insert(schema.documents)
+      .values({
+        title: file.originalname,
+        currentVersion: newVersionNumber,
+        mimeType: resolvedMimeType,
+        userId,
+      })
+      .returning();
+
+    const fileName = `${newDoc.id}/${newVersionNumber}/${file.originalname}`;
+    const storageKey = await this.storage.upload(
+      StorageFolderName.DOCUMENTS,
+      fileName,
+      file.buffer,
+    );
+
+    await this.db
+      .insert(schema.documentVersions)
+      .values({
+        documentId: newDoc.id,
+        versionNumber: newVersionNumber,
+        storageKey,
+      })
+      .returning();
+
+    return newDoc;
   }
 
   async findAll(
