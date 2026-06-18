@@ -6,10 +6,11 @@ import { ParserFactory } from './parsers/parser.factory';
 import { PdfParser } from './parsers/pdf.parser';
 import { MarkdownParser } from './parsers/markdown.parser';
 import { ChunkerService } from './chunking/chunker.service';
+import { OllamaModule } from 'src/ollama/ollama.module';
 
 @Module({
   controllers: [DocumentsController],
   providers: [DocumentsService, ParserFactory, PdfParser, MarkdownParser, ChunkerService],
-  imports: [StorageModule],
+  imports: [StorageModule, OllamaModule],
 })
 export class DocumentsModule {}
