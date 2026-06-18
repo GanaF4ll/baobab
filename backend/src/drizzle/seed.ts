@@ -85,22 +85,29 @@ async function seed() {
           userId: user.id,
           title: DOCUMENT_TITLES[i],
           mimeType: MIME_TYPES[i],
-          currentVersion: 1,
+          currentVersion: 3,
         })
         .returning();
 
       createdDocuments.push(doc);
 
-      // Créer une version pour le document
-      await db.insert(schema.documentVersions).values({
-        documentId: doc.id,
-        versionNumber: 1,
-        storageKey: `uploads/${user.id}/${doc.id}/v1`,
-        changeSummary: 'Version initiale',
-      });
+      // Créer 3 versions pour le document
+      const changeSummaries = [
+        'Version initiale',
+        'Correction des fautes et relecture',
+        'Ajout de la conclusion et finalisation',
+      ];
+      for (let v = 1; v <= 3; v++) {
+        await db.insert(schema.documentVersions).values({
+          documentId: doc.id,
+          versionNumber: v,
+          storageKey: `uploads/${user.id}/${doc.id}/v${v}`,
+          changeSummary: changeSummaries[v - 1],
+        });
+      }
     }
 
-    console.log(`    📄 5 documents créés pour ${user.email}`);
+    console.log(`    📄 5 documents créés (avec 3 versions chacun) pour ${user.email}`);
 
     // 3. Créer 5 conversations (liées chacune à un document différent)
     for (let i = 0; i < 5; i++) {
@@ -127,7 +134,7 @@ async function seed() {
 
   console.log('\n✨ Seed terminé avec succès !');
   console.log('   → 5 utilisateurs');
-  console.log('   → 5 documents par utilisateur (+ 1 version chacun)');
+  console.log('   → 5 documents par utilisateur (+ 3 versions chacun)');
   console.log('   → 5 conversations par utilisateur (+ 1 message chacune)');
 
   await pool.end();
