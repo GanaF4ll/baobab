@@ -6,6 +6,8 @@ import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { cosineDistance, inArray } from 'drizzle-orm';
 import { map } from 'rxjs';
 import { getSystemInstructions } from './system-instructions';
+import { MessageContent } from './dto/input/ask-llm.dto';
+import { SimilarChunkResponseDto } from './dto/output/similar-chunk-response.dto';
 
 @Injectable()
 export class RagService {
@@ -39,7 +41,11 @@ export class RagService {
    * @param {number} [topK=4] - The number of most relevant chunks to retrieve
    * @returns {Promise<any[]>} Array of the most similar text chunks
    */
-  async searchSimilarChunks(question: string, documentIds: string[], topK = 4) {
+  async searchSimilarChunks(
+    question: string,
+    documentIds: string[],
+    topK = 4,
+  ): Promise<SimilarChunkResponseDto[]> {
     //* Edge case: Handle empty array to prevent SQL syntax errors or unexpected database scans
     if (!documentIds || documentIds.length === 0) {
       this.logger.warn('No document IDs provided for multi-document vector search.');
@@ -75,7 +81,7 @@ export class RagService {
    * @param {any[]} contextChunks - Chunks retrieved from pgvector
    * @param {any[]} history - Previous messages (role: user/assistant)
    */
-  async generateResponseStream(question: string, contextChunks: any[], history: any[]) {
+  async generateResponseStream(question: string, contextChunks: any[], history: MessageContent[]) {
     //? Construct the context string from retrieved chunks
     const contextText = contextChunks
       .map((c) => `[Source: Chunk ${c.chunkIndex} of Doc ${c.documentId}]\n${c.content}`)

@@ -3,6 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { RAG_SWAGGER_TAG } from 'src/swagger.config';
 import { RagService } from './rag.service';
 import { FastifyReply } from 'fastify';
+import { AskLlmDto } from './dto/input/ask-llm.dto';
 
 @Controller('rag')
 @ApiTags(RAG_SWAGGER_TAG)
@@ -10,10 +11,7 @@ export class RagController {
   constructor(private readonly ragService: RagService) {}
 
   @Post('ask')
-  async ask(
-    @Body() askDto: { question: string; documentIds: string[]; history: any[] },
-    @Res() res: FastifyReply,
-  ) {
+  async ask(@Body() askDto: AskLlmDto, @Res() res: FastifyReply) {
     //? simulate SSE / Streaming behaviour
     res.raw.setHeader('Content-Type', 'text/event-stream');
     res.raw.setHeader('Cache-Control', 'no-cache');
