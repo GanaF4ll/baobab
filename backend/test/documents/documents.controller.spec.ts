@@ -4,6 +4,7 @@ import { DocumentsService } from 'src/documents/documents.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { UpdateDocumentTitleDto } from 'src/documents/dto/input/update-document-title.dto';
 import { DocumentFilterDto } from 'src/documents/dto/input/document-filter.dto';
+import { DeleteVersionDto } from 'src/documents/dto/input/delete-version.dto';
 
 describe('DocumentsController', () => {
   let controller: DocumentsController;
@@ -125,15 +126,17 @@ describe('DocumentsController', () => {
   // removeVersion
   // -------------------------------------------------------------------------
   describe('removeVersion', () => {
-    it('calls service.removeVersion with id, userId and parsed numeric version number', async () => {
-      const id = 'doc-123';
+    it('calls service.removeVersion with documentId, userId and versionId from Dto', async () => {
       const userId = 'user-123';
-      const versionNumberString = '2';
+      const dto: DeleteVersionDto = {
+        id: 'version-123',
+        documentId: 'doc-123',
+      };
       serviceMock.removeVersion.mockResolvedValue(undefined);
 
-      await controller.removeVersion(id, versionNumberString, userId);
+      await controller.removeVersion(dto, userId);
 
-      expect(serviceMock.removeVersion).toHaveBeenCalledWith(id, userId, 2);
+      expect(serviceMock.removeVersion).toHaveBeenCalledWith(dto.documentId, userId, dto.id);
     });
   });
 });

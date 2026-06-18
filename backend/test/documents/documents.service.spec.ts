@@ -341,7 +341,7 @@ describe('DocumentsService', () => {
       const deleteWhereMock = jest.fn().mockResolvedValue([]);
       dbMock.delete.mockReturnValue({ where: deleteWhereMock });
 
-      await service.removeVersion(docId, userId, 2);
+      await service.removeVersion(docId, userId, 'v2-id');
 
       expect(dbMock.delete).toHaveBeenCalledWith(schema.documentVersions);
       expect(deleteWhereMock).toHaveBeenCalled();
@@ -354,7 +354,7 @@ describe('DocumentsService', () => {
     it('throws NotFoundException if the document does not exist', async () => {
       dbMock.query.documents.findFirst.mockResolvedValue(null);
 
-      await expect(service.removeVersion(docId, userId, 1)).rejects.toThrow(
+      await expect(service.removeVersion(docId, userId, 'v1-id')).rejects.toThrow(
         new NotFoundException('Document not found'),
       );
     });
@@ -366,7 +366,7 @@ describe('DocumentsService', () => {
       };
       dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
 
-      await expect(service.removeVersion(docId, userId, 99)).rejects.toThrow(
+      await expect(service.removeVersion(docId, userId, 'non-existent-version-id')).rejects.toThrow(
         new NotFoundException('Version not found'),
       );
     });

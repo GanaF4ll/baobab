@@ -198,23 +198,23 @@ todo: method updateContent which allows to replace the content of a document wit
    * @description removes a document version.
    * @param id document id
    * @param userId user id
-   * @param versionNumber version number to remove
+   * @param versionId version id to remove
    */
-  async removeVersion(id: string, userId: string, versionNumber: number): Promise<void> {
+  async removeVersion(id: string, userId: string, versionId: string): Promise<void> {
     const existingDoc = await this.findOneWithVersions(id, userId);
 
-    const targetVersion = existingDoc.versions.find((v) => v.versionNumber === versionNumber);
+    const targetVersion = existingDoc.versions.find((v) => v.id === versionId);
 
     if (!targetVersion) {
-      this.logger.error(
-        `error finding version ${versionNumber} for document ${id} and user ${userId}`,
-      );
+      this.logger.error(`error finding version ${versionId} for document ${id} and user ${userId}`);
       throw new NotFoundException('Version not found');
     }
 
     await this.db
       .delete(schema.documentVersions)
       .where(eq(schema.documentVersions.id, targetVersion.id));
+
+    this.logger.log(`Version [${targetVersion.versionNumber}] deleted for the document [${id}]`);
 
     await this.storage.deleteFile(StorageFolderName.DOCUMENTS, targetVersion.storageKey);
   }

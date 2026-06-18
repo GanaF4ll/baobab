@@ -52,10 +52,10 @@
 
 ## Phase 5 — Backend : versionning de documents
 
-- [ ] Implémenter l'upload d'une nouvelle version d'un document existant
-- [ ] Créer un snapshot du contenu dans `document_versions` à chaque upload
-- [ ] Implémenter la route `GET /documents/:id/versions` (liste des versions)
-- [ ] Implémenter la route `GET /documents/:id/versions/:versionId` (consultation d'une version)
+- [x] Implémenter l'upload d'une nouvelle version d'un document existant
+- [x] Créer un snapshot du contenu dans `document_versions` à chaque upload
+- [x] Implémenter la route `GET /documents/:id/versions` (liste des versions)
+- [x] Implémenter la route `GET /documents/:id/versions/:versionId` (consultation d'une version)
 - [ ] Implémenter la restauration d'une version antérieure (re-découpage + re-embedding)
 
 ---
