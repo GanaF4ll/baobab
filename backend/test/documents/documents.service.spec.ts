@@ -7,6 +7,7 @@ import * as schema from 'src/drizzle/schema';
 import { StorageFolderName, OrderFilter } from 'src/shared/constants';
 import { ParserFactory } from 'src/documents/parsers/parser.factory';
 import { ChunkerService } from 'src/documents/chunking/chunker.service';
+import { OllamaService } from 'src/ollama/ollama.service';
 
 describe('DocumentsService', () => {
   let service: DocumentsService;
@@ -14,6 +15,7 @@ describe('DocumentsService', () => {
   let storageServiceMock: jest.Mocked<StorageService>;
   let parserFactoryMock: any;
   let chunkerServiceMock: any;
+  let ollamaServiceMock: any;
 
   beforeEach(async () => {
     // Re-create mocks for each test to avoid pollution
@@ -45,6 +47,10 @@ describe('DocumentsService', () => {
       chunkText: jest.fn().mockReturnValue([{ chunkIndex: 0, content: 'Extracted Content' }]),
     };
 
+    ollamaServiceMock = {
+      generateEmbeddings: jest.fn().mockResolvedValue([[0.1, 0.2, 0.3]]),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DocumentsService,
@@ -63,6 +69,10 @@ describe('DocumentsService', () => {
         {
           provide: ChunkerService,
           useValue: chunkerServiceMock,
+        },
+        {
+          provide: OllamaService,
+          useValue: ollamaServiceMock,
         },
       ],
     }).compile();
@@ -385,6 +395,11 @@ describe('DocumentsService', () => {
         { chunkIndex: 1, content: 'Chunk 2' },
       ]);
 
+      ollamaServiceMock.generateEmbeddings.mockResolvedValue([
+        [0.1, 0.2],
+        [0.3, 0.4],
+      ]);
+
       const valuesMock = jest.fn().mockResolvedValue({});
       dbMock.insert = jest.fn().mockReturnValue({ values: valuesMock });
 
@@ -393,6 +408,7 @@ describe('DocumentsService', () => {
       expect(parserFactoryMock.getParser).toHaveBeenCalledWith('application/pdf');
       expect(mockParser.parse).toHaveBeenCalledWith(mockFile.buffer);
       expect(chunkerServiceMock.chunkText).toHaveBeenCalledWith('Extracted Content');
+      expect(ollamaServiceMock.generateEmbeddings).toHaveBeenCalledWith(['Chunk 1', 'Chunk 2']);
 
       expect(dbMock.insert).toHaveBeenCalledTimes(1);
       expect(dbMock.insert).toHaveBeenNthCalledWith(1, schema.chunks);
@@ -404,12 +420,14 @@ describe('DocumentsService', () => {
           versionId: versionId,
           chunkIndex: 0,
           content: 'Chunk 1',
+          embedding: [0.1, 0.2],
         },
         {
           documentId: docId,
           versionId: versionId,
           chunkIndex: 1,
           content: 'Chunk 2',
+          embedding: [0.3, 0.4],
         },
       ]);
     });
