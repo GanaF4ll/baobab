@@ -14,6 +14,7 @@ import { CreateFileDto } from 'src/shared/storage/dto/create-file.dto';
 import { DocumentFilterDto } from './dto/input/document-filter.dto';
 import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
 import { DocumentVersionEntity } from './entities/document-version.entity';
+import { OllamaService } from 'src/ollama/ollama.service';
 
 @Injectable()
 export class DocumentsService {
@@ -22,6 +23,7 @@ export class DocumentsService {
     private readonly storage: StorageService,
     private readonly parserFactory: ParserFactory,
     private readonly chunkerService: ChunkerService,
+    private readonly ollamaService: OllamaService,
   ) {}
 
   private logger = new Logger(DocumentsService.name);
@@ -311,21 +313,27 @@ todo: method updateContent which allows to replace the content of a document wit
   ): Promise<void> {
     const mimeType = this.resolveMimeType(file.mimetype, file.originalname);
     const text = await this.extractContent(file.buffer, mimeType);
+
     const chunks = this.chunkerService.chunkText(text);
 
     if (chunks.length === 0) return;
 
-    const valuesToInsert = chunks.map((chunk) => ({
+    const textsToEmbed: string[] = chunks.map((chunk) => chunk.content);
+    const embeddings: number[][] = await this.ollamaService.generateEmbeddings(textsToEmbed);
+
+    const valuesToInsert = chunks.map((chunk, index) => ({
       documentId,
       versionId,
       chunkIndex: chunk.chunkIndex,
       content: chunk.content,
+
+      embedding: embeddings[index],
     }));
 
     await this.db.insert(schema.chunks).values(valuesToInsert);
 
     this.logger.debug(
-      `chunks stored for document [${documentId}] and version [${versionId}], ${chunks.length} chunks stored`,
+      `Chunks et vecteurs stockés pour le document [${documentId}], ${chunks.length} chunks insérés.`,
     );
   }
 }

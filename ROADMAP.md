@@ -44,9 +44,9 @@
 - [x] Implémenter les routes CRUD (`GET /documents`, `GET /documents/:id`, `DELETE /documents/:id`)
 - [x] Implémenter le parsing du contenu (PDF → `pdf-parse`, Markdown → texte brut)
 - [x] Implémenter le découpage en chunks (taille fixe avec overlap)
-- [ ] Créer le `OllamaModule` (client HTTP vers Ollama)
-- [ ] Implémenter la génération d'embeddings via `nomic-embed-text` pour chaque chunk
-- [ ] Stocker les chunks et leurs vecteurs dans PostgreSQL
+- [x] Créer le `OllamaModule` (client HTTP vers Ollama)
+- [x] Implémenter la génération d'embeddings via `nomic-embed-text` pour chaque chunk
+- [x] Stocker les chunks et leurs vecteurs dans PostgreSQL
 
 ---
 

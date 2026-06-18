@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { DocumentsModule } from './documents/documents.module';
 import { StorageModule } from './shared/storage/storage.module';
+import { OllamaModule } from './ollama/ollama.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { StorageModule } from './shared/storage/storage.module';
     ConfigModule.forRoot({ isGlobal: true }),
     DocumentsModule,
     StorageModule,
+    OllamaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
