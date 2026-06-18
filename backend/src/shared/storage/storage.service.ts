@@ -47,7 +47,7 @@ export class StorageService implements OnModuleInit {
   }
 
   private get publicUrl(): string {
-    return this.configService.getOrThrow('MINIO_ENDPOINT');
+    return this.configService.getOrThrow('MINIO_EXTERNAL_ENDPOINT');
   }
 
   private get bucket(): string {

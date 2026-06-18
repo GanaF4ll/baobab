@@ -108,7 +108,7 @@ describe('DocumentsService', () => {
         'new-doc-id/1/test.pdf',
         mockFile.buffer,
       );
-      expect(result).toEqual(mockDoc);
+      expect(result).toEqual(mockVersion);
     });
 
     it('successfully adds a new version to an existing document if documentId is provided', async () => {
