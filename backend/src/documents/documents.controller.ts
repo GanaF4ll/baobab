@@ -10,6 +10,8 @@ import {
   UseGuards,
   UseInterceptors,
   Req,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
@@ -21,6 +23,7 @@ import {
   ApiBadRequestResponse,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiTags,
@@ -33,6 +36,7 @@ import { FindOneWithVersionsResponseDto } from './dto/output/find-one-with-versi
 import { FastifyFilesInterceptor } from 'src/shared/storage/interceptors/fastify-file.interceptor';
 import { FastifyRequest } from 'fastify';
 import { DocumentVersionResponseDto } from './dto/output/document-version-response.dto';
+import { DeleteVersionDto } from './dto/input/delete-version.dto';
 
 @Controller('documents')
 @ApiTags(DOCUMENTS_SWAGGER_TAG)
@@ -99,17 +103,18 @@ export class DocumentsController {
     return this.documentsService.updateTitle(id, userId, dto);
   }
 
-  @Delete(':id/:versionNumber')
+  @Delete('version')
   @Protected()
   @ApiOperation({ summary: 'remove a document version' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Document not found' })
   @ApiNotFoundResponse({ description: 'Version not found' })
+  @ApiNoContentResponse({ description: 'Document version deleted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
   async removeVersion(
-    @Param('id') id: string,
-    @Param('versionNumber') versionNumber: string,
+    @Body() dto: DeleteVersionDto,
     @CurrentUser('id') userId: string,
-  ) {
-    await this.documentsService.removeVersion(id, userId, +versionNumber);
+  ): Promise<void> {
+    await this.documentsService.removeVersion(dto.documentId, userId, dto.id);
   }
 }
