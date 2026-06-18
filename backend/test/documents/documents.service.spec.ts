@@ -34,12 +34,15 @@ describe('DocumentsService', () => {
       deleteFile: jest.fn(),
     } as any;
 
+    const mockParser = {
+      parse: jest.fn().mockResolvedValue('Extracted Content'),
+    };
     parserFactoryMock = {
-      getParser: jest.fn(),
+      getParser: jest.fn().mockReturnValue(mockParser),
     };
 
     chunkerServiceMock = {
-      chunkText: jest.fn(),
+      chunkText: jest.fn().mockReturnValue([{ chunkIndex: 0, content: 'Extracted Content' }]),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -102,7 +105,8 @@ describe('DocumentsService', () => {
 
       const result = await service.create(userId, mockFile);
 
-      expect(dbMock.insert).toHaveBeenCalledTimes(2);
+      // Now insert is also called for chunks (1 chunk returned by default mock)
+      expect(dbMock.insert).toHaveBeenCalledTimes(3);
       expect(storageServiceMock.upload).toHaveBeenCalledWith(
         StorageFolderName.DOCUMENTS,
         'new-doc-id/1/test.pdf',
@@ -132,7 +136,8 @@ describe('DocumentsService', () => {
       const result = await service.create(userId, mockFile, docId);
 
       expect(dbMock.query.documents.findFirst).toHaveBeenCalled();
-      expect(dbMock.insert).toHaveBeenCalledTimes(1);
+      // Now insert is also called for chunks (1 chunk returned by default mock)
+      expect(dbMock.insert).toHaveBeenCalledTimes(2);
       expect(storageServiceMock.upload).toHaveBeenCalledWith(
         StorageFolderName.DOCUMENTS,
         'doc-123/2/test.pdf',
@@ -354,6 +359,59 @@ describe('DocumentsService', () => {
       await expect(service.removeVersion(docId, userId, 99)).rejects.toThrow(
         new NotFoundException('Version not found'),
       );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // storeChunks
+  // -------------------------------------------------------------------------
+  describe('storeChunks', () => {
+    const mockFile = {
+      buffer: Buffer.from('chunk test'),
+      mimetype: 'application/pdf',
+      originalname: 'test.pdf',
+    };
+    const docId = 'doc-123';
+    const versionId = 'version-123';
+
+    it('should extract content, chunk it, and insert each chunk into the database', async () => {
+      const mockParser = {
+        parse: jest.fn().mockResolvedValue('Extracted Content'),
+      };
+      parserFactoryMock.getParser.mockReturnValue(mockParser);
+
+      chunkerServiceMock.chunkText.mockReturnValue([
+        { chunkIndex: 0, content: 'Chunk 1' },
+        { chunkIndex: 1, content: 'Chunk 2' },
+      ]);
+
+      const valuesMock = jest.fn().mockResolvedValue({});
+      dbMock.insert = jest.fn().mockReturnValue({ values: valuesMock });
+
+      await (service as any).storeChunks(mockFile, docId, versionId);
+
+      expect(parserFactoryMock.getParser).toHaveBeenCalledWith('application/pdf');
+      expect(mockParser.parse).toHaveBeenCalledWith(mockFile.buffer);
+      expect(chunkerServiceMock.chunkText).toHaveBeenCalledWith('Extracted Content');
+
+      expect(dbMock.insert).toHaveBeenCalledTimes(1);
+      expect(dbMock.insert).toHaveBeenNthCalledWith(1, schema.chunks);
+
+      expect(valuesMock).toHaveBeenCalledTimes(1);
+      expect(valuesMock).toHaveBeenNthCalledWith(1, [
+        {
+          documentId: docId,
+          versionId: versionId,
+          chunkIndex: 0,
+          content: 'Chunk 1',
+        },
+        {
+          documentId: docId,
+          versionId: versionId,
+          chunkIndex: 1,
+          content: 'Chunk 2',
+        },
+      ]);
     });
   });
 });

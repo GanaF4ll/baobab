@@ -26,20 +26,6 @@ export class DocumentsService {
 
   private logger = new Logger(DocumentsService.name);
 
-  async store(dto: CreateFileDto) {
-    //todo: storage name should be documentId/version/fileName
-    const mimeType = this.resolveMimeType(dto.mimetype, dto.originalname);
-    const text = await this.extractContent(dto.buffer, mimeType);
-    const chunks = this.chunkerService.chunkText(text);
-
-    // TODO: implement chunk insertion in the database
-    // for (const chunk of chunks) {
-    //   await this.db.insert(...)
-    // }
-
-    return chunks;
-  }
-
   async create(
     userId: string,
     file: CreateFileDto,
@@ -83,6 +69,8 @@ export class DocumentsService {
         storageKey,
       })
       .returning();
+
+    await this.storeChunks(file, newDoc.id, newDocVersion.id);
 
     return newDocVersion;
   }
@@ -229,22 +217,6 @@ todo: method updateContent which allows to replace the content of a document wit
     await this.storage.deleteFile(StorageFolderName.DOCUMENTS, targetVersion.storageKey);
   }
 
-  private async extractContent(fileBuffer: Buffer, mimeType: string): Promise<string> {
-    const parser = this.parserFactory.getParser(mimeType);
-    return parser.parse(fileBuffer);
-  }
-
-  private resolveMimeType(mimetype: string, filename: string): string {
-    const cleanMime = mimetype?.toLowerCase().trim();
-    if (cleanMime === 'application/pdf' || cleanMime === 'text/markdown') {
-      return cleanMime;
-    }
-    const ext = filename?.split('.').pop()?.toLowerCase();
-    if (ext === 'pdf') return 'application/pdf';
-    if (ext === 'md' || ext === 'markdown') return 'text/markdown';
-    return mimetype;
-  }
-
   /**
    * @description Handles the creation of a new version for an existing document.
    * @param documentId document id
@@ -293,6 +265,67 @@ todo: method updateContent which allows to replace the content of a document wit
       })
       .returning();
 
+    await this.storeChunks(file, documentId, newDocVersion.id);
+
     return newDocVersion;
+  }
+
+  /**
+   * @description extract the content of a file into a string
+   * @param fileBuffer
+   * @param mimeType
+   * @returns
+   */
+  private async extractContent(fileBuffer: Buffer, mimeType: string): Promise<string> {
+    const parser = this.parserFactory.getParser(mimeType);
+    return parser.parse(fileBuffer);
+  }
+
+  /**
+   * @description resolves the mime type of a file based on its mimetype and filename
+   * @param mimetype
+   * @param filename
+   * @returns
+   */
+  private resolveMimeType(mimetype: string, filename: string): string {
+    const cleanMime = mimetype?.toLowerCase().trim();
+    if (cleanMime === 'application/pdf' || cleanMime === 'text/markdown') {
+      return cleanMime;
+    }
+    const ext = filename?.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') return 'application/pdf';
+    if (ext === 'md' || ext === 'markdown') return 'text/markdown';
+    return mimetype;
+  }
+
+  /**
+   * @description store chunks of a document in the database
+   * @param file file to store chunks from
+   * @param documentId document id
+   * @param versionId version id
+   */
+  private async storeChunks(
+    file: CreateFileDto,
+    documentId: string,
+    versionId: string,
+  ): Promise<void> {
+    const mimeType = this.resolveMimeType(file.mimetype, file.originalname);
+    const text = await this.extractContent(file.buffer, mimeType);
+    const chunks = this.chunkerService.chunkText(text);
+
+    if (chunks.length === 0) return;
+
+    const valuesToInsert = chunks.map((chunk) => ({
+      documentId,
+      versionId,
+      chunkIndex: chunk.chunkIndex,
+      content: chunk.content,
+    }));
+
+    await this.db.insert(schema.chunks).values(valuesToInsert);
+
+    this.logger.debug(
+      `chunks stored for document [${documentId}] and version [${versionId}], ${chunks.length} chunks stored`,
+    );
   }
 }

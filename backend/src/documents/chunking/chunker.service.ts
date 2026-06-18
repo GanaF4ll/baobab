@@ -54,7 +54,6 @@ export class ChunkerService {
       startIndex += this.chunkSize - this.overlap;
     }
 
-    console.log('chunks', chunks);
     return chunks;
   }
 }
