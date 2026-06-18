@@ -13,6 +13,7 @@ import { ChunkerService } from './chunking/chunker.service';
 import { CreateFileDto } from 'src/shared/storage/dto/create-file.dto';
 import { DocumentFilterDto } from './dto/input/document-filter.dto';
 import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
+import { DocumentVersionEntity } from './entities/document-version.entity';
 
 @Injectable()
 export class DocumentsService {
@@ -39,48 +40,14 @@ export class DocumentsService {
     return chunks;
   }
 
-  async create(userId: string, file: CreateFileDto, documentId?: string) {
-    let newVersionNumber = 1;
-
+  async create(
+    userId: string,
+    file: CreateFileDto,
+    documentId?: string,
+  ): Promise<DocumentVersionEntity> {
     if (documentId) {
-      const existingDoc = await this.db.query.documents.findFirst({
-        where: (documents, { eq, and }) =>
-          and(eq(documents.id, documentId), eq(documents.userId, userId)),
-        columns: {
-          currentVersion: true,
-          id: true,
-        },
-      });
-
-      if (!existingDoc) {
-        this.logger.error(`error finding document [${documentId}] for user [${userId}]`);
-        throw new NotFoundException('Document not found');
-      }
-
-      newVersionNumber = existingDoc.currentVersion + 1;
-
-      this.logger.log(
-        `Document [${existingDoc.id}] found, new version [${newVersionNumber}] will be created`,
-      );
-
       //? if the document already exist we create a new version
-      const fileName = `${documentId}/${newVersionNumber}/${file.originalname}`;
-      const storageKey = await this.storage.upload(
-        StorageFolderName.DOCUMENTS,
-        fileName,
-        file.buffer,
-      );
-
-      const [newDocVersion] = await this.db
-        .insert(schema.documentVersions)
-        .values({
-          documentId: existingDoc.id,
-          versionNumber: newVersionNumber,
-          storageKey,
-        })
-        .returning();
-
-      return newDocVersion;
+      return await this.createNewDocumentVersion(documentId, userId, file);
     }
 
     //? if the document does not exist yet we create the new doc and its first version
@@ -95,29 +62,29 @@ export class DocumentsService {
       .insert(schema.documents)
       .values({
         title: file.originalname,
-        currentVersion: newVersionNumber,
+        currentVersion: 1,
         mimeType: resolvedMimeType,
         userId,
       })
       .returning();
 
-    const fileName = `${newDoc.id}/${newVersionNumber}/${file.originalname}`;
+    const fileName = `${newDoc.id}/${newDoc.currentVersion}/${file.originalname}`;
     const storageKey = await this.storage.upload(
       StorageFolderName.DOCUMENTS,
       fileName,
       file.buffer,
     );
 
-    await this.db
+    const [newDocVersion] = await this.db
       .insert(schema.documentVersions)
       .values({
         documentId: newDoc.id,
-        versionNumber: newVersionNumber,
+        versionNumber: newDoc.currentVersion,
         storageKey,
       })
       .returning();
 
-    return newDoc;
+    return newDocVersion;
   }
 
   async findAll(
@@ -276,5 +243,56 @@ todo: method updateContent which allows to replace the content of a document wit
     if (ext === 'pdf') return 'application/pdf';
     if (ext === 'md' || ext === 'markdown') return 'text/markdown';
     return mimetype;
+  }
+
+  /**
+   * @description Handles the creation of a new version for an existing document.
+   * @param documentId document id
+   * @param userId user id
+   * @param file file to upload
+   * @returns new document version
+   */
+  private async createNewDocumentVersion(
+    documentId: string,
+    userId: string,
+    file: CreateFileDto,
+  ): Promise<DocumentVersionEntity> {
+    const existingDoc = await this.db.query.documents.findFirst({
+      where: (documents, { eq, and }) =>
+        and(eq(documents.id, documentId), eq(documents.userId, userId)),
+      columns: {
+        currentVersion: true,
+        id: true,
+      },
+    });
+
+    if (!existingDoc) {
+      this.logger.error(`error finding document [${documentId}] for user [${userId}]`);
+      throw new NotFoundException('Document not found');
+    }
+
+    const newVersionNumber = existingDoc.currentVersion + 1;
+
+    this.logger.log(
+      `Document [${existingDoc.id}] found, new version [${newVersionNumber}] will be created`,
+    );
+
+    const fileName = `${documentId}/${newVersionNumber}/${file.originalname}`;
+    const storageKey = await this.storage.upload(
+      StorageFolderName.DOCUMENTS,
+      fileName,
+      file.buffer,
+    );
+
+    const [newDocVersion] = await this.db
+      .insert(schema.documentVersions)
+      .values({
+        documentId: existingDoc.id,
+        versionNumber: newVersionNumber,
+        storageKey,
+      })
+      .returning();
+
+    return newDocVersion;
   }
 }

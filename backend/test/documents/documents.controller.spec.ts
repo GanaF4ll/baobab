@@ -51,7 +51,7 @@ describe('DocumentsController', () => {
       const result = await controller.create(request, 'debug-user-id');
 
       expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, undefined);
-      expect(result).toBe('Mocked response');
+      expect(result).toEqual({ data: 'Mocked response' });
     });
 
     it('calls service.create with documentId when provided', async () => {
@@ -63,7 +63,7 @@ describe('DocumentsController', () => {
       const result = await controller.create(request, 'debug-user-id', docId);
 
       expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, docId);
-      expect(result).toBe('Mocked response');
+      expect(result).toEqual({ data: 'Mocked response' });
     });
   });
 
