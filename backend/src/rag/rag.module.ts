@@ -1,0 +1,9 @@
+import { Module } from '@nestjs/common';
+import { RagService } from './rag.service';
+import { OllamaModule } from '../ollama/ollama.module';
+
+@Module({
+  providers: [RagService],
+  imports: [OllamaModule],
+})
+export class RagModule {}

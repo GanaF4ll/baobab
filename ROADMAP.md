@@ -62,9 +62,9 @@
 
 ## Phase 6 — Backend : pipeline RAG
 
-- [ ] Créer le module `rag/`
-- [ ] Implémenter la vectorisation de la question utilisateur (via `nomic-embed-text`)
-- [ ] Implémenter la recherche de similarité cosinus dans pgvector (top-K chunks)
+- [x] Créer le module `rag/`
+- [x] Implémenter la vectorisation de la question utilisateur (via `nomic-embed-text`)
+- [x] Implémenter la recherche de similarité cosinus dans pgvector (top-K chunks)
 - [ ] Implémenter la construction du prompt (contexte + question + historique)
 - [ ] Implémenter l'appel au LLM Ollama en mode streaming
 - [ ] Exposer la réponse en SSE (`@Sse()`) avec les sources citées

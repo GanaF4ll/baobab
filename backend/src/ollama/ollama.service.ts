@@ -49,4 +49,13 @@ export class OllamaService {
       );
     }
   }
+
+  /**
+   * @description Generates embedding for a single text chunk, like the user's prompt
+   * @param text
+   * @returns
+   */
+  async generateSingleEmbedding(text: string): Promise<number[]> {
+    return await this.generateEmbeddings([text]).then((embeddings) => embeddings[0]);
+  }
 }
