@@ -4,6 +4,8 @@ import * as schema from 'src/drizzle/schema';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { cosineDistance, inArray } from 'drizzle-orm';
+import { map } from 'rxjs';
+import { getSystemInstructions } from './system-instructions';
 
 @Injectable()
 export class RagService {
@@ -65,5 +67,36 @@ export class RagService {
       .limit(topK);
 
     return similarChunks;
+  }
+
+  /**
+   * @description Build the final prompt and stream the response
+   * @param {string} question - Current user question
+   * @param {any[]} contextChunks - Chunks retrieved from pgvector
+   * @param {any[]} history - Previous messages (role: user/assistant)
+   */
+  async generateResponseStream(question: string, contextChunks: any[], history: any[]) {
+    //? Construct the context string from retrieved chunks
+    const contextText = contextChunks
+      .map((c) => `[Source: Chunk ${c.chunkIndex} of Doc ${c.documentId}]\n${c.content}`)
+      .join('\n\n---\n\n');
+
+    //* Build the System Prompt
+    const systemInstructions = getSystemInstructions(contextText);
+
+    //* Assemble the full message list for the Chat API
+    //* Format: [System, ...History, Current Question]
+    const messages = [systemInstructions, ...history, { role: 'user', content: question }];
+
+    //* Return the observable mapped for NestJS SSE format
+    return this.ollamaService.streamChat(messages).pipe(
+      map((chunk) => ({
+        data: {
+          content: chunk.message?.content || '',
+          done: chunk.done,
+          ...(chunk.done ? { sources: contextChunks.map((c) => c.documentId) } : {}),
+        },
+      })),
+    );
   }
 }

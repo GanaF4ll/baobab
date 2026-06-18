@@ -65,9 +65,9 @@
 - [x] Créer le module `rag/`
 - [x] Implémenter la vectorisation de la question utilisateur (via `nomic-embed-text`)
 - [x] Implémenter la recherche de similarité cosinus dans pgvector (top-K chunks)
-- [ ] Implémenter la construction du prompt (contexte + question + historique)
-- [ ] Implémenter l'appel au LLM Ollama en mode streaming
-- [ ] Exposer la réponse en SSE (`@Sse()`) avec les sources citées
+- [x] Implémenter la construction du prompt (contexte + question + historique)
+- [x] Implémenter l'appel au LLM Ollama en mode streaming
+- [x] Exposer la réponse en SSE (`@Sse()`) avec les sources citées
 
 ---
 
