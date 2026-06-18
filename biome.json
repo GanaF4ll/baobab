@@ -51,10 +51,6 @@
     }
   ],
   "files": {
-    "ignore": [
-      "**/node_modules/**",
-      "**/dist/**",
-      "frontend/.angular/**"
-    ]
+    "ignore": ["**/node_modules/**", "**/dist/**", "frontend/.angular/**"]
   }
 }
