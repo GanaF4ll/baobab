@@ -9,8 +9,8 @@ export interface IChunkResult {
 
 @Injectable()
 export class ChunkerService {
-  private readonly chunkSize = 512; // tokens par chunk
-  private readonly overlap = 50; // tokens partagés entre chunks
+  private readonly chunkSize = 512; // tokens per chunk
+  private readonly overlap = 50; // tokens shared between chunks
 
   /**
    * Splits a text into fixed-size chunks with overlap between consecutive

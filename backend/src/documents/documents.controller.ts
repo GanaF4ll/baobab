@@ -37,6 +37,7 @@ import { FastifyFilesInterceptor } from 'src/shared/storage/interceptors/fastify
 import { FastifyRequest } from 'fastify';
 import { DocumentVersionResponseDto } from './dto/output/document-version-response.dto';
 import { DeleteVersionDto } from './dto/input/delete-version.dto';
+import { CreateDocumentDto } from './dto/input/create-document.dto';
 
 @Controller('documents')
 @ApiTags(DOCUMENTS_SWAGGER_TAG)
@@ -44,7 +45,7 @@ import { DeleteVersionDto } from './dto/input/delete-version.dto';
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
-  @Post(':documentId')
+  @Post('')
   @Protected()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(new FastifyFilesInterceptor('file'))
@@ -58,10 +59,10 @@ export class DocumentsController {
   async create(
     @Req() request: FastifyRequest,
     @CurrentUser('id') userId: string,
-    @Param('documentId') documentId?: string,
+    @Body() dto: CreateDocumentDto,
   ): Promise<DocumentVersionResponseDto> {
     const files = (request as any).incomingFiles;
-    const documentVersion = await this.documentsService.create(userId, files[0], documentId);
+    const documentVersion = await this.documentsService.create(userId, files[0], dto.workspaceId, dto.id);
     return { data: documentVersion };
   }
 

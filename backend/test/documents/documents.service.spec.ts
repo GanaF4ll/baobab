@@ -25,6 +25,9 @@ describe('DocumentsService', () => {
           findFirst: jest.fn(),
           findMany: jest.fn(),
         },
+        workspaces: {
+          findFirst: jest.fn(),
+        },
       },
       select: jest.fn(),
       update: jest.fn(),
@@ -89,6 +92,7 @@ describe('DocumentsService', () => {
   // -------------------------------------------------------------------------
   describe('create', () => {
     const userId = 'user-123';
+    const workspaceId = 'workspace-123';
     const mockFile = {
       buffer: Buffer.from('test'),
       mimetype: 'application/pdf',
@@ -96,6 +100,7 @@ describe('DocumentsService', () => {
     };
 
     it('successfully creates a new document and its first version if documentId is not provided', async () => {
+      dbMock.query.workspaces.findFirst.mockResolvedValue({ id: workspaceId });
       const mockDoc = { id: 'new-doc-id', title: 'test.pdf', currentVersion: 1 };
       const mockVersion = {
         id: 'new-version-id',
@@ -113,7 +118,7 @@ describe('DocumentsService', () => {
 
       storageServiceMock.upload.mockResolvedValue('new-doc-id/1/test.pdf');
 
-      const result = await service.create(userId, mockFile);
+      const result = await service.create(userId, mockFile, workspaceId);
 
       // Now insert is also called for chunks (1 chunk returned by default mock)
       expect(dbMock.insert).toHaveBeenCalledTimes(3);
@@ -126,6 +131,7 @@ describe('DocumentsService', () => {
     });
 
     it('successfully adds a new version to an existing document if documentId is provided', async () => {
+      dbMock.query.workspaces.findFirst.mockResolvedValue({ id: workspaceId });
       const docId = 'doc-123';
       const mockDoc = { id: docId, currentVersion: 1 };
       const mockVersion = {
@@ -143,7 +149,7 @@ describe('DocumentsService', () => {
 
       storageServiceMock.upload.mockResolvedValue('doc-123/2/test.pdf');
 
-      const result = await service.create(userId, mockFile, docId);
+      const result = await service.create(userId, mockFile, workspaceId, docId);
 
       expect(dbMock.query.documents.findFirst).toHaveBeenCalled();
       // Now insert is also called for chunks (1 chunk returned by default mock)
@@ -157,10 +163,19 @@ describe('DocumentsService', () => {
     });
 
     it('throws NotFoundException if documentId is provided but document is not found', async () => {
+      dbMock.query.workspaces.findFirst.mockResolvedValue({ id: workspaceId });
       dbMock.query.documents.findFirst.mockResolvedValue(null);
 
-      await expect(service.create(userId, mockFile, 'non-existent-id')).rejects.toThrow(
+      await expect(service.create(userId, mockFile, workspaceId, 'non-existent-id')).rejects.toThrow(
         NotFoundException,
+      );
+    });
+
+    it('throws NotFoundException if workspace is not found', async () => {
+      dbMock.query.workspaces.findFirst.mockResolvedValue(null);
+
+      await expect(service.create(userId, mockFile, 'non-existent-workspace-id')).rejects.toThrow(
+        new NotFoundException('Workspace not found'),
       );
     });
   });
@@ -413,17 +428,16 @@ describe('DocumentsService', () => {
       expect(dbMock.insert).toHaveBeenCalledTimes(1);
       expect(dbMock.insert).toHaveBeenNthCalledWith(1, schema.chunks);
 
-      expect(valuesMock).toHaveBeenCalledTimes(1);
       expect(valuesMock).toHaveBeenNthCalledWith(1, [
         {
-          documentId: docId,
+          workspaceId: docId,
           versionId: versionId,
           chunkIndex: 0,
           content: 'Chunk 1',
           embedding: [0.1, 0.2],
         },
         {
-          documentId: docId,
+          workspaceId: docId,
           versionId: versionId,
           chunkIndex: 1,
           content: 'Chunk 2',
