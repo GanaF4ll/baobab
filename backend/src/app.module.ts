@@ -10,6 +10,7 @@ import { StorageModule } from './shared/storage/storage.module';
 import { OllamaModule } from './ollama/ollama.module';
 import { RagModule } from './rag/rag.module';
 import { ConversationsModule } from './conversations/conversations.module';
+import { WorkspacesModule } from './workspaces/workspaces.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ConversationsModule } from './conversations/conversations.module';
     OllamaModule,
     RagModule,
     ConversationsModule,
+    WorkspacesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

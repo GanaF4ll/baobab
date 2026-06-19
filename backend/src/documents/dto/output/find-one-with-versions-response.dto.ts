@@ -14,4 +14,7 @@ export class FindOneWithVersionsResponseData extends DocumentEntity {
   versions: VersionDto[];
 }
 
-export class FindOneWithVersionsResponseDto extends ApiResponseDto<FindOneWithVersionsResponseData> {}
+export class FindOneWithVersionsResponseDto extends ApiResponseDto<FindOneWithVersionsResponseData> {
+  @ApiProperty({ type: FindOneWithVersionsResponseData })
+  declare data: FindOneWithVersionsResponseData;
+}
