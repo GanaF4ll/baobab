@@ -7,8 +7,13 @@ export const DOCUMENTS_SWAGGER_TAG = 'Documents';
 export const DOCUMENTS_SWAGGER_DESCRIPTION =
   'Endpoints for documents management for a user, including uploads, retrieval, and deletion of documents';
 
-export const RAG_SWAGGER_TAG = 'RAG';
-export const RAG_SWAGGER_DESCRIPTION = 'Endpoints for RAG (Retrieval-Augmented Generation) queries';
+export const CONVERSATIONS_SWAGGER_TAG = 'Conversations';
+export const CONVERSATIONS_SWAGGER_DESCRIPTION =
+  'Endpoints for conversations management for a user, including creation, retrieval, and deletion of conversations';
+
+export const WORKSPACES_SWAGGER_TAG = 'Workspaces';
+export const WORKSPACES_SWAGGER_DESCRIPTION =
+  'Endpoints for workspaces management for a user, including creation, retrieval, and deletion of workspaces';
 
 export const SWAGGER_OPTIONS: SwaggerCustomOptions = {
   swaggerOptions: { operationsSorter: 'method', tagsSorter: 'alpha' },
@@ -21,7 +26,8 @@ export function buildSwaggerDocument() {
     .setVersion('0.0.1')
     .addTag(AUTH_SWAGGER_TAG, AUTH_SWAGGER_DESCRIPTION)
     .addTag(DOCUMENTS_SWAGGER_TAG, DOCUMENTS_SWAGGER_DESCRIPTION)
-    .addTag(RAG_SWAGGER_TAG, RAG_SWAGGER_DESCRIPTION)
+    .addTag(CONVERSATIONS_SWAGGER_TAG, CONVERSATIONS_SWAGGER_DESCRIPTION)
+    .addTag(WORKSPACES_SWAGGER_TAG, WORKSPACES_SWAGGER_DESCRIPTION)
     .addBearerAuth(
       {
         bearerFormat: 'JWT',

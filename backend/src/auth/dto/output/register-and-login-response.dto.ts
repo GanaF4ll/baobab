@@ -20,4 +20,7 @@ export class RegisterAndLoginResponseData {
   readonly refreshToken: string;
 }
 
-export class RegisterAndLoginResponseDto extends ApiResponseDto<RegisterAndLoginResponseData> {}
+export class RegisterAndLoginResponseDto extends ApiResponseDto<RegisterAndLoginResponseData> {
+  @ApiProperty({ type: RegisterAndLoginResponseData })
+  declare data: RegisterAndLoginResponseData;
+}
