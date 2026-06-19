@@ -1,6 +1,5 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsNotEmpty, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { MessageEntity } from 'src/conversations/entities/message.entity';
 
 export class MessageContent extends PickType(MessageEntity, ['content', 'role']) {}
@@ -12,16 +11,11 @@ export class AskLlmDto {
   question: string;
 
   @ApiProperty({
-    description: 'The IDs of the documents to use',
+    description: 'The IDs of the document versions to use',
     isArray: true,
     type: 'string',
   })
   @IsNotEmpty()
   @IsUUID('all', { each: true })
-  documentIds: string[];
-
-  @ApiProperty({ description: 'The history of the conversation' })
-  @Type(() => MessageContent)
-  @ValidateNested({ each: true })
-  history: MessageContent[];
+  versionIds: string[];
 }

@@ -6,7 +6,6 @@ import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { cosineDistance, inArray } from 'drizzle-orm';
 import { map } from 'rxjs';
 import { getSystemInstructions } from './system-instructions';
-import { MessageContent } from './dto/input/ask-llm.dto';
 import { SimilarChunkResponseDto } from './dto/output/similar-chunk-response.dto';
 
 @Injectable()
@@ -43,11 +42,11 @@ export class RagService {
    */
   async searchSimilarChunks(
     question: string,
-    documentIds: string[],
+    versionIds: string[],
     topK = 4,
   ): Promise<SimilarChunkResponseDto[]> {
     //* Edge case: Handle empty array to prevent SQL syntax errors or unexpected database scans
-    if (!documentIds || documentIds.length === 0) {
+    if (!versionIds || versionIds.length === 0) {
       this.logger.warn('No document IDs provided for multi-document vector search.');
       return [];
     }
@@ -55,20 +54,20 @@ export class RagService {
     const questionVector = await this.vectorizeQuestion(question);
 
     this.logger.debug(
-      `Searching for top ${topK} similar chunks across ${documentIds.length} documents...`,
+      `Searching for top ${topK} similar chunks across ${versionIds.length} documents...`,
     );
 
     const similarChunks = await this.db
       .select({
         id: schema.chunks.id,
-        documentId: schema.chunks.documentId,
+        workspaceId: schema.chunks.workspaceId,
         content: schema.chunks.content,
         chunkIndex: schema.chunks.chunkIndex,
         //? Calculate the similarity distance score (0 = identical, 2 = completely opposite)
         distance: cosineDistance(schema.chunks.embedding, questionVector),
       })
       .from(schema.chunks)
-      .where(inArray(schema.chunks.documentId, documentIds))
+      .where(inArray(schema.chunks.versionId, versionIds))
       .orderBy(cosineDistance(schema.chunks.embedding, questionVector))
       .limit(topK);
 
@@ -79,9 +78,8 @@ export class RagService {
    * @description Build the final prompt and stream the response
    * @param {string} question - Current user question
    * @param {any[]} contextChunks - Chunks retrieved from pgvector
-   * @param {any[]} history - Previous messages (role: user/assistant)
    */
-  async generateResponseStream(question: string, contextChunks: any[], history: MessageContent[]) {
+  async generateResponseStream(question: string, contextChunks: any[]) {
     //? Construct the context string from retrieved chunks
     const contextText = contextChunks
       .map((c) => `[Source: Chunk ${c.chunkIndex} of Doc ${c.documentId}]\n${c.content}`)
@@ -92,7 +90,7 @@ export class RagService {
 
     //* Assemble the full message list for the Chat API
     //* Format: [System, ...History, Current Question]
-    const messages = [systemInstructions, ...history, { role: 'user', content: question }];
+    const messages = [systemInstructions, { role: 'user', content: question }];
 
     //* Return the observable mapped for NestJS SSE format
     return this.ollamaService.streamChat(messages).pipe(

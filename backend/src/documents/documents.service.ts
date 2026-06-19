@@ -31,8 +31,22 @@ export class DocumentsService {
   async create(
     userId: string,
     file: CreateFileDto,
+    workspaceId: string,
     documentId?: string,
   ): Promise<DocumentVersionEntity> {
+    const existingWorkspace = await this.db.query.workspaces.findFirst({
+      where: (workspaces, { eq, and }) =>
+        and(eq(workspaces.id, workspaceId), eq(workspaces.ownerId, userId)),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (!existingWorkspace) {
+      this.logger.error(`error finding workspace [${workspaceId}] for user [${userId}]`);
+      throw new NotFoundException('Workspace not found');
+    }
+
     if (documentId) {
       //? if the document already exist we create a new version
       return await this.createNewDocumentVersion(documentId, userId, file);
@@ -53,6 +67,7 @@ export class DocumentsService {
         currentVersion: 1,
         mimeType: resolvedMimeType,
         userId,
+        workspaceId,
       })
       .returning();
 
@@ -308,7 +323,7 @@ todo: method updateContent which allows to replace the content of a document wit
    */
   private async storeChunks(
     file: CreateFileDto,
-    documentId: string,
+    workspaceId: string,
     versionId: string,
   ): Promise<void> {
     const mimeType = this.resolveMimeType(file.mimetype, file.originalname);
@@ -322,7 +337,7 @@ todo: method updateContent which allows to replace the content of a document wit
     const embeddings: number[][] = await this.ollamaService.generateEmbeddings(textsToEmbed);
 
     const valuesToInsert = chunks.map((chunk, index) => ({
-      documentId,
+      workspaceId,
       versionId,
       chunkIndex: chunk.chunkIndex,
       content: chunk.content,
@@ -333,7 +348,7 @@ todo: method updateContent which allows to replace the content of a document wit
     await this.db.insert(schema.chunks).values(valuesToInsert);
 
     this.logger.debug(
-      `Chunks et vecteurs stockés pour le document [${documentId}], ${chunks.length} chunks insérés.`,
+      `Chunks et vecteurs stockés pour la version [${versionId}], ${chunks.length} chunks insérés.`,
     );
   }
 }

@@ -1,6 +1,6 @@
 export class SimilarChunkResponseDto {
   id: string;
-  documentId: string;
+  workspaceId: string;
   content: string;
   chunkIndex: number;
   distance: unknown;
