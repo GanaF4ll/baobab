@@ -67,15 +67,39 @@ async function seed() {
 
   console.log('🌱 Démarrage du seed...');
 
+  // 1. Créer les modèles LLM s'ils n'existent pas
+  const existingModel = await db.query.llmModels.findFirst();
+  if (!existingModel) {
+    const MOCK_MODELS = [
+      { name: 'llama3:8b', status: 'ready' as const, sizeBytes: 4700000000 },
+      { name: 'mistral:7b', status: 'not_downloaded' as const, sizeBytes: 4100000000 },
+    ];
+    for (const model of MOCK_MODELS) {
+      await db.insert(schema.llmModels).values(model);
+    }
+    console.log('🤖 Modèles LLM par défaut créés.');
+  }
+
   for (const mockUser of MOCK_USERS) {
-    // 1. Créer l'utilisateur
+    // 2. Créer l'utilisateur
     const [user] = await db
       .insert(schema.users)
       .values({ ...mockUser, passwordHash: await argon2.hash(mockUser.password) })
       .returning();
     console.log(`  ✅ Utilisateur créé : ${user.email}`);
 
-    // 2. Créer 5 documents pour cet utilisateur
+    // 3. Créer un workspace par défaut pour l'utilisateur
+    const [workspace] = await db
+      .insert(schema.workspaces)
+      .values({
+        name: `Workspace de ${mockUser.firstName}`,
+        description: `Espace de travail par défaut pour ${mockUser.firstName} ${mockUser.lastName}`,
+        ownerId: user.id,
+      })
+      .returning();
+    console.log(`    💼 Workspace créé : ${workspace.name}`);
+
+    // 4. Créer 5 documents pour cet utilisateur dans le workspace
     const createdDocuments: (typeof schema.documents.$inferSelect)[] = [];
 
     for (let i = 0; i < 5; i++) {
@@ -85,6 +109,7 @@ async function seed() {
           userId: user.id,
           title: DOCUMENT_TITLES[i],
           mimeType: MIME_TYPES[i],
+          workspaceId: workspace.id,
           currentVersion: 3,
         })
         .returning();
@@ -109,13 +134,13 @@ async function seed() {
 
     console.log(`    📄 5 documents créés (avec 3 versions chacun) pour ${user.email}`);
 
-    // 3. Créer 5 conversations (liées chacune à un document différent)
+    // 5. Créer 5 conversations pour cet utilisateur dans le workspace
     for (let i = 0; i < 5; i++) {
       const [conversation] = await db
         .insert(schema.conversations)
         .values({
           userId: user.id,
-          documentId: createdDocuments[i].id,
+          workspaceId: workspace.id,
           title: CONVERSATION_TITLES[i],
         })
         .returning();
@@ -133,7 +158,9 @@ async function seed() {
   }
 
   console.log('\n✨ Seed terminé avec succès !');
+  console.log('   → Modèles LLM par défaut');
   console.log('   → 5 utilisateurs');
+  console.log('   → 1 workspace par utilisateur');
   console.log('   → 5 documents par utilisateur (+ 3 versions chacun)');
   console.log('   → 5 conversations par utilisateur (+ 1 message chacune)');
 
