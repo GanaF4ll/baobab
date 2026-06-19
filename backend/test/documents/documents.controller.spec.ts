@@ -47,23 +47,27 @@ describe('DocumentsController', () => {
     it('calls service.create with the first incoming file from request', async () => {
       const mockFile = { buffer: Buffer.from('test'), mimetype: 'application/pdf', originalname: 'test.pdf' } as any;
       const request = { incomingFiles: [mockFile] } as any;
+      const workspaceId = 'workspace-123';
+      const dto = { workspaceId } as any;
       serviceMock.create.mockReturnValue('Mocked response' as any);
 
-      const result = await controller.create(request, 'debug-user-id');
+      const result = await controller.create(request, 'debug-user-id', dto);
 
-      expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, undefined);
+      expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, workspaceId, undefined);
       expect(result).toEqual({ data: 'Mocked response' });
     });
 
     it('calls service.create with documentId when provided', async () => {
       const mockFile = { buffer: Buffer.from('test'), mimetype: 'application/pdf', originalname: 'test.pdf' } as any;
       const request = { incomingFiles: [mockFile] } as any;
+      const workspaceId = 'workspace-123';
       const docId = 'doc-123';
+      const dto = { workspaceId, id: docId } as any;
       serviceMock.create.mockReturnValue('Mocked response' as any);
 
-      const result = await controller.create(request, 'debug-user-id', docId);
+      const result = await controller.create(request, 'debug-user-id', dto);
 
-      expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, docId);
+      expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, workspaceId, docId);
       expect(result).toEqual({ data: 'Mocked response' });
     });
   });

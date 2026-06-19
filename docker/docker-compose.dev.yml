@@ -5,6 +5,8 @@ services:
     restart: always
     ports:
       - '5432:5432'
+    env_file:
+      - ../.env.dev
     environment:
       POSTGRES_USER: ${DB_USER:-baobab}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-baobab}
@@ -29,6 +31,8 @@ services:
     ports:
       - '9000:9000' # API
       - '9001:9001' # Console
+    env_file:
+      - ../.env.dev
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -52,12 +56,14 @@ services:
     restart: always
     ports:
       - '11434:11434'
+    env_file:
+      - ../.env.dev
     volumes:
       - ollama-data:/root/.ollama
     environment:
       TZ: ${TZ:-Europe/Paris}
-      OLLAMA_LLM_MODEL: ${OLLAMA_LLM_MODEL:-mistral:7b}
-      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+      # OLLAMA_LLM_MODEL: ${OLLAMA_LLM_MODEL:-mistral:7b}
+      # OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
     networks:
       - baobab-network
 
