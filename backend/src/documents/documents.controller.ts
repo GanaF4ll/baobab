@@ -62,7 +62,12 @@ export class DocumentsController {
     @Body() dto: CreateDocumentDto,
   ): Promise<DocumentVersionResponseDto> {
     const files = (request as any).incomingFiles;
-    const documentVersion = await this.documentsService.create(userId, files[0], dto.workspaceId, dto.id);
+    const documentVersion = await this.documentsService.create(
+      userId,
+      files[0],
+      dto.workspaceId,
+      dto.id,
+    );
     return { data: documentVersion };
   }
 
