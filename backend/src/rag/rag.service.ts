@@ -63,6 +63,7 @@ export class RagService {
         workspaceId: schema.chunks.workspaceId,
         content: schema.chunks.content,
         chunkIndex: schema.chunks.chunkIndex,
+        versionId: schema.chunks.versionId,
         //? Calculate the similarity distance score (0 = identical, 2 = completely opposite)
         distance: cosineDistance(schema.chunks.embedding, questionVector),
       })

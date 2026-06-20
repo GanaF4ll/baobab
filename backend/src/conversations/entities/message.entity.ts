@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDateString, IsEnum, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsDateString, IsIn, IsString, IsUUID, ValidateIf } from 'class-validator';
 import { messageRoleEnum } from 'src/drizzle/schema';
 
 export class MessageEntity {
@@ -20,10 +20,10 @@ export class MessageEntity {
   @ApiProperty({
     description: 'The role of the message',
     example: 'user',
-    enum: Object.values(messageRoleEnum),
+    enum: messageRoleEnum.enumValues,
   })
-  @IsEnum(messageRoleEnum)
-  role: (typeof messageRoleEnum)[keyof typeof messageRoleEnum];
+  @IsIn(messageRoleEnum.enumValues)
+  role: (typeof messageRoleEnum.enumValues)[number];
 
   @ApiProperty({
     description: 'The content of the message',
@@ -45,7 +45,8 @@ export class MessageEntity {
     isArray: true,
     type: 'string',
   })
+  @ValidateIf((dto) => dto.role === 'assistant')
   @IsArray()
   @IsUUID('all', { each: true })
-  sources?: string[];
+  sources?: string[] | null;
 }
