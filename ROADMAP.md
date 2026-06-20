@@ -73,7 +73,7 @@
 
 ## Phase 7 — Backend : conversations
 
-- [ ] Créer le module `conversations/`
+- [x] Créer le module `conversations/`
 - [ ] Implémenter la création et la liste des conversations par document
 - [ ] Persister les messages (rôle `user` / `assistant`) avec les sources en `jsonb`
 - [ ] Intégrer l'historique des messages dans le prompt RAG

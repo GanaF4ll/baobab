@@ -42,7 +42,6 @@ export class OllamaService {
 
       const data = await response.json();
 
-      console.log('embeddings ', data.embeddings);
       return data.embeddings;
     } catch (error) {
       this.logger.error('Erreur lors de la communication avec Ollama', error);
