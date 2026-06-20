@@ -1,11 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateConversationDto } from './dto/input/create-conversation.dto';
 import { UpdateConversationDto } from './dto/input/update-conversation.dto';
+import { DrizzleDb } from 'src/drizzle/types/drizzle';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import * as schema from '../drizzle/schema';
 
 @Injectable()
 export class ConversationsService {
-  create(createConversationDto: CreateConversationDto) {
-    return 'This action adds a new conversation';
+  constructor(@Inject(DRIZZLE) private readonly drizzle: DrizzleDb) {}
+  async create(createConversationDto: CreateConversationDto, userId: string) {
+    const [conversation] = await this.drizzle
+      .insert(schema.conversations)
+      .values({
+        workspaceId: createConversationDto.workspaceId,
+        title: createConversationDto.title,
+        userId,
+      })
+      .returning();
+    return conversation;
   }
 
   findAll() {

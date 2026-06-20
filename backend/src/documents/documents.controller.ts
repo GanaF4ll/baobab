@@ -12,6 +12,7 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
@@ -92,7 +93,7 @@ export class DocumentsController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Document not found' })
   async findOne(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser('id') userId: string,
   ): Promise<FindOneWithVersionsResponseDto> {
     const data = await this.documentsService.findOneWithVersions(id, userId);
@@ -102,7 +103,7 @@ export class DocumentsController {
   @Patch(':id')
   @Protected()
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser('id') userId: string,
     @Body() dto: UpdateDocumentTitleDto,
   ) {

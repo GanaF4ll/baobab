@@ -51,6 +51,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Public()
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
   @ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
   @ApiCreatedResponse({ type: RegisterAndLoginResponseDto })
