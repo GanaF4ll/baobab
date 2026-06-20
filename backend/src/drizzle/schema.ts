@@ -142,7 +142,7 @@ export const messages = pgTable('messages', {
     .references(() => conversations.id, { onDelete: 'cascade' }),
   role: messageRoleEnum('role').notNull(),
   content: text('content').notNull(),
-  sources: jsonb('sources'),
+  sources: jsonb('sources').$type<string[]>(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
