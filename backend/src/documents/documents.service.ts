@@ -49,7 +49,7 @@ export class DocumentsService {
 
     if (documentId) {
       //? if the document already exist we create a new version
-      return await this.createNewDocumentVersion(documentId, userId, file);
+      return await this.createNewDocumentVersion(documentId, userId, file, workspaceId);
     }
 
     //? if the document does not exist yet we create the new doc and its first version
@@ -87,7 +87,7 @@ export class DocumentsService {
       })
       .returning();
 
-    await this.storeChunks(file, newDoc.id, newDocVersion.id);
+    await this.storeChunks(file, workspaceId, newDocVersion.id);
 
     return newDocVersion;
   }
@@ -245,6 +245,7 @@ todo: method updateContent which allows to replace the content of a document wit
     documentId: string,
     userId: string,
     file: CreateFileDto,
+    workspaceId: string,
   ): Promise<DocumentVersionEntity> {
     const existingDoc = await this.db.query.documents.findFirst({
       where: (documents, { eq, and }) =>
@@ -282,7 +283,7 @@ todo: method updateContent which allows to replace the content of a document wit
       })
       .returning();
 
-    await this.storeChunks(file, documentId, newDocVersion.id);
+    await this.storeChunks(file, workspaceId, newDocVersion.id);
 
     return newDocVersion;
   }

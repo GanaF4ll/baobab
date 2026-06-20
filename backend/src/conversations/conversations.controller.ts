@@ -1,12 +1,19 @@
 import { RagService } from './../rag/rag.service';
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UseGuards } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { CreateConversationDto } from './dto/input/create-conversation.dto';
 import { UpdateConversationDto } from './dto/input/update-conversation.dto';
 import { FastifyReply } from 'fastify';
 import { AskLlmDto } from 'src/rag/dto/input/ask-llm.dto';
+import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Protected } from 'src/auth/decorators/protected.decorator';
+import { ApiOkResponse, ApiOperation, ApiProduces } from '@nestjs/swagger';
+import { RagStreamChunkResponseDto } from 'src/rag/dto/output/rag-steam-chunk-response.dto';
 
 @Controller('conversations')
+@UseGuards(AuthGuard)
 export class ConversationsController {
   constructor(
     private readonly conversationsService: ConversationsService,
@@ -14,12 +21,22 @@ export class ConversationsController {
   ) {}
 
   @Post()
-  create(@Body() createConversationDto: CreateConversationDto) {
-    return this.conversationsService.create(createConversationDto);
+  @UseGuards(WorkspaceMemberGuard)
+  @Protected()
+  create(@Body() createConversationDto: CreateConversationDto, @CurrentUser('id') userId: string) {
+    return this.conversationsService.create(createConversationDto, userId);
   }
 
-  @Post(':id/ask')
-  async ask(@Body() askDto: AskLlmDto, @Res() res: FastifyReply, @Param('id') id: string) {
+  @Post(':workspaceId/ask/:conversationId')
+  @UseGuards(WorkspaceMemberGuard)
+  @ApiProduces('text/event-stream')
+  @ApiOperation({ summary: 'Ask a question to the AI (Streaming SSE)' })
+  @ApiOkResponse({
+    description: 'SSE stream. Each "data" event contains this parsed JSON object.',
+    type: RagStreamChunkResponseDto,
+    schema: { format: 'text/event-stream' },
+  })
+  async ask(@Body() askDto: AskLlmDto, @Res() res: FastifyReply) {
     //? simulate SSE / Streaming behaviour
     res.raw.setHeader('Content-Type', 'text/event-stream');
     res.raw.setHeader('Cache-Control', 'no-cache');
