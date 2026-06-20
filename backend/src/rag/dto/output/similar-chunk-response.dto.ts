@@ -4,4 +4,5 @@ export class SimilarChunkResponseDto {
   content: string;
   chunkIndex: number;
   distance: unknown;
+  versionId: string;
 }
