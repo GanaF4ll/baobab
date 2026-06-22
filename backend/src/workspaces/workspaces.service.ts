@@ -26,7 +26,7 @@ export class WorkspacesService {
       })
       .returning();
 
-    this.logger.log(`Workspace created with ID ${newWorkspace.id}`);
+    this.logger.debug(`Workspace created, [${newWorkspace.id}]`);
     return newWorkspace;
   }
 

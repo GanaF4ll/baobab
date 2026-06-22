@@ -53,7 +53,6 @@
     "@nestjs/testing": "^11.0.1",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
-    "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
     "@types/pg": "^8.20.0",
@@ -72,29 +71,18 @@
     "typescript": "^5.7.3"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
+    "moduleFileExtensions": ["js", "json", "ts"],
     "rootDir": ".",
-    "roots": [
-      "<rootDir>/src",
-      "<rootDir>/test"
-    ],
+    "roots": ["<rootDir>/src", "<rootDir>/test"],
     "testRegex": ".*\\.spec\\.ts$",
-    "testPathIgnorePatterns": [
-      ".*\\.e2e-spec\\.ts$"
-    ],
+    "testPathIgnorePatterns": [".*\\.e2e-spec\\.ts$"],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/src/$1"
     },
-    "collectCoverageFrom": [
-      "src/**/*.(t|j)s"
-    ],
+    "collectCoverageFrom": ["src/**/*.(t|j)s"],
     "coverageDirectory": "<rootDir>/coverage",
     "testEnvironment": "node"
   }
