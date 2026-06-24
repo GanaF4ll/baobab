@@ -1,0 +1,50 @@
+<div class="min-h-screen bg-background p-8">
+  <div class="max-w-max-width mx-auto">
+    <!-- Header -->
+    <header class="flex justify-between items-center pb-6 border-b border-outline-variant mb-8">
+      <div>
+        <h1 class="text-headline-lg font-bold text-primary">BAOBAB</h1>
+        <p class="text-body-sm text-on-surface-variant">The digital drafting table</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-body-md font-medium text-on-surface">
+          {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}
+        </span>
+        <button
+          type="button"
+          (click)="logout()"
+          class="border border-outline hover:bg-surface-dim text-on-surface font-semibold py-1.5 px-4 rounded-md transition-all duration-150 cursor-pointer"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="md:col-span-2 bg-surface-container-low border border-outline-variant rounded-lg p-8 shadow-sm">
+        <h2 class="text-headline-md font-semibold text-primary mb-4">Workspace</h2>
+        <p class="text-body-md text-on-surface-variant mb-6">
+          Welcome to your professional drafting space. Here you can organize and edit your projects.
+        </p>
+        <div class="p-12 border border-dashed border-outline-variant rounded-md text-center bg-surface-container-lowest">
+          <p class="text-body-md text-outline">No projects found. Create your first project to get started.</p>
+        </div>
+      </div>
+
+      <div class="bg-surface-container border border-outline-variant rounded-lg p-6">
+        <h3 class="text-label-md uppercase tracking-wider text-on-surface-variant font-bold mb-4">Account Information</h3>
+        <ul class="space-y-3.5 text-body-sm text-on-surface">
+          <li>
+            <strong class="text-on-surface-variant">Email:</strong>
+            <div class="mt-0.5 text-body-md font-mono text-secondary">{{ currentUser()?.email }}</div>
+          </li>
+          <li>
+            <strong class="text-on-surface-variant">User ID:</strong>
+            <div class="mt-0.5 text-body-sm font-mono text-outline text-xs truncate" title="{{ currentUser()?.id }}">{{ currentUser()?.id }}</div>
+          </li>
+        </ul>
+      </div>
+    </main>
+  </div>
+</div>

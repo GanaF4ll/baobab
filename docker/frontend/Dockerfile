@@ -2,13 +2,11 @@ FROM node:26-alpine
 
 WORKDIR /app
 
-# Copy dependency files
-COPY frontend/package.json frontend/package-lock.json* ./
-
-RUN npm install
-
-# Copy source code
+# Copy all source first, then install so lockfile is always current
 COPY frontend/ .
+
+# Install dependencies (node_modules excluded via .dockerignore)
+RUN npm ci
 
 EXPOSE 3000
 

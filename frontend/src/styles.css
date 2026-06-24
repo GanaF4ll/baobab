@@ -99,27 +99,34 @@
   --text-mono-label--font-weight: 400;
 
   /* Border Radius */
-  --radius: 0.25rem;
-  --radius-sm: 0.125rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius: 0.375rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
   --radius-full: 9999px;
 
   /* Spacing */
-  --spacing-unit: 4px;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 40px;
-  --spacing-gutter: 24px;
-  --spacing-margin-mobile: 16px;
-  --spacing-margin-desktop: 64px;
+  --design-spacing-unit: 4px;
+  --design-spacing-xs: 4px;
+  --design-spacing-sm: 8px;
+  --design-spacing-md: 16px;
+  --design-spacing-lg: 24px;
+  --design-spacing-xl: 40px;
+  --design-spacing-gutter: 24px;
+  --design-spacing-margin-mobile: 16px;
+  --design-spacing-margin-desktop: 64px;
 
   /* Max Width */
-  --max-w-max-width: 1280px;
+  --max-width-max-width: 1280px;
 
   /* Elevation (Crisp shadows from Design elevation notes) */
   --shadow-crisp: 0 4px 4px rgba(36, 25, 16, 0.1);
+}
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
