@@ -1,0 +1,63 @@
+<div class="space-y-md">
+  <hlm-dialog-header>
+    <h3 hlmDialogTitle class="text-headline-md font-bold text-on-surface">Create New Workspace</h3>
+    <p hlmDialogDescription class="text-body-sm text-on-surface opacity-70">
+      Provision a secure, isolated RAG silo for your documents.
+    </p>
+  </hlm-dialog-header>
+
+  <form (submit)="submit(); $event.preventDefault()" class="space-y-lg pt-sm">
+    <!-- Workspace Name -->
+    <div class="space-y-sm">
+      <label class="font-label-technical text-label-technical block text-on-surface-variant font-semibold">
+        Workspace Name
+      </label>
+      <input
+        hlmInput
+        type="text"
+        name="name"
+        [(ngModel)]="name"
+        placeholder="e.g. Legal Docs"
+        class="w-full bg-surface-container-lowest border border-outline-variant rounded px-md py-sm focus:border-primary text-body-md text-on-surface"
+        required
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- Description -->
+    <div class="space-y-sm">
+      <label class="font-label-technical text-label-technical block text-on-surface-variant font-semibold">
+        Description
+      </label>
+      <textarea
+        hlmInput
+        name="description"
+        [(ngModel)]="description"
+        placeholder="Brief summary of the documents and purpose..."
+        rows="3"
+        class="w-full bg-surface-container-lowest border border-outline-variant rounded px-md py-sm focus:border-primary text-body-md text-on-surface resize-none"
+      ></textarea>
+    </div>
+
+    <!-- Action Buttons -->
+    <hlm-dialog-footer class="flex justify-end gap-sm pt-md border-t border-outline-variant">
+      <button
+        hlmBtn
+        variant="ghost"
+        type="button"
+        (click)="cancel()"
+        class="border border-outline-variant text-on-surface hover:bg-surface-container-high font-semibold py-1.5 px-4 cursor-pointer"
+      >
+        Cancel
+      </button>
+      <button
+        hlmBtn
+        type="submit"
+        [disabled]="!name.trim()"
+        class="bg-primary text-on-primary hover:opacity-90 font-semibold py-1.5 px-4 cursor-pointer disabled:opacity-50"
+      >
+        Create Workspace
+      </button>
+    </hlm-dialog-footer>
+  </form>
+</div>

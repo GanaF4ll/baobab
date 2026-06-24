@@ -1,0 +1,71 @@
+<aside class="fixed inset-y-0 left-0 w-64 bg-surface-container-low border-r border-outline-variant flex flex-col py-md gap-sm z-50">
+  <!-- Brand logo/heading -->
+  <div class="px-lg mb-lg">
+    <div class="flex items-center gap-sm">
+      <div class="w-8 h-8 rounded bg-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-primary text-[20px]">psychology</span>
+      </div>
+      <div>
+        <h1 class="font-headline-md text-headline-md font-bold text-on-surface">Baobab AI</h1>
+        <p class="font-label-technical text-label-technical text-on-surface opacity-70">Privacy-First RAG</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation items -->
+  <nav class="flex-1 px-sm space-y-1">
+    <a
+      routerLink="/"
+      routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+    >
+      <span class="material-symbols-outlined text-[20px]">workspaces</span>
+      <span class="font-label-technical text-label-technical">Workspace</span>
+    </a>
+    <a
+      href="#"
+      (click)="$event.preventDefault()"
+      class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+    >
+      <span class="material-symbols-outlined text-[20px]">database</span>
+      <span class="font-label-technical text-label-technical">Knowledge Base</span>
+    </a>
+    <a
+      href="#"
+      (click)="$event.preventDefault()"
+      class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+    >
+      <span class="material-symbols-outlined text-[20px]">history</span>
+      <span class="font-label-technical text-label-technical">History</span>
+    </a>
+    <a
+      href="#"
+      (click)="$event.preventDefault()"
+      class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+    >
+      <span class="material-symbols-outlined text-[20px]">settings</span>
+      <span class="font-label-technical text-label-technical">Settings</span>
+    </a>
+    <a
+      href="#"
+      (click)="$event.preventDefault()"
+      class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+    >
+      <span class="material-symbols-outlined text-[20px]">help_center</span>
+      <span class="font-label-technical text-label-technical">Support</span>
+    </a>
+  </nav>
+
+  <!-- Upload triggers button -->
+  <div class="px-md mt-auto">
+    <button
+      hlmBtn
+      (click)="onUpload()"
+      class="w-full py-sm bg-secondary-container text-on-secondary-fixed rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer"
+    >
+      <span class="material-symbols-outlined text-[18px]">upload_file</span>
+      Upload Document
+    </button>
+  </div>
+</aside>

@@ -1,0 +1,44 @@
+<header class="fixed top-0 right-0 left-64 h-16 bg-background border-b border-outline-variant flex justify-between items-center px-lg z-40">
+  <!-- Tabs Navigation -->
+  <div class="flex items-center gap-lg">
+    <nav class="flex gap-md">
+      <a class="font-label-technical text-label-technical text-on-surface font-bold border-b-2 border-primary pb-1" href="#" (click)="$event.preventDefault()">Documents</a>
+      <a class="font-label-technical text-label-technical text-on-surface opacity-60 font-medium hover:opacity-100 transition-opacity" href="#" (click)="$event.preventDefault()">Logs</a>
+      <a class="font-label-technical text-label-technical text-on-surface opacity-60 font-medium hover:opacity-100 transition-opacity" href="#" (click)="$event.preventDefault()">Security</a>
+    </nav>
+  </div>
+
+  <!-- Search and Actions -->
+  <div class="flex items-center gap-md">
+    <div class="relative group">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-50 text-[18px]">search</span>
+      <input
+        hlmInput
+        type="text"
+        (input)="onSearch($event)"
+        class="bg-surface-container-low border border-outline-variant rounded-full py-1.5 pl-10 pr-4 text-body-md focus:border-primary focus:ring-0 w-64 transition-all placeholder:text-on-surface/40"
+        placeholder="Search workspaces..."
+      />
+    </div>
+
+    <!-- Notifications icon -->
+    <button class="text-on-surface opacity-60 hover:opacity-100 transition-opacity relative bg-transparent border-0 cursor-pointer p-1">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="absolute top-0 right-0 w-2 h-2 bg-secondary-container rounded-full border border-background"></span>
+    </button>
+
+    <!-- Logout / Profile Action -->
+    <div class="flex items-center gap-sm pl-2 border-l border-outline-variant">
+      <span class="text-body-sm font-medium text-on-surface">
+        {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}
+      </span>
+      <button
+        (click)="logout()"
+        title="Logout"
+        class="text-on-surface opacity-60 hover:opacity-100 transition-opacity bg-transparent border-0 cursor-pointer p-1 flex items-center justify-center"
+      >
+        <span class="material-symbols-outlined text-[20px]">logout</span>
+      </button>
+    </div>
+  </div>
+</header>
