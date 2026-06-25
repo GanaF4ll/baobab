@@ -37,14 +37,36 @@
 
       <!-- Navigation items for Workspace View -->
       <nav class="flex-1 px-sm space-y-1">
-        <a
-          href="#"
-          (click)="$event.preventDefault()"
-          class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
-        >
-          <span class="material-symbols-outlined text-[20px]">forum</span>
-          <span class="font-label-technical text-label-technical">Conversations</span>
-        </a>
+        <!-- Conversations section header -->
+        <div class="px-md mt-sm">
+          <div class="flex items-center justify-between px-xs mb-xs">
+            <span class="font-label-technical text-[11px] font-bold text-on-surface opacity-50 uppercase tracking-wider">Conversations</span>
+            <!-- Create new conversation button -->
+            <button (click)="createNewConversation()" class="text-primary hover:opacity-100 opacity-60 bg-transparent border-0 cursor-pointer p-0.5 flex items-center justify-center" title="New Conversation">
+              <span class="material-symbols-outlined text-[16px]">add_comment</span>
+            </button>
+          </div>
+          
+          <div class="space-y-0.5 max-h-[200px] overflow-y-auto custom-scrollbar">
+            @if (conversationService.isLoading()) {
+              <div class="px-sm py-xs text-xs text-on-surface opacity-60 animate-pulse">Loading...</div>
+            } @else if (conversationService.conversations().length === 0) {
+              <div class="px-sm py-xs text-xs text-on-surface opacity-50 italic">No conversations</div>
+            } @else {
+              @for (conv of conversationService.conversations(); track conv.id) {
+                <a
+                  [routerLink]="['/workspace', state.activeWorkspaceId(), 'conversation', conv.id]"
+                  routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
+                  class="flex items-center gap-xs px-sm py-1.5 rounded hover:bg-surface-container/60 transition-colors group text-on-surface opacity-85 text-sm truncate"
+                >
+                  <span class="material-symbols-outlined text-[16px] opacity-75">chat_bubble</span>
+                  <span class="truncate flex-1">{{ conv.title }}</span>
+                </a>
+              }
+            }
+          </div>
+        </div>
+
         <a
           href="#"
           (click)="$event.preventDefault()"

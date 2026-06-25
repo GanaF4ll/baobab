@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { SidebarService } from '../../services/sidebar.service';
 import { WorkspacesStateService } from '../../../features/workspaces/services/workspaces-state.service';
+import { ConversationService } from '../../../features/conversations/services/conversation.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -13,6 +14,7 @@ import { WorkspacesStateService } from '../../../features/workspaces/services/wo
 export class SidebarComponent {
   protected readonly sidebarService = inject(SidebarService);
   protected readonly state = inject(WorkspacesStateService);
+  protected readonly conversationService = inject(ConversationService);
 
   readonly inWorkspace = input<boolean>(false);
 
@@ -26,6 +28,13 @@ export class SidebarComponent {
 
   onUpload() {
     this.uploadClick.emit();
+  }
+
+  createNewConversation() {
+    const title = prompt('Enter conversation title:');
+    if (title && title.trim()) {
+      this.conversationService.createConversation(title.trim());
+    }
   }
 
   get isOpen() {
