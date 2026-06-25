@@ -2,14 +2,26 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
+import { WorkspacesStateService } from '../../features/workspaces/services/workspaces-state.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const workspacesState = inject(WorkspacesStateService);
+  
   const token = authService.accessToken();
+  const activeWorkspaceId = workspacesState.activeWorkspaceId();
 
   let authReq = req;
+
+  // Replace {workspaceId} in URL if present
+  if (activeWorkspaceId && req.url.includes('{workspaceId}')) {
+    authReq = authReq.clone({
+      url: req.url.replace('{workspaceId}', activeWorkspaceId),
+    });
+  }
+
   if (token) {
-    authReq = req.clone({
+    authReq = authReq.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,
       },

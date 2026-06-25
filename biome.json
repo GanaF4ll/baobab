@@ -42,7 +42,8 @@
   "overrides": [
     {
       "include": ["**/*.html"],
-      "formatter": { "lineWidth": 120 }
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
     },
     {
       "include": ["frontend/src/api/**"],

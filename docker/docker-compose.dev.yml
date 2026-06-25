@@ -109,8 +109,8 @@ services:
       TZ: ${TZ:-Europe/Paris}
       API_URL: http://localhost:2400
     volumes:
-      - ../frontend:/app
-      - /app/node_modules
+      - ../frontend:/app/frontend
+      - /app/frontend/node_modules
     depends_on:
       - baobab-backend
     networks:

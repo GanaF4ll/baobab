@@ -10,7 +10,7 @@ export class WorkspaceEntity {
   @IsString()
   name: string;
 
-  @ApiProperty({ description: 'description of the workspace', nullable: true })
+  @ApiProperty({ description: 'description of the workspace', nullable: true, type: String })
   @IsOptional()
   @IsString()
   description?: string | null;

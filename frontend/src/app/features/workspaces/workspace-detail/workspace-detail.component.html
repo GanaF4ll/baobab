@@ -1,0 +1,73 @@
+<!-- Sidebar Shell -->
+<app-sidebar
+  [inWorkspace]="true"
+  (uploadClick)="handleSidebarBottomClick()"
+></app-sidebar>
+
+<!-- Top App Bar Shell -->
+<app-header></app-header>
+
+<!-- Main Content Area -->
+<main
+  [class.md:ml-64]="sidebarService.isOpen()"
+  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] overflow-y-auto technical-grid transition-all duration-300 ease-in-out ml-0"
+>
+  <div class="max-w-container-max mx-auto w-full">
+    @if (isLoading()) {
+      <div class="flex items-center justify-center min-h-[400px]">
+        <div class="flex flex-col items-center gap-md">
+          <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p class="font-label-technical text-label-technical text-on-surface opacity-75">Loading workspace details...</p>
+        </div>
+      </div>
+    } @else if (error()) {
+      <div class="bg-surface-container-low border border-error rounded-lg p-xl min-h-[300px] flex flex-col items-center justify-center text-center">
+        <span class="material-symbols-outlined text-[48px] text-error mb-md">warning</span>
+        <h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Failed to load workspace</h3>
+        <p class="font-body-md text-body-md text-on-surface opacity-75 max-w-md mb-lg">
+          We encountered an error while trying to fetch this secure silo's information.
+        </p>
+        <a routerLink="/" class="px-md py-sm bg-primary text-on-primary rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity">
+          Back to Workspaces
+        </a>
+      </div>
+    } @else if (workspace(); as ws) {
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-xl gap-lg">
+        <div class="flex-1 min-w-0">
+          <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">{{ ws.name }}</h2>
+          <p class="font-body-md text-body-md text-on-surface opacity-80 max-w-lg">
+            {{ ws.description || 'No description provided.' }}
+          </p>
+        </div>
+        <div class="flex items-center gap-sm">
+          <a routerLink="/" class="px-md py-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            Back to Workspaces
+          </a>
+        </div>
+      </div>
+
+      <!-- Private Workspace Dashboard / Interface -->
+      <div class="bg-surface-container-low border border-outline-variant rounded-lg p-xl min-h-[400px] flex flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-lg">
+          <span class="material-symbols-outlined text-primary text-[40px]">psychology</span>
+        </div>
+        <h3 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Secure Silo: {{ ws.name }}</h3>
+        <p class="font-body-md text-body-md text-on-surface opacity-75 max-w-lg mb-xl">
+          This workspace is isolated with dedicated encryption keys. You can upload local documents to feed the retrieval-augmented generation engine, view detailed security logs, or start asking questions about your data.
+        </p>
+        
+        <div class="flex flex-wrap gap-md justify-center">
+          <button (click)="handleSidebarBottomClick()" class="px-lg py-md bg-primary text-on-primary rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center gap-xs shadow-md cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">upload_file</span>
+            Upload Document
+          </button>
+          <button (click)="state.showToast('New Chat', 'Chat interface placeholder triggered.')" class="px-lg py-md bg-secondary-container text-on-secondary-fixed border border-outline-variant rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center gap-xs shadow-sm cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">chat</span>
+            Start Chat
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</main>
