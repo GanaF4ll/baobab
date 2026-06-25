@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './features/auth/login/login.component';
-import { WorkspacesDashboardComponent } from './features/workspaces/workspaces-dashboard/workspaces-dashboard.component';
+import { WorkspacePageComponent } from './features/workspaces/components/workspace-page/workspace-page.component';
 import { authGuard, publicGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
@@ -11,7 +11,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    component: WorkspacesDashboardComponent,
+    component: WorkspacePageComponent,
     canActivate: [authGuard],
   },
   {

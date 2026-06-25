@@ -2,7 +2,7 @@
 <app-sidebar (uploadClick)="openCreateWorkspaceDialog()"></app-sidebar>
 
 <!-- Top App Bar Shell -->
-<app-header (searchChange)="onSearchChanged($event)"></app-header>
+<app-header (searchChange)="state.setSearchQuery($event)"></app-header>
 
 <!-- Main Content Area -->
 <main class="ml-64 mt-16 p-lg min-h-[calc(100vh-4rem)] technical-grid">
@@ -16,10 +16,6 @@
         </p>
       </div>
       <div class="flex items-center gap-sm">
-        <span class="flex items-center gap-xs font-label-technical text-label-technical px-sm py-1 bg-surface-container-high text-on-surface rounded border border-outline-variant">
-          <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-          3 Active Nodes
-        </span>
         <button class="p-2 border border-outline-variant rounded hover:bg-surface-container-high transition-colors text-on-surface bg-transparent cursor-pointer flex items-center justify-center">
           <span class="material-symbols-outlined text-[20px]">filter_list</span>
         </button>
@@ -45,32 +41,27 @@
       </button>
 
       <!-- Dynamic Workspace Cards -->
-      @for (workspace of filteredWorkspaces(); track workspace.id) {
+      @for (workspace of state.filteredWorkspaces(); track workspace.id) {
         <app-workspace-card
           [workspace]="workspace"
-          [isActive]="workspace.id === activeWorkspaceId()"
-          (selectWorkspace)="selectWorkspace($event)"
+          (selectWorkspace)="state.selectWorkspace($event)"
         ></app-workspace-card>
       }
-
-
-
-
     </div>
   </div>
 </main>
 
 <!-- Contextual Toast Notification -->
-@if (toast().visible) {
+@if (state.toast().visible) {
   <div
     class="fixed bottom-lg right-lg bg-surface-container-highest border border-primary p-md rounded shadow-xl flex items-center gap-md z-50 transition-all duration-300"
   >
     <span class="material-symbols-outlined text-primary">verified_user</span>
     <div>
-      <p class="font-label-technical text-label-technical font-bold text-on-surface">{{ toast().title }}</p>
-      <p class="text-[11px] text-on-surface opacity-70">{{ toast().message }}</p>
+      <p class="font-label-technical text-label-technical font-bold text-on-surface">{{ state.toast().title }}</p>
+      <p class="text-[11px] text-on-surface opacity-70">{{ state.toast().message }}</p>
     </div>
-    <button (click)="closeToast()" class="ml-lg text-on-surface opacity-60 hover:opacity-100 bg-transparent border-0 cursor-pointer p-0.5 flex items-center justify-center">
+    <button (click)="state.closeToast()" class="ml-lg text-on-surface opacity-60 hover:opacity-100 bg-transparent border-0 cursor-pointer p-0.5 flex items-center justify-center">
       <span class="material-symbols-outlined text-[18px]">close</span>
     </button>
   </div>

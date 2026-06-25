@@ -1,35 +1,18 @@
 <div
   (click)="onSelect()"
-  [ngClass]="{
-    'border-primary bg-surface-container-low': isActive,
-    'border-outline-variant bg-surface-container-low hover:border-primary hover:bg-surface-container hover:shadow-crisp': !isActive
-  }"
-  class="border rounded-lg p-lg flex flex-col group transition-all duration-200 cursor-pointer relative overflow-hidden h-full min-h-[220px]"
+  class="border rounded-lg p-lg flex flex-col group transition-all duration-200 cursor-pointer relative overflow-hidden h-full min-h-[220px] hover:border-primary hover:bg-surface-container hover:shadow-crisp"
 >
-  <!-- Active state ribbon / indicator -->
-  @if (isActive) {
-    <div class="absolute top-0 right-0 px-2 py-1 bg-primary text-on-primary font-label-technical text-[10px] font-bold">CURRENT</div>
-  }
+
 
   <!-- Header: Icon & Actions -->
   <div class="flex justify-between items-start mb-md">
     <div
-      [ngClass]="{
-        'bg-primary-container text-on-primary-container': isActive,
-        'bg-surface-container-highest text-on-surface': !isActive
-      }"
+     
       class="w-10 h-10 rounded flex items-center justify-center"
     >
       <span class="material-symbols-outlined">{{ icon }}</span>
     </div>
     <div class="flex gap-xs" (click)="$event.stopPropagation()">
-      <span
-        [ngClass]="{ 'text-primary': isActive, 'text-on-surface opacity-40 hover:opacity-100': !isActive }"
-        class="material-symbols-outlined text-[18px] cursor-pointer"
-        style="font-variation-settings: 'FILL' 1;"
-      >
-        star
-      </span>
       <span class="material-symbols-outlined text-on-surface opacity-40 text-[18px] cursor-pointer hover:opacity-100">
         more_vert
       </span>
@@ -47,19 +30,12 @@
     <div class="flex items-center gap-md">
       <div class="flex-1 h-1 bg-surface-container-highest rounded-full overflow-hidden">
         <div
-          [ngClass]="{
-            'bg-secondary-container-on-surface': isActive,
-            'bg-primary': !isActive
-          }"
           class="h-full bg-primary"
           [style.width.%]="syncPercent"
         ></div>
       </div>
       <span
-        [ngClass]="{
-          'text-secondary font-bold': isActive && syncPercent === 100,
-          'text-on-surface opacity-60': !isActive || syncPercent !== 100
-        }"
+
         class="font-label-technical text-label-technical"
       >
         {{ syncText }}

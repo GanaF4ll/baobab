@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { WorkspaceEntity } from '../../../../client/models';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { WorkspaceEntity } from '../../../../../client';
 
 @Component({
   selector: 'app-workspace-card',
@@ -8,12 +8,11 @@ import { WorkspaceEntity } from '../../../../client/models';
   templateUrl: './workspace-card.component.html',
   styleUrls: [],
   host: {
-    class: 'block h-full'
-  }
+    class: 'block h-full',
+  },
 })
 export class WorkspaceCardComponent {
   @Input({ required: true }) workspace!: WorkspaceEntity;
-  @Input() isActive = false;
   @Output() selectWorkspace = new EventEmitter<string>();
 
   onSelect() {
@@ -68,15 +67,17 @@ export class WorkspaceCardComponent {
 
     if (diffMins < 1) {
       return 'Active Now';
-    } else if (diffMins < 60) {
-      return `Active ${diffMins}m ago`;
-    } else if (diffHours < 24) {
-      return `Active ${diffHours}h ago`;
-    } else if (diffDays < 7) {
-      return `Active ${diffDays}d ago`;
-    } else {
-      return 'Active recently';
     }
+    if (diffMins < 60) {
+      return `Active ${diffMins}m ago`;
+    }
+    if (diffHours < 24) {
+      return `Active ${diffHours}h ago`;
+    }
+    if (diffDays < 7) {
+      return `Active ${diffDays}d ago`;
+    }
+    return 'Active recently';
   }
 
   get descriptionText(): string {
@@ -86,7 +87,8 @@ export class WorkspaceCardComponent {
     if (typeof desc === 'object') {
       if ('text' in desc && typeof desc['text'] === 'string') return desc['text'];
       if ('content' in desc && typeof desc['content'] === 'string') return desc['content'];
-      if ('description' in desc && typeof desc['description'] === 'string') return desc['description'];
+      if ('description' in desc && typeof desc['description'] === 'string')
+        return desc['description'];
     }
     return JSON.stringify(desc);
   }
