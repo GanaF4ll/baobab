@@ -1,4 +1,4 @@
-import { inject, signal, computed, Service } from '@angular/core';
+import { inject, signal, computed, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import {
   AuthService as ApiAuthService,
@@ -14,7 +14,9 @@ export interface UserPayload {
   exp?: number;
 }
 
-@Service()
+@Injectable({
+  providedIn: 'root',
+})
 export class AuthService {
   private readonly apiAuthService = inject(ApiAuthService);
 
@@ -29,8 +31,8 @@ export class AuthService {
   readonly currentUser = this._currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this._accessToken() && !this.isTokenExpired());
 
-  login(email: string): Observable<any> {
-    return this.apiAuthService.authControllerLogin({ email }).pipe(
+  login(email: string, password: string): Observable<any> {
+    return this.apiAuthService.authControllerLogin({ email, password }).pipe(
       tap((response) => {
         const data = response?.data;
         if (data?.accessToken && data?.refreshToken) {
