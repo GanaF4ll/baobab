@@ -24,6 +24,7 @@ import {
   ApiBadRequestResponse,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
@@ -39,6 +40,7 @@ import { FastifyRequest } from 'fastify';
 import { DocumentVersionResponseDto } from './dto/output/document-version-response.dto';
 import { DeleteVersionDto } from './dto/input/delete-version.dto';
 import { CreateDocumentDto } from './dto/input/create-document.dto';
+import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
 
 @Controller('documents')
 @ApiTags(DOCUMENTS_SWAGGER_TAG)
@@ -72,16 +74,24 @@ export class DocumentsController {
     return { data: documentVersion };
   }
 
-  @Get('collection')
+  @Get('collection/:workspaceId')
   @Protected()
+  @UseGuards(WorkspaceMemberGuard)
   @ApiOperation({ summary: "get all the user's documents" })
   @ApiBadRequestResponse({ description: 'invalid filters' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  async findAll(
+  @ApiForbiddenResponse({ description: 'You are not a member of this workspace' })
+  @ApiNotFoundResponse({ description: 'Workspace not found' })
+  async findAllByWorkspace(
+    @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
     @CurrentUser('id') userId: string,
     @Query() filters: DocumentFilterDto,
   ): Promise<ApiCollectionResponseDto<DocumentEntity>> {
-    const documentList = await this.documentsService.findAll(userId, filters);
+    const documentList = await this.documentsService.findAllByWorkspace(
+      userId,
+      workspaceId,
+      filters,
+    );
     return {
       data: documentList,
     };
@@ -102,6 +112,10 @@ export class DocumentsController {
 
   @Patch(':id')
   @Protected()
+  @ApiOperation({ summary: 'Update a document title' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'You are not a member of this workspace' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser('id') userId: string,
@@ -122,6 +136,6 @@ export class DocumentsController {
     @Body() dto: DeleteVersionDto,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
-    await this.documentsService.removeVersion(dto.documentId, userId, dto.id);
+    await this.documentsService.removeVersion(dto.documentId, userId, dto.id, dto.workspaceId);
   }
 }

@@ -1,5 +1,5 @@
 import { StorageFolderName } from './../shared/constants';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
@@ -92,8 +92,9 @@ export class DocumentsService {
     return newDocVersion;
   }
 
-  async findAll(
+  async findAllByWorkspace(
     userId: string,
+    workspaceId: string,
     filters: DocumentFilterDto,
   ): Promise<CollectionResponseData<DocumentEntity>> {
     const { limit, cursor, order, mimeType } = filters;
@@ -114,6 +115,7 @@ export class DocumentsService {
         where: (documents, { eq, and, gte, lte, ne }) =>
           and(
             eq(documents.userId, userId),
+            eq(documents.workspaceId, workspaceId),
             ...(mimeType ? [eq(documents.mimeType, mimeType)] : []),
             ...(cursorDate
               ? order === 'desc'
@@ -215,8 +217,20 @@ todo: method updateContent which allows to replace the content of a document wit
    * @param userId user id
    * @param versionId version id to remove
    */
-  async removeVersion(id: string, userId: string, versionId: string): Promise<void> {
+  async removeVersion(
+    id: string,
+    userId: string,
+    versionId: string,
+    workspaceId: string,
+  ): Promise<void> {
     const existingDoc = await this.findOneWithVersions(id, userId);
+
+    if (existingDoc.workspaceId !== workspaceId) {
+      this.logger.error(
+        `The document [${existingDoc.id}] does not belong to the workspace [${workspaceId}]`,
+      );
+      throw new ForbiddenException('You are not authorized to perform this action');
+    }
 
     const targetVersion = existingDoc.versions.find((v) => v.id === versionId);
 
