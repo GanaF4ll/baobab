@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './features/auth/login/login.component';
-import { WorkspacePageComponent } from './features/workspaces/workspace-page/workspace-page.component';
-import { WorkspaceDetailComponent } from './features/workspaces/workspace-detail/workspace-detail.component';
-import { ConversationDetailComponent } from './features/conversations/conversation-detail/conversation-detail.component';
+import { WorkspaceDetailComponent } from './features/workspaces/screens/workspace-detail/workspace-detail.component';
 import { authGuard, publicGuard } from './core/auth/auth.guard';
+import { WorkspacesPageComponent } from './features/workspaces/screens/workspaces-page/workspaces-page.component';
+import { ConversationDetailComponent } from './features/conversations/screens/conversation-detail/conversation-detail.component';
 
 export const routes: Routes = [
   {
@@ -13,7 +13,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    component: WorkspacePageComponent,
+    component: WorkspacesPageComponent,
     canActivate: [authGuard],
   },
   {
