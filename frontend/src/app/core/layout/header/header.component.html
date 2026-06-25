@@ -1,6 +1,17 @@
-<header class="fixed top-0 right-0 left-64 h-16 bg-background border-b border-outline-variant flex justify-between items-center px-lg z-40">
-  <!-- Tabs Navigation -->
-  <div class="flex items-center gap-lg">
+<header
+  [class.left-64]="sidebarService.isOpen()"
+  [class.left-0]="!sidebarService.isOpen()"
+  class="fixed top-0 right-0 h-16 bg-background border-b border-outline-variant flex justify-between items-center px-lg z-40 transition-all duration-300 ease-in-out"
+>
+  <!-- Sidebar Toggle & Tabs Navigation -->
+  <div class="flex items-center gap-md">
+    <button
+      (click)="sidebarService.toggle()"
+      class="p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors cursor-pointer flex items-center justify-center mr-xs"
+      aria-label="Toggle sidebar"
+    >
+      <span class="material-symbols-outlined">menu</span>
+    </button>
     <nav class="flex gap-md">
       <a class="font-label-technical text-label-technical text-on-surface font-bold border-b-2 border-primary pb-1" href="#" (click)="$event.preventDefault()">Documents</a>
       <a class="font-label-technical text-label-technical text-on-surface opacity-60 font-medium hover:opacity-100 transition-opacity" href="#" (click)="$event.preventDefault()">Logs</a>

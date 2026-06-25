@@ -1,0 +1,115 @@
+<!-- Sidebar Shell -->
+<app-sidebar
+  [inWorkspace]="isWorkspaceDetailView()"
+  (uploadClick)="handleSidebarBottomClick()"
+></app-sidebar>
+
+<!-- Top App Bar Shell -->
+<app-header (searchChange)="state.setSearchQuery($event)"></app-header>
+
+<!-- Main Content Area -->
+<main
+  [class.ml-64]="sidebarService.isOpen()"
+  [class.ml-0]="!sidebarService.isOpen()"
+  class="mt-16 p-lg min-h-[calc(100vh-4rem)] technical-grid transition-all duration-300 ease-in-out"
+>
+  @if (isWorkspaceDetailView()) {
+    <!-- Workspace Detail View -->
+    <div class="max-w-container-max mx-auto">
+      <div class="flex justify-between items-end mb-xl gap-lg">
+        <div class="flex-1 min-w-0">
+          <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">{{ activeWorkspace()?.name }}</h2>
+          <p class="font-body-md text-body-md text-on-surface opacity-80 max-w-lg">
+            {{ activeWorkspace()?.description || 'No description provided.' }}
+          </p>
+        </div>
+        <div class="flex items-center gap-sm">
+          <a routerLink="/" class="px-md py-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            Back to Workspaces
+          </a>
+        </div>
+      </div>
+
+      <!-- Private Workspace Dashboard / Interface -->
+      <div class="bg-surface-container-low border border-outline-variant rounded-lg p-xl min-h-[400px] flex flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-lg">
+          <span class="material-symbols-outlined text-primary text-[40px]">psychology</span>
+        </div>
+        <h3 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Secure Silo: {{ activeWorkspace()?.name }}</h3>
+        <p class="font-body-md text-body-md text-on-surface opacity-75 max-w-lg mb-xl">
+          This workspace is isolated with dedicated encryption keys. You can upload local documents to feed the retrieval-augmented generation engine, view detailed security logs, or start asking questions about your data.
+        </p>
+        
+        <div class="flex flex-wrap gap-md justify-center">
+          <button (click)="handleSidebarBottomClick()" class="px-lg py-md bg-primary text-on-primary rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center gap-xs shadow-md cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">upload_file</span>
+            Upload Document
+          </button>
+          <button (click)="state.showToast('New Chat', 'Chat interface placeholder triggered.')" class="px-lg py-md bg-secondary-container text-on-secondary-fixed border border-outline-variant rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center gap-xs shadow-sm cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">chat</span>
+            Start Chat
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Workspaces List View -->
+    <div class="max-w-container-max mx-auto">
+      <!-- Dashboard Header -->
+      <div class="flex justify-between items-end mb-xl gap-lg">
+        <div class="flex-1 min-w-0">
+          <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Workspaces</h2>
+          <p class="font-body-md text-body-md text-on-surface opacity-80 max-w-lg">
+            Manage your secure RAG environments. Each workspace maintains isolated context and encryption keys for maximum data privacy.
+          </p>
+        </div>
+        <div class="flex items-center gap-sm">
+          <button class="p-2 border border-outline-variant rounded hover:bg-surface-container-high transition-colors text-on-surface bg-transparent cursor-pointer flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">filter_list</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bento-style Workspace Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+        <!-- Create New Workspace Card -->
+        <button
+          (click)="openCreateWorkspaceDialog()"
+          class="group relative flex flex-col items-center justify-center p-xl rounded-lg border-2 border-dashed border-outline-variant hover:border-primary hover:bg-surface-container-low transition-all duration-300 min-h-[220px] bg-transparent cursor-pointer w-full text-center"
+        >
+          <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center mb-md group-hover:scale-110 transition-transform">
+            <span class="material-symbols-outlined text-primary text-[32px]">add</span>
+          </div>
+          <span class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors block">
+            Create New Workspace
+          </span>
+        </button>
+
+        <!-- Dynamic Workspace Cards -->
+        @for (workspace of state.filteredWorkspaces(); track workspace.id) {
+          <app-workspace-card
+            [workspace]="workspace"
+            (selectWorkspace)="onWorkspaceSelect($event)"
+          ></app-workspace-card>
+        }
+      </div>
+    </div>
+  }
+</main>
+
+<!-- Contextual Toast Notification -->
+@if (state.toast().visible) {
+  <div
+    class="fixed bottom-lg right-lg bg-surface-container-highest border border-primary p-md rounded shadow-xl flex items-center gap-md z-50 transition-all duration-300"
+  >
+    <span class="material-symbols-outlined text-primary">verified_user</span>
+    <div>
+      <p class="font-label-technical text-label-technical font-bold text-on-surface">{{ state.toast().title }}</p>
+      <p class="text-[11px] text-on-surface opacity-70">{{ state.toast().message }}</p>
+    </div>
+    <button (click)="state.closeToast()" class="ml-lg text-on-surface opacity-60 hover:opacity-100 bg-transparent border-0 cursor-pointer p-0.5 flex items-center justify-center">
+      <span class="material-symbols-outlined text-[18px]">close</span>
+    </button>
+  </div>
+}

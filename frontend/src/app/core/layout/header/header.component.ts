@@ -2,6 +2,7 @@ import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { AuthService } from '../../../core/auth/auth.service';
+import { SidebarService } from '../../services/sidebar.service';
 
 @Component({
   selector: 'app-header',
@@ -12,6 +13,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 export class HeaderComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  protected readonly sidebarService = inject(SidebarService);
 
   protected readonly currentUser = this.authService.currentUser;
 
