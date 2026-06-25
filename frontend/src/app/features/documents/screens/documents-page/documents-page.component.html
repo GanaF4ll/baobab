@@ -1,10 +1,104 @@
 <!-- Sidebar Shell -->
-<app-sidebar
-  [inWorkspace]="true"
-  (uploadClick)="handleSidebarBottomClick()"
-></app-sidebar>
+<app-sidebar [inWorkspace]="true" (uploadClick)="handleSidebarBottomClick()"></app-sidebar>
 
 <!-- Top App Bar Shell -->
 <app-header></app-header>
 
-<p>documents-page works!</p>
+<main
+  [class.md:ml-64]="sidebarService.isOpen()"
+  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] overflow-y-auto technical-grid transition-all duration-300 ease-in-out ml-0"
+>
+  <div class="max-w-container-max mx-auto w-full flex flex-col gap-lg">
+    <!-- Header Title Area -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md">
+      <div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface">Workspace Documents</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant/80">
+          Manage and search through all documents uploaded to this secure RAG silo.
+        </p>
+      </div>
+
+      <button
+        (click)="handleSidebarBottomClick()"
+        class="px-md py-sm bg-primary text-on-primary hover:opacity-90 active:scale-[0.98] transition-all rounded font-label-technical text-label-technical font-bold flex items-center gap-xs cursor-pointer shadow-sm"
+      >
+        <span class="material-symbols-outlined text-[20px]">upload_file</span>
+        Upload Document
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <app-document-filter (selectedMimeType)="onMimeTypeSelected($event)"></app-document-filter>
+    <!-- Main Results View -->
+    @if (documentsQuery.isLoading()) {
+    <div
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-md mt-sm"
+    >
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div
+        class="border border-outline-variant/40 bg-surface-container-lowest/50 rounded-xl p-sm flex flex-col justify-between h-[200px] animate-pulse"
+      >
+        <div class="flex flex-col gap-sm w-full">
+          <div class="h-20 w-full rounded-lg bg-surface-variant/20 shrink-0"></div>
+          <div class="space-y-xs px-xs">
+            <div class="h-3.5 bg-surface-variant/30 rounded w-5/6"></div>
+            <div class="h-3 bg-surface-variant/20 rounded w-1/2"></div>
+          </div>
+        </div>
+        <div
+          class="flex justify-between items-center border-t border-outline-variant/20 pt-sm mt-md px-xs"
+        >
+          <div class="h-2.5 bg-surface-variant/20 rounded w-1/3"></div>
+          <div class="h-2.5 bg-surface-variant/30 rounded w-8"></div>
+        </div>
+      </div>
+      }
+    </div>
+    } @else if (documents().length > 0) {
+    <div
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-md mt-sm"
+    >
+      @for (doc of documents(); track doc.id) {
+      <app-document-card [document]="doc"></app-document-card>
+      }
+    </div>
+    } @else {
+    <!-- Premium Empty State -->
+    <div
+      class="bg-surface-container-low border border-outline-variant rounded-2xl p-xl min-h-[360px] flex flex-col items-center justify-center text-center"
+    >
+      <div
+        class="w-16 h-16 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center mb-lg"
+      >
+        <span class="material-symbols-outlined text-primary text-[36px] opacity-75"
+          >folder_open</span
+        >
+      </div>
+      <h3 class="font-headline-md text-headline-md text-on-surface mb-xs">No documents found</h3>
+      <p class="font-body-md text-body-md text-on-surface-variant/80 max-w-md mb-lg">
+        @if (selectedMimeType()) { No files with the selected filter are available in this
+        workspace. Try clearing the filter or upload new files. } @else { This workspace silo is
+        empty. Upload documents like PDFs or Markdown to feed the RAG engine. }
+      </p>
+
+      <div class="flex items-center gap-md">
+        @if (selectedMimeType()) {
+        <button
+          (click)="onMimeTypeSelected(null)"
+          class="px-md py-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded font-label-technical text-label-technical font-medium transition-colors cursor-pointer"
+        >
+          Clear Filter
+        </button>
+        }
+        <button
+          (click)="handleSidebarBottomClick()"
+          class="px-lg py-md bg-primary text-on-primary hover:opacity-90 active:scale-[0.98] transition-all rounded font-label-technical text-label-technical font-bold flex items-center gap-xs cursor-pointer shadow-md"
+        >
+          <span class="material-symbols-outlined text-[20px]">upload_file</span>
+          Upload Document
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+</main>

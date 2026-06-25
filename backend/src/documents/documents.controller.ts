@@ -27,6 +27,7 @@ import {
   ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -41,6 +42,7 @@ import { DocumentVersionResponseDto } from './dto/output/document-version-respon
 import { DeleteVersionDto } from './dto/input/delete-version.dto';
 import { CreateDocumentDto } from './dto/input/create-document.dto';
 import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
+import { DocumentCollectionResponseDto } from './dto/output/document-collection-response.dto';
 
 @Controller('documents')
 @ApiTags(DOCUMENTS_SWAGGER_TAG)
@@ -78,6 +80,7 @@ export class DocumentsController {
   @Protected()
   @UseGuards(WorkspaceMemberGuard)
   @ApiOperation({ summary: "get all the user's documents" })
+  @ApiOkResponse({ type: DocumentCollectionResponseDto })
   @ApiBadRequestResponse({ description: 'invalid filters' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiForbiddenResponse({ description: 'You are not a member of this workspace' })

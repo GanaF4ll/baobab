@@ -1,0 +1,14 @@
+<div
+  class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-sm flex items-center justify-between"
+>
+  <hlm-tabs tab="home">
+    <hlm-tabs-list>
+      <button hlmTabsTrigger="All" (click)="onTabChange(null)">All</button>
+      @for(type of mimeTypes(); track type.key) {
+      <button hlmTabsTrigger="{{ type.key }}" (click)="onTabChange(type.value)">
+        {{ type.key }}
+      </button>
+      }
+    </hlm-tabs-list>
+  </hlm-tabs>
+</div>
