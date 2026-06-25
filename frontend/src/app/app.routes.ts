@@ -4,6 +4,7 @@ import { WorkspaceDetailComponent } from './features/workspaces/screens/workspac
 import { authGuard, publicGuard } from './core/auth/auth.guard';
 import { WorkspacesPageComponent } from './features/workspaces/screens/workspaces-page/workspaces-page.component';
 import { ConversationDetailComponent } from './features/conversations/screens/conversation-detail/conversation-detail.component';
+import { DocumentsPageComponent } from './features/documents/screens/documents-page/documents-page.component';
 
 export const routes: Routes = [
   {
@@ -24,6 +25,11 @@ export const routes: Routes = [
   {
     path: 'workspace/:id/conversation/:conversationId',
     component: ConversationDetailComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'workspace/:id/documents',
+    component: DocumentsPageComponent,
     canActivate: [authGuard],
   },
   {

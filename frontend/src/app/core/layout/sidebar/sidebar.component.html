@@ -75,8 +75,8 @@
         </div>
 
         <a
-          href="#"
-          (click)="$event.preventDefault()"
+          [routerLink]="['/workspace', state.activeWorkspaceId(), 'documents']"
+          routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
           class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
         >
           <span class="material-symbols-outlined text-[20px]">database</span>
