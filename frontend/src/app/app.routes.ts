@@ -5,6 +5,7 @@ import { authGuard, publicGuard } from './core/auth/auth.guard';
 import { WorkspacesPageComponent } from './features/workspaces/screens/workspaces-page/workspaces-page.component';
 import { ConversationDetailComponent } from './features/conversations/screens/conversation-detail/conversation-detail.component';
 import { DocumentsPageComponent } from './features/documents/screens/documents-page/documents-page.component';
+import { DocumentDetailComponent } from './features/documents/screens/document-detail/document-detail.component';
 
 export const routes: Routes = [
   {
@@ -30,6 +31,11 @@ export const routes: Routes = [
   {
     path: 'workspace/:id/documents',
     component: DocumentsPageComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'workspace/:id/documents/:documentId',
+    component: DocumentDetailComponent,
     canActivate: [authGuard],
   },
   {

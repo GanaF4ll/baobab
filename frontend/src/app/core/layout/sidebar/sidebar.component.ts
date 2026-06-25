@@ -1,15 +1,15 @@
 import { Component, computed, EventEmitter, inject, input, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { SidebarService } from '../../services/sidebar.service';
-import { WorkspacesStateService } from '../../../features/workspaces/services/workspaces-state.service';
 import { ConversationService } from '../../../features/conversations/services/conversation.service';
+import { WorkspacesStateService } from '../../../features/workspaces/services/workspaces-state.service';
+import { SidebarService } from '../../services/sidebar.service';
 
 @Component({
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive, HlmButton],
   templateUrl: './sidebar.component.html',
-  styleUrls: []
+  styleUrls: [],
 })
 export class SidebarComponent {
   protected readonly sidebarService = inject(SidebarService);

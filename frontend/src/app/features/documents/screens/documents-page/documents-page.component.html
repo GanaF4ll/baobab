@@ -17,18 +17,11 @@
           Manage and search through all documents uploaded to this secure RAG silo.
         </p>
       </div>
-
-      <button
-        (click)="handleSidebarBottomClick()"
-        class="px-md py-sm bg-primary text-on-primary hover:opacity-90 active:scale-[0.98] transition-all rounded font-label-technical text-label-technical font-bold flex items-center gap-xs cursor-pointer shadow-sm"
-      >
-        <span class="material-symbols-outlined text-[20px]">upload_file</span>
-        Upload Document
-      </button>
     </div>
 
     <!-- Filters -->
     <app-document-filter (selectedMimeType)="onMimeTypeSelected($event)"></app-document-filter>
+
     <!-- Main Results View -->
     @if (documentsQuery.isLoading()) {
     <div
@@ -54,51 +47,27 @@
       </div>
       }
     </div>
-    } @else if (documents().length > 0) {
+    } @else {
     <div
       class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-md mt-sm"
     >
+      <!-- Dropzone is always shown as the first card in the grid -->
+      <app-document-dropzone (click)="handleSidebarBottomClick()"></app-document-dropzone>
+
       @for (doc of documents(); track doc.id) {
       <app-document-card [document]="doc"></app-document-card>
       }
     </div>
-    } @else {
-    <!-- Premium Empty State -->
-    <div
-      class="bg-surface-container-low border border-outline-variant rounded-2xl p-xl min-h-[360px] flex flex-col items-center justify-center text-center"
-    >
-      <div
-        class="w-16 h-16 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center mb-lg"
-      >
-        <span class="material-symbols-outlined text-primary text-[36px] opacity-75"
-          >folder_open</span
-        >
-      </div>
-      <h3 class="font-headline-md text-headline-md text-on-surface mb-xs">No documents found</h3>
-      <p class="font-body-md text-body-md text-on-surface-variant/80 max-w-md mb-lg">
-        @if (selectedMimeType()) { No files with the selected filter are available in this
-        workspace. Try clearing the filter or upload new files. } @else { This workspace silo is
-        empty. Upload documents like PDFs or Markdown to feed the RAG engine. }
-      </p>
 
-      <div class="flex items-center gap-md">
-        @if (selectedMimeType()) {
-        <button
-          (click)="onMimeTypeSelected(null)"
-          class="px-md py-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded font-label-technical text-label-technical font-medium transition-colors cursor-pointer"
-        >
+    @if (documents().length === 0 && selectedMimeType()) {
+      <!-- Info text indicating filter has no results -->
+      <p class="text-center font-body-sm text-xs text-on-surface-variant/70 mt-lg">
+        No files matching the selected filter. 
+        <button (click)="onMimeTypeSelected(null)" class="text-primary underline font-bold cursor-pointer hover:opacity-85">
           Clear Filter
         </button>
-        }
-        <button
-          (click)="handleSidebarBottomClick()"
-          class="px-lg py-md bg-primary text-on-primary hover:opacity-90 active:scale-[0.98] transition-all rounded font-label-technical text-label-technical font-bold flex items-center gap-xs cursor-pointer shadow-md"
-        >
-          <span class="material-symbols-outlined text-[20px]">upload_file</span>
-          Upload Document
-        </button>
-      </div>
-    </div>
+      </p>
+    }
     }
   </div>
 </main>

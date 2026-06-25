@@ -1,12 +1,13 @@
-import { Component, input } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { DocumentEntity } from '../../../../../client/models';
 
 @Component({
   selector: 'app-document-card',
   standalone: true,
-  imports: [HlmCardImports, DatePipe],
+  imports: [HlmCardImports, DatePipe, RouterLink],
   templateUrl: './document-card.component.html',
   styleUrl: './document-card.component.css',
   host: {

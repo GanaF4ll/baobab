@@ -1,0 +1,43 @@
+<div
+  hlmCard
+  class="group relative flex flex-col justify-between overflow-hidden rounded-xl border-2 border-dashed border-outline-variant/60 bg-surface-container-low hover:bg-surface-container-lowest hover:border-outline cursor-pointer h-full min-h-[200px] p-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-crisp"
+>
+
+  <div class="flex flex-col gap-sm">
+    <!-- Icon Container representing Document Thumbnail -->
+    <div
+      class="flex h-20 w-full items-center justify-center rounded-lg border border-dashed border-outline-variant/60 bg-surface-variant/20 transition-all duration-300 group-hover:opacity-90"
+    >
+      <span
+        class="material-symbols-outlined text-[32px] text-outline group-hover:text-primary transition-colors duration-300 group-hover:scale-110"
+      >
+        cloud_upload
+      </span>
+    </div>
+
+    <!-- Title and Metadata -->
+    <div class="min-w-0 px-xs text-center">
+      <div class="h-10 flex items-start justify-center">
+        <h3
+          hlmCardTitle
+          class="font-headline-md text-sm font-bold text-primary group-hover:text-primary transition-colors duration-200"
+        >
+          Drop files here
+        </h3>
+      </div>
+      <p hlmCardDescription class="mt-xs font-body-sm text-[10px] text-on-surface-variant/80">
+        or click to browse
+      </p>
+    </div>
+  </div>
+
+  <div
+    class="mt-md flex items-center justify-center border-t border-outline-variant/30 pt-sm px-xs"
+  >
+    <span
+      class="font-label-technical text-[9px] font-semibold text-on-surface-variant bg-surface-variant/40 px-2 py-0.5 rounded"
+    >
+      PDF, DOCX, TXT, JSON
+    </span>
+  </div>
+</div>

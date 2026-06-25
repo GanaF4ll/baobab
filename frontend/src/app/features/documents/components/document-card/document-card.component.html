@@ -1,9 +1,8 @@
 <div
   hlmCard
+  [routerLink]="['/workspace', document().workspaceId, 'documents', document().id]"
   class="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest p-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-crisp hover:border-outline cursor-pointer h-full min-h-[200px]"
 >
-  <!-- Background subtle pattern/accent -->
-  <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/30 to-secondary/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
   <div class="flex flex-col gap-sm">
     <!-- Icon Container representing Document Thumbnail -->
@@ -11,7 +10,9 @@
       class="flex h-20 w-full items-center justify-center rounded-lg border transition-all duration-300 group-hover:opacity-90"
       [class]="getIconColorClass(document().mimeType)"
     >
-      <span class="material-symbols-outlined text-[32px] transition-transform duration-300 group-hover:scale-110">
+      <span
+        class="material-symbols-outlined text-[32px] transition-transform duration-300 group-hover:scale-110"
+      >
         {{ getIconName(document().mimeType) }}
       </span>
     </div>
@@ -27,7 +28,10 @@
           {{ document().title }}
         </h3>
       </div>
-      <p hlmCardDescription class="mt-xs font-label-technical text-[10px] text-on-surface-variant/70 flex items-center gap-xs">
+      <p
+        hlmCardDescription
+        class="mt-xs font-label-technical text-[10px] text-on-surface-variant/70 flex items-center gap-xs"
+      >
         <span class="font-semibold">{{ getFileTypeLabel(document().mimeType) }}</span>
         <span>•</span>
         <span>v{{ document().currentVersion }}</span>
@@ -35,16 +39,27 @@
     </div>
   </div>
 
-  <div class="mt-md flex items-center justify-between border-t border-outline-variant/30 pt-sm px-xs">
-    <span class="font-label-technical text-[9px] text-on-surface-variant/60 flex items-center gap-xs">
+  <div
+    class="mt-md flex items-center justify-between border-t border-outline-variant/30 pt-sm px-xs"
+  >
+    <span
+      class="font-label-technical text-[9px] text-on-surface-variant/60 flex items-center gap-xs"
+    >
       <span class="material-symbols-outlined text-[10px]">calendar_today</span>
       {{ document().createdAt | date: 'mediumDate' }}
     </span>
-    
-    <div class="flex items-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-      <span class="font-label-technical text-[10px] font-semibold text-primary flex items-center gap-xs">
+
+    <div
+      class="flex items-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+    >
+      <span
+        class="font-label-technical text-[10px] font-semibold text-primary flex items-center gap-xs"
+      >
         View
-        <span class="material-symbols-outlined text-[12px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+        <span
+          class="material-symbols-outlined text-[12px] transition-transform group-hover:translate-x-0.5"
+          >arrow_forward</span
+        >
       </span>
     </div>
   </div>

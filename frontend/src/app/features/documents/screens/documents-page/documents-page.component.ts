@@ -6,11 +6,12 @@ import { SidebarService } from '../../../../core/services/sidebar.service';
 import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
 import { DocumentFilterComponent } from '../../components/document-filter/document-filter.component';
 import { DocumentCardComponent } from '../../components/document-card/document-card.component';
+import { DocumentDropzoneComponent } from '../../components/document-dropzone/document-dropzone.component';
 import { DocumentEntity } from '../../../../../client/models';
 
 @Component({
   selector: 'app-documents-page',
-  imports: [SidebarComponent, HeaderComponent, DocumentFilterComponent, DocumentCardComponent],
+  imports: [SidebarComponent, HeaderComponent, DocumentFilterComponent, DocumentCardComponent, DocumentDropzoneComponent],
   templateUrl: './documents-page.component.html',
   styleUrl: './documents-page.component.css',
 })
