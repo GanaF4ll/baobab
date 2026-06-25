@@ -1,3 +1,10 @@
+@if (isOpen()) {
+  <div
+    class="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity"
+    (click)="sidebarService.close()"
+  ></div>
+}
+
 <aside
   [class.w-64]="isOpen()"
   [class.w-0]="!isOpen()"

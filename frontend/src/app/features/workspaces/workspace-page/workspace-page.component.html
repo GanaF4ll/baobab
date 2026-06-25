@@ -6,14 +6,13 @@
 
 <!-- Main Content Area -->
 <main
-  [class.ml-64]="sidebarService.isOpen()"
-  [class.ml-0]="!sidebarService.isOpen()"
-  class="mt-16 p-lg min-h-[calc(100vh-4rem)] technical-grid transition-all duration-300 ease-in-out"
+  [class.md:ml-64]="sidebarService.isOpen()"
+  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] overflow-y-auto technical-grid transition-all duration-300 ease-in-out ml-0"
 >
   <!-- Workspaces List View -->
   <div class="max-w-container-max mx-auto">
     <!-- Dashboard Header -->
-    <div class="flex justify-between items-end mb-xl gap-lg">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-xl gap-lg">
       <div class="flex-1 min-w-0">
         <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Workspaces</h2>
         <p class="font-body-md text-body-md text-on-surface opacity-80 max-w-lg">
@@ -56,7 +55,7 @@
 <!-- Contextual Toast Notification -->
 @if (state.toast().visible) {
   <div
-    class="fixed bottom-lg right-lg bg-surface-container-highest border border-primary p-md rounded shadow-xl flex items-center gap-md z-50 transition-all duration-300"
+    class="fixed bottom-lg left-lg right-lg sm:left-auto bg-surface-container-highest border border-primary p-md rounded shadow-xl flex items-center gap-md z-50 transition-all duration-300 sm:w-auto"
   >
     <span class="material-symbols-outlined text-primary">verified_user</span>
     <div>
