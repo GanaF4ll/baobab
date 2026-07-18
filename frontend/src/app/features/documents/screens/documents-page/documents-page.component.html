@@ -52,7 +52,7 @@
       class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-md mt-sm"
     >
       <!-- Dropzone is always shown as the first card in the grid -->
-      <app-document-dropzone (click)="handleSidebarBottomClick()"></app-document-dropzone>
+      <app-document-dropzone (fileSelected)="uploadFile($event)"></app-document-dropzone>
 
       @for (doc of documents(); track doc.id) {
       <app-document-card [document]="doc"></app-document-card>

@@ -8,7 +8,6 @@ export class VersionDto extends OmitType(DocumentVersionEntity, ['documentId']) 
 export class FindOneWithVersionsResponseData extends DocumentEntity {
   @ApiProperty({
     type: [VersionDto],
-    isArray: true,
     description: 'the different versions of the document',
   })
   versions: VersionDto[];

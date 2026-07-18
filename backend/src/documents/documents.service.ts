@@ -1,5 +1,5 @@
 import { StorageFolderName } from './../shared/constants';
-import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
@@ -76,6 +76,7 @@ export class DocumentsService {
       StorageFolderName.DOCUMENTS,
       fileName,
       file.buffer,
+      file.mimetype,
     );
 
     const [newDocVersion] = await this.db
@@ -286,6 +287,7 @@ todo: method updateContent which allows to replace the content of a document wit
       StorageFolderName.DOCUMENTS,
       fileName,
       file.buffer,
+      file.mimetype,
     );
 
     const [newDocVersion] = await this.db
@@ -328,6 +330,62 @@ todo: method updateContent which allows to replace the content of a document wit
     if (ext === 'pdf') return 'application/pdf';
     if (ext === 'md' || ext === 'markdown') return 'text/markdown';
     return mimetype;
+  }
+
+  async getVersionContent(
+    id: string,
+    versionId: string,
+    userId: string,
+  ): Promise<{ content: string; mimeType: string }> {
+    const document = await this.findOneWithVersions(id, userId);
+
+    const version = document.versions.find((v) => v.id === versionId);
+    if (!version) {
+      this.logger.error(`Version [${versionId}] not found for document [${id}]`);
+      throw new NotFoundException('Version not found');
+    }
+
+    const match = version.storageKey.match(/\/documents\/(.+)$/);
+    if (!match) {
+      this.logger.error(`Invalid storageKey format [${version.storageKey}]`);
+      throw new BadRequestException('Invalid storage key');
+    }
+    const relativeKey = match[1];
+
+    const buffer = await this.storage.download(StorageFolderName.DOCUMENTS, relativeKey);
+    const content = await this.extractContent(buffer, document.mimeType);
+    return {
+      content,
+      mimeType: document.mimeType,
+    };
+  }
+
+  async getVersionFile(
+    id: string,
+    versionId: string,
+    userId: string,
+  ): Promise<{ buffer: Buffer; mimeType: string; filename: string }> {
+    const document = await this.findOneWithVersions(id, userId);
+
+    const version = document.versions.find((v) => v.id === versionId);
+    if (!version) {
+      this.logger.error(`Version [${versionId}] not found for document [${id}]`);
+      throw new NotFoundException('Version not found');
+    }
+
+    const match = version.storageKey.match(/\/documents\/(.+)$/);
+    if (!match) {
+      this.logger.error(`Invalid storageKey format [${version.storageKey}]`);
+      throw new BadRequestException('Invalid storage key');
+    }
+    const relativeKey = match[1];
+
+    const buffer = await this.storage.download(StorageFolderName.DOCUMENTS, relativeKey);
+    return {
+      buffer,
+      mimeType: document.mimeType,
+      filename: version.storageKey.split('/').pop() || 'document',
+    };
   }
 
   /**

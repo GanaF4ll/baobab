@@ -13,6 +13,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  StreamableFile,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
@@ -29,6 +30,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiProduces,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -103,6 +105,7 @@ export class DocumentsController {
   @Get(':id')
   @Protected()
   @ApiOperation({ summary: 'get a single document by id, with its versions' })
+  @ApiOkResponse({ type: FindOneWithVersionsResponseDto })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Document not found' })
   async findOne(
@@ -111,6 +114,37 @@ export class DocumentsController {
   ): Promise<FindOneWithVersionsResponseDto> {
     const data = await this.documentsService.findOneWithVersions(id, userId);
     return { data };
+  }
+
+  @Get(':id/versions/:versionId/content')
+  @Protected()
+  @ApiOperation({ summary: 'Get the content of a document version' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Document or Version not found' })
+  @ApiProduces('application/text', 'application/octet-stream', 'text/markdown')
+  async getVersionContent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('versionId', ParseUUIDPipe) versionId: string,
+    @CurrentUser('id') userId: string,
+  ): Promise<{ content: string; mimeType: string }> {
+    return this.documentsService.getVersionContent(id, versionId, userId);
+  }
+
+  @Get(':id/versions/:versionId/file')
+  @Protected()
+  @ApiOperation({ summary: 'Get the file binary of a document version' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Document or Version not found' })
+  async getVersionFile(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('versionId', ParseUUIDPipe) versionId: string,
+    @CurrentUser('id') userId: string,
+  ): Promise<StreamableFile> {
+    const fileData = await this.documentsService.getVersionFile(id, versionId, userId);
+    return new StreamableFile(fileData.buffer, {
+      type: fileData.mimeType,
+      disposition: 'inline',
+    });
   }
 
   @Patch(':id')
