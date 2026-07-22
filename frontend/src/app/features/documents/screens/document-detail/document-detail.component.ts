@@ -117,6 +117,7 @@ export class DocumentDetailComponent implements OnInit {
 
   protected readonly isEditMode = signal<boolean>(false);
   protected readonly isSaving = signal<boolean>(false);
+  protected readonly isUploadingVersion = signal<boolean>(false);
   protected readonly activeTab = signal<'visual' | 'text'>('visual');
 
   // Document Title Editing State
@@ -179,7 +180,6 @@ export class DocumentDetailComponent implements OnInit {
     const docId = this.documentIdParam();
     const title = this.editedTitle().trim();
     if (!docId || !title) return;
-
     this.isSavingTitle.set(true);
     this.documentsService.documentsControllerUpdate(docId, { title }).subscribe({
       next: () => {
@@ -242,6 +242,62 @@ export class DocumentDetailComponent implements OnInit {
         console.error('Save content failed:', err);
         this.state.showToast('Save Failed', 'Failed to save changes. Please try again.');
         this.isSaving.set(false);
+      },
+    });
+  }
+
+  uploadNewVersion(files: FileList | null) {
+    const file = files?.item(0);
+    if (!file) return;
+
+    const workspaceId = this.workspaceIdParam();
+    const docId = this.documentIdParam();
+    const doc = this.document();
+    if (!workspaceId || !docId || !doc) return;
+
+    // Optional validation: check if mimeType matches
+    const expectedType = doc.mimeType;
+    const isMarkdown = expectedType === 'text/markdown';
+    const isPdf = expectedType === 'application/pdf';
+
+    if (isPdf && file.type !== 'application/pdf') {
+      this.state.showToast(
+        'Invalid File Type',
+        'Please upload a PDF (.pdf) file for this document.',
+      );
+      return;
+    }
+
+    if (isMarkdown && file.type !== 'text/markdown' && !file.name.endsWith('.md') && !file.name.endsWith('.txt')) {
+      this.state.showToast(
+        'Invalid File Type',
+        'Please upload a Markdown (.md) file for this document.',
+      );
+      return;
+    }
+
+    this.isUploadingVersion.set(true);
+    this.state.showToast(
+      'Uploading New Version',
+      `Processing version ${this.versions().length + 1} with RAG parser...`,
+    );
+
+    const formData = new FormData();
+    formData.append('workspaceId', workspaceId);
+    formData.append('file', file);
+    formData.append('id', docId);
+
+    this.http.post(`${this.basePath}/documents`, formData).subscribe({
+      next: () => {
+        this.isUploadingVersion.set(false);
+        this.state.showToast('Version Uploaded', 'A new version snapshot has been processed successfully.');
+        this.selectedVersionId.set(null); // automatically falls back to current (latest)
+        this.documentQuery.reload();
+      },
+      error: (err) => {
+        console.error('Upload version failed:', err);
+        this.state.showToast('Upload Failed', 'Failed to upload new version. Please try again.');
+        this.isUploadingVersion.set(false);
       },
     });
   }
