@@ -1,10 +1,8 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { computed, effect, inject, Service, signal } from '@angular/core';
 import { WorkspacesService } from '../../../../client/services/workspaces.service';
 import { WorkspacesResource } from '../../../../client/resources/workspaces.resource';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class WorkspacesStateService {
   private readonly workspacesService = inject(WorkspacesService);
   private readonly workspacesResource = inject(WorkspacesResource);
@@ -20,6 +18,7 @@ export class WorkspacesStateService {
   });
 
   public readonly workspacesQuery = this.workspacesResource.workspacesControllerFindAll(
+    undefined,
     undefined,
     undefined,
     undefined,

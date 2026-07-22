@@ -21,9 +21,15 @@ async function bootstrap() {
     }),
   );
 
+  const allowedOrigins = ['http://localhost:3000'];
+
   const document = SwaggerModule.createDocument(app, buildSwaggerDocument());
   SwaggerModule.setup('swagger', app, document, SWAGGER_OPTIONS);
-  app.enableCors();
+  app.enableCors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
+  });
 
   const port = Number(process.env.PORT ?? 3000);
   const host = process.env.HOST ?? '0.0.0.0';

@@ -201,7 +201,7 @@ describe('DocumentsService', () => {
       const selectFromMock = jest.fn().mockReturnValue({ where: selectWhereMock });
       dbMock.select.mockReturnValue({ from: selectFromMock });
 
-      const result = await service.findAll(userId, {} as any);
+      const result = await service.findAllByWorkspace(userId, 'workspace-123', {} as any);
 
       expect(dbMock.query.documents.findMany).toHaveBeenCalled();
       expect(dbMock.select).toHaveBeenCalled();
@@ -225,7 +225,7 @@ describe('DocumentsService', () => {
       const selectFromMock = jest.fn().mockReturnValue({ where: selectWhereMock });
       dbMock.select.mockReturnValue({ from: selectFromMock });
 
-      const result = await service.findAll(userId, { limit: 1 } as any);
+      const result = await service.findAllByWorkspace(userId, 'workspace-123', { limit: 1 } as any);
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]).toEqual(mockDocs[0]);
@@ -242,7 +242,7 @@ describe('DocumentsService', () => {
       const selectFromMock = jest.fn().mockReturnValue({ where: selectWhereMock });
       dbMock.select.mockReturnValue({ from: selectFromMock });
 
-      await service.findAll(userId, { cursor: 'doc-cursor', order: OrderFilter.ASC } as any);
+      await service.findAllByWorkspace(userId, 'workspace-123', { cursor: 'doc-cursor', order: OrderFilter.ASC } as any);
 
       expect(dbMock.query.documents.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -346,6 +346,7 @@ describe('DocumentsService', () => {
     it('successfully deletes a version from database and storage', async () => {
       const mockDoc = {
         id: docId,
+        workspaceId: 'workspace-123',
         versions: [
           { id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf' },
           { id: 'v2-id', versionNumber: 2, storageKey: 'uploads/file2.pdf' },
@@ -356,7 +357,7 @@ describe('DocumentsService', () => {
       const deleteWhereMock = jest.fn().mockResolvedValue([]);
       dbMock.delete.mockReturnValue({ where: deleteWhereMock });
 
-      await service.removeVersion(docId, userId, 'v2-id');
+      await service.removeVersion(docId, userId, 'v2-id', 'workspace-123');
 
       expect(dbMock.delete).toHaveBeenCalledWith(schema.documentVersions);
       expect(deleteWhereMock).toHaveBeenCalled();
@@ -369,7 +370,7 @@ describe('DocumentsService', () => {
     it('throws NotFoundException if the document does not exist', async () => {
       dbMock.query.documents.findFirst.mockResolvedValue(null);
 
-      await expect(service.removeVersion(docId, userId, 'v1-id')).rejects.toThrow(
+      await expect(service.removeVersion(docId, userId, 'v1-id', 'workspace-123')).rejects.toThrow(
         new NotFoundException('Document not found'),
       );
     });
@@ -377,11 +378,12 @@ describe('DocumentsService', () => {
     it('throws NotFoundException if the target version is not found in document versions', async () => {
       const mockDoc = {
         id: docId,
+        workspaceId: 'workspace-123',
         versions: [{ id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf' }],
       };
       dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
 
-      await expect(service.removeVersion(docId, userId, 'non-existent-version-id')).rejects.toThrow(
+      await expect(service.removeVersion(docId, userId, 'non-existent-version-id', 'workspace-123')).rejects.toThrow(
         new NotFoundException('Version not found'),
       );
     });
