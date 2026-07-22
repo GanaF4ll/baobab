@@ -57,7 +57,7 @@ export class DocumentEntity {
   @ApiProperty({
     description: 'The mime type of the document',
     example: 'application/pdf',
-    enum: Object.values(mimeTypeEnum),
+    enum: mimeTypeEnum.enumValues,
   })
-  mimeType: (typeof mimeTypeEnum)[keyof typeof mimeTypeEnum];
+  mimeType: (typeof mimeTypeEnum.enumValues)[number];
 }

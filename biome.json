@@ -11,7 +11,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
         "noUnusedVariables": "error",
         "noUnusedImports": {
@@ -39,19 +39,27 @@
     }
   },
   "json": { "formatter": { "lineWidth": 200 } },
+  "html": {
+    "parser": {
+      "interpolation": true
+    },
+    "formatter": {
+      "enabled": true
+    }
+  },
   "overrides": [
     {
-      "include": ["**/*.html"],
+      "includes": ["**/*.html"],
       "linter": { "enabled": false },
-      "formatter": { "enabled": false }
+      "formatter": { "enabled": true }
     },
     {
-      "include": ["frontend/src/api/**"],
+      "includes": ["**/frontend/src/api/**"],
       "linter": { "enabled": false },
       "formatter": { "enabled": false }
     }
   ],
   "files": {
-    "ignore": ["**/node_modules/**", "**/dist/**", "frontend/.angular/**"]
+    "includes": ["**", "!**/node_modules/**", "!**/dist/**", "!**/frontend/.angular/**"]
   }
 }

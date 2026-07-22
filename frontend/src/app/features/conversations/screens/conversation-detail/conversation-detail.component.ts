@@ -1,15 +1,24 @@
-import { Component, computed, inject, OnInit, signal, effect, viewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+  effect,
+  viewChild,
+  ElementRef,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
-import { SidebarComponent } from '../../../core/layout/sidebar/sidebar.component';
-import { HeaderComponent } from '../../../core/layout/header/header.component';
-import { ConversationsResource } from '../../../../client/resources/conversations.resource';
-import { ConversationsService } from '../../../../client/services/conversations.service';
-import { WorkspacesStateService } from '../../workspaces/services/workspaces-state.service';
-import { SidebarService } from '../../../core/services/sidebar.service';
-import { UserMessageComponent } from '../components/user-message/user-message.component';
+import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
+import { HeaderComponent } from '../../../../core/layout/header/header.component';
+import { UserMessageComponent } from '../../components/user-message/user-message.component';
+import { ConversationsResource } from '../../../../../client/resources';
+import { ConversationsService } from '../../../../../client';
+import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
+import { SidebarService } from '../../../../core/services/sidebar.service';
 
 @Component({
   selector: 'app-conversation-detail',
@@ -28,12 +37,12 @@ export class ConversationDetailComponent implements OnInit {
   // Extract params as signals
   private readonly idParam = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('conversationId') || '')),
-    { initialValue: '' }
+    { initialValue: '' },
   );
 
   protected readonly workspaceIdParam = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('id') || '')),
-    { initialValue: '' }
+    { initialValue: '' },
   );
 
   // Query conversation and last messages
@@ -42,7 +51,7 @@ export class ConversationDetailComponent implements OnInit {
     this.workspaceIdParam,
     {
       defaultValue: undefined,
-    }
+    },
   );
 
   protected readonly conversation = computed(() => this.conversationQuery.value()?.data as any);
@@ -64,7 +73,7 @@ export class ConversationDetailComponent implements OnInit {
         // The API returns newest first (descending), reverse it for chronological display
         const chronologicalMsgs = [...initialMsgs].reverse();
         this.loadedMessages.set(chronologicalMsgs);
-        
+
         // Use the oldest message ID as the initial cursor for loading older messages
         if (initialMsgs.length > 0) {
           const oldest = initialMsgs[initialMsgs.length - 1];
@@ -124,49 +133,50 @@ export class ConversationDetailComponent implements OnInit {
     const previousScrollHeight = container ? container.scrollHeight : 0;
     const previousScrollTop = container ? container.scrollTop : 0;
 
-    this.conversationsService.conversationsControllerFindNextMessages(
-      conversationId,
-      20,
-      cursor,
-      'desc'
-    ).subscribe({
-      next: (response: any) => {
-        const newMsgs = response.data?.items || [];
-        const nextC = response.data?.nextCursor;
+    this.conversationsService
+      .conversationsControllerFindNextMessages(conversationId, 20, cursor, 'desc')
+      .subscribe({
+        next: (response: any) => {
+          const newMsgs = response.data?.items || [];
+          const nextC = response.data?.nextCursor;
 
-        if (newMsgs.length > 0) {
-          // The API returns newest first, reverse it for chronological prepending
-          const chronologicalOlder = [...newMsgs].reverse();
-          this.loadedMessages.update(msgs => [...chronologicalOlder, ...msgs]);
-          this.nextCursor.set(nextC || newMsgs[newMsgs.length - 1].id);
-          this.hasMore = newMsgs.length >= 20;
+          if (newMsgs.length > 0) {
+            // The API returns newest first, reverse it for chronological prepending
+            const chronologicalOlder = [...newMsgs].reverse();
+            this.loadedMessages.update((msgs) => [...chronologicalOlder, ...msgs]);
+            this.nextCursor.set(nextC || newMsgs[newMsgs.length - 1].id);
+            this.hasMore = newMsgs.length >= 20;
 
-          // Adjust scroll position to prevent jumping
-          setTimeout(() => {
-            const currentContainer = this.messagesContainer()?.nativeElement;
-            if (currentContainer) {
-              const newScrollHeight = currentContainer.scrollHeight;
-              currentContainer.scrollTop = newScrollHeight - previousScrollHeight + previousScrollTop;
-            }
-          }, 0);
-        } else {
-          this.hasMore = false;
-        }
-        this.isLoadingMore.set(false);
-      },
-      error: (err) => {
-        console.error('Failed to load older messages', err);
-        this.isLoadingMore.set(false);
-      }
-    });
+            // Adjust scroll position to prevent jumping
+            setTimeout(() => {
+              const currentContainer = this.messagesContainer()?.nativeElement;
+              if (currentContainer) {
+                const newScrollHeight = currentContainer.scrollHeight;
+                currentContainer.scrollTop =
+                  newScrollHeight - previousScrollHeight + previousScrollTop;
+              }
+            }, 0);
+          } else {
+            this.hasMore = false;
+          }
+          this.isLoadingMore.set(false);
+        },
+        error: (err) => {
+          console.error('Failed to load older messages', err);
+          this.isLoadingMore.set(false);
+        },
+      });
   }
 
   sendMessage(event: Event, inputEl: HTMLInputElement) {
     event.preventDefault();
     const content = inputEl.value.trim();
     if (!content) return;
-    
+
     inputEl.value = '';
-    this.state.showToast('Message Sent', 'Your message has been processed by the secure RAG agent.');
+    this.state.showToast(
+      'Message Sent',
+      'Your message has been processed by the secure RAG agent.',
+    );
   }
 }

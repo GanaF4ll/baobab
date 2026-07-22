@@ -34,6 +34,7 @@
     "@angular/build": "^22.0.1",
     "@angular/cli": "^22.0.1",
     "@angular/compiler-cli": "^22.0.0",
+    "@biomejs/biome": "^2.5.1",
     "@ng-openapi/http-resource": "^0.0.33",
     "@spartan-ng/cli": "^1.0.0",
     "@tailwindcss/postcss": "^4.1.12",

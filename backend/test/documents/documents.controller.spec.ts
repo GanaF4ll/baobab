@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentsController } from 'src/documents/documents.controller';
 import { DocumentsService } from 'src/documents/documents.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
 import { UpdateDocumentTitleDto } from 'src/documents/dto/input/update-document-title.dto';
 import { DocumentFilterDto } from 'src/documents/dto/input/document-filter.dto';
 import { DeleteVersionDto } from 'src/documents/dto/input/delete-version.dto';
@@ -13,7 +14,7 @@ describe('DocumentsController', () => {
   beforeEach(async () => {
     serviceMock = {
       create: jest.fn(),
-      findAll: jest.fn(),
+      findAllByWorkspace: jest.fn(),
       findOne: jest.fn(),
       findOneWithVersions: jest.fn(),
       updateTitle: jest.fn(),
@@ -30,6 +31,8 @@ describe('DocumentsController', () => {
       ],
     })
       .overrideGuard(AuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(WorkspaceMemberGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -75,16 +78,17 @@ describe('DocumentsController', () => {
   // -------------------------------------------------------------------------
   // findAll
   // -------------------------------------------------------------------------
-  describe('findAll', () => {
-    it('calls service.findAll with userId and filters, returns formatted collection response', async () => {
+  describe('findAllByWorkspace', () => {
+    it('calls service.findAllByWorkspace with userId, workspaceId and filters, returns formatted collection response', async () => {
       const userId = 'user-123';
+      const workspaceId = 'workspace-123';
       const filters: DocumentFilterDto = { limit: 10 } as any;
       const serviceResult = { items: [], totalCount: 0, nextCursor: null };
-      serviceMock.findAll.mockResolvedValue(serviceResult);
+      serviceMock.findAllByWorkspace.mockResolvedValue(serviceResult);
 
-      const result = await controller.findAll(userId, filters);
+      const result = await controller.findAllByWorkspace(workspaceId, userId, filters);
 
-      expect(serviceMock.findAll).toHaveBeenCalledWith(userId, filters);
+      expect(serviceMock.findAllByWorkspace).toHaveBeenCalledWith(userId, workspaceId, filters);
       expect(result).toEqual({
         data: serviceResult,
       });
@@ -130,17 +134,18 @@ describe('DocumentsController', () => {
   // removeVersion
   // -------------------------------------------------------------------------
   describe('removeVersion', () => {
-    it('calls service.removeVersion with documentId, userId and versionId from Dto', async () => {
+    it('calls service.removeVersion with documentId, userId, versionId and workspaceId from Dto', async () => {
       const userId = 'user-123';
       const dto: DeleteVersionDto = {
         id: 'version-123',
         documentId: 'doc-123',
+        workspaceId: 'workspace-123',
       };
       serviceMock.removeVersion.mockResolvedValue(undefined);
 
       await controller.removeVersion(dto, userId);
 
-      expect(serviceMock.removeVersion).toHaveBeenCalledWith(dto.documentId, userId, dto.id);
+      expect(serviceMock.removeVersion).toHaveBeenCalledWith(dto.documentId, userId, dto.id, dto.workspaceId);
     });
   });
 });

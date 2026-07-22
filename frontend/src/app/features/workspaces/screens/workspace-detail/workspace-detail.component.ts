@@ -1,12 +1,12 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
-import { SidebarComponent } from '../../../core/layout/sidebar/sidebar.component';
-import { HeaderComponent } from '../../../core/layout/header/header.component';
-import { WorkspacesResource } from '../../../../client/resources/workspaces.resource';
-import { WorkspacesStateService } from '../services/workspaces-state.service';
-import { SidebarService } from '../../../core/services/sidebar.service';
+import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
+import { HeaderComponent } from '../../../../core/layout/header/header.component';
+import { WorkspacesResource } from '../../../../../client/resources';
+import { WorkspacesStateService } from '../../services/workspaces-state.service';
+import { SidebarService } from '../../../../core/services/sidebar.service';
 
 @Component({
   selector: 'app-workspace-detail',
@@ -23,7 +23,7 @@ export class WorkspaceDetailComponent implements OnInit {
   // Extract the id parameter as a signal using route.paramMap
   private readonly idParam = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('id') || '')),
-    { initialValue: '' }
+    { initialValue: '' },
   );
 
   // Call the workspacesControllerFindOne endpoint using the id signal
@@ -31,7 +31,7 @@ export class WorkspaceDetailComponent implements OnInit {
     this.idParam,
     {
       defaultValue: undefined,
-    }
+    },
   );
 
   protected readonly workspace = computed(() => this.workspaceQuery.value()?.data);
