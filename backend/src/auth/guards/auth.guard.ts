@@ -47,6 +47,13 @@ export class AuthGuard implements CanActivate {
 
   private extractTokenFromHeader(request: FastifyRequest): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
+    if (type === 'Bearer') {
+      return token;
+    }
+    const query = request.query as Record<string, string>;
+    if (query && query['token']) {
+      return query['token'];
+    }
+    return undefined;
   }
 }
