@@ -6,19 +6,21 @@ import { AuthService } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const workspacesState = inject(WorkspacesStateService);
-
-  const token = authService.accessToken();
-  const activeWorkspaceId = workspacesState.activeWorkspaceId();
 
   let authReq = req;
 
   // Replace {workspaceId} in URL if present
-  if (activeWorkspaceId && req.url.includes('{workspaceId}')) {
-    authReq = authReq.clone({
-      url: req.url.replace('{workspaceId}', activeWorkspaceId),
-    });
+  if (req.url.includes('{workspaceId}')) {
+    const workspacesState = inject(WorkspacesStateService);
+    const activeWorkspaceId = workspacesState.activeWorkspaceId();
+    if (activeWorkspaceId) {
+      authReq = authReq.clone({
+        url: req.url.replace('{workspaceId}', activeWorkspaceId),
+      });
+    }
   }
+
+  const token = authService.accessToken();
 
   if (token) {
     authReq = authReq.clone({

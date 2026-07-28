@@ -17,7 +17,8 @@
       "@spartan-ng/helm/input": ["./src/app/shared/ui/input/src/index.ts"],
       "@spartan-ng/helm/dialog": ["./src/app/shared/ui/dialog/src/index.ts"],
       "@spartan-ng/helm/tabs": ["./src/app/shared/ui/tabs/src/index.ts"],
-      "@spartan-ng/helm/card": ["./src/app/shared/ui/card/src/index.ts"]
+      "@spartan-ng/helm/card": ["./src/app/shared/ui/card/src/index.ts"],
+      "@spartan-ng/helm/checkbox": ["./src/app/shared/ui/checkbox/src/index.ts"]
     }
   },
   "angularCompilerOptions": {

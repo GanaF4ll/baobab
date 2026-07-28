@@ -127,7 +127,7 @@ export class WorkspacesController {
 
   @Delete(':id')
   @Protected()
-  @ApiOperation({ summary: 'deletes a workspace, set a deleted at timestamp' })
+  @ApiOperation({ summary: 'soft deletes a workspace, set a deleted at timestamp' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Workspace not found' })
   @ApiBadRequestResponse({ description: 'Workspace already deleted' })
