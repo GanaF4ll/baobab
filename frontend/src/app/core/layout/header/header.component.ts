@@ -8,7 +8,7 @@ import { SidebarService } from '../../services/sidebar.service';
   selector: 'app-header',
   imports: [HlmInput],
   templateUrl: './header.component.html',
-  styleUrls: []
+  styleUrls: [],
 })
 export class HeaderComponent {
   private readonly authService = inject(AuthService);

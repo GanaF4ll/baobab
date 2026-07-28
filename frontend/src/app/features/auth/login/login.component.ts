@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
+import { email, FormField, form, minLength, required, submit } from '@angular/forms/signals';
 import { Router } from '@angular/router';
-import { form, FormField, required, email, submit, minLength } from '@angular/forms/signals';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LoginFormComponent } from './login-form/login-form.component';
 

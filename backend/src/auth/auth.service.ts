@@ -1,4 +1,3 @@
-import { CreateUserDto } from './../users/dto/create-user.dto';
 import {
   ConflictException,
   Inject,
@@ -6,16 +5,17 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
-import * as argon2 from 'argon2';
-import { TokenType } from 'src/shared/constants';
 import { ConfigService } from '@nestjs/config';
-import { LoginDto } from './dto/input/login.dto';
-import { DRIZZLE } from 'src/drizzle/drizzle.module';
-import { DrizzleDb } from 'src/drizzle/types/drizzle';
-import * as schema from 'src/drizzle/schema';
+import { JwtService } from '@nestjs/jwt';
+import * as argon2 from 'argon2';
 import { eq } from 'drizzle-orm';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import * as schema from 'src/drizzle/schema';
+import { DrizzleDb } from 'src/drizzle/types/drizzle';
+import { TokenType } from 'src/shared/constants';
+import { UsersService } from 'src/users/users.service';
+import { CreateUserDto } from './../users/dto/create-user.dto';
+import { LoginDto } from './dto/input/login.dto';
 import { RegisterAndLoginResponseData } from './dto/output/register-and-login-response.dto';
 
 @Injectable()

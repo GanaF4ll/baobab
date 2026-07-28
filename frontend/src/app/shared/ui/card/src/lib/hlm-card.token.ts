@@ -1,4 +1,4 @@
-import { inject, InjectionToken, type ValueProvider } from '@angular/core';
+import { InjectionToken, inject, type ValueProvider } from '@angular/core';
 
 export type HlmCardConfig = {
   size: 'sm' | 'default';

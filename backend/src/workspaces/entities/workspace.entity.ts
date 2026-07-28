@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsDateString, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class WorkspaceEntity {
   @ApiProperty({ description: 'id of the workspace' })
@@ -31,4 +31,9 @@ export class WorkspaceEntity {
   @IsOptional()
   @IsDateString()
   deletedAt?: Date | null;
+
+  @ApiProperty({ description: 'Number of documents in the workspace', required: false })
+  @IsOptional()
+  @IsNumber()
+  documentCount?: number;
 }

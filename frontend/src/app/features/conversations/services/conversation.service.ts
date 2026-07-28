@@ -1,15 +1,24 @@
-import { Service, computed, inject } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { RagStreamChunkResponseDto } from '../../../../client/models';
 import { ConversationsResource } from '../../../../client/resources/conversations.resource';
 import { ConversationsService } from '../../../../client/services/conversations.service';
+import { BASE_PATH_DEFAULT } from '../../../../client/tokens';
+import { AuthService } from '../../../core/auth/auth.service';
 import { WorkspacesStateService } from '../../workspaces/services/workspaces-state.service';
 
-@Service()
+@Injectable({
+  providedIn: 'root',
+})
 export class ConversationService {
   private readonly conversationsResource = inject(ConversationsResource);
   private readonly conversationsService = inject(ConversationsService);
   private readonly workspacesStateService = inject(WorkspacesStateService);
+  private readonly authService = inject(AuthService);
+  private readonly basePath = inject(BASE_PATH_DEFAULT);
   private readonly router = inject(Router);
+
+  public readonly lastUpdatedConversationId = signal<{ id: string; timestamp: number } | null>(null);
 
   // Dynamic signal based on the active workspace ID
   private readonly activeWorkspaceId = computed(
@@ -55,5 +64,124 @@ export class ConversationService {
           console.error('Failed to create conversation', err);
         },
       });
+  }
+
+  renameConversation(id: string, title: string) {
+    const workspaceId = this.activeWorkspaceId();
+    if (!workspaceId) return;
+
+    this.conversationsService
+      .conversationsControllerUpdate(id, workspaceId, { title })
+      .subscribe({
+        next: () => {
+          this.conversationsQuery.reload();
+          this.lastUpdatedConversationId.set({ id, timestamp: Date.now() });
+        },
+        error: (err) => {
+          console.error('Failed to rename conversation', err);
+        },
+      });
+  }
+
+  deleteConversation(id: string) {
+    const workspaceId = this.activeWorkspaceId();
+    if (!workspaceId) return;
+
+    this.conversationsService
+      .conversationsControllerSoftDelete(id, workspaceId)
+      .subscribe({
+        next: () => {
+          this.conversationsQuery.reload();
+          const currentUrl = this.router.url;
+          if (currentUrl.includes(`/conversation/${id}`)) {
+            this.router.navigate(['/workspace', workspaceId]);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to delete conversation', err);
+        },
+      });
+  }
+
+
+  /**
+   * Stream LLM response chunk by chunk using fetch & ReadableStream
+   */
+  async *askStream(
+    workspaceId: string,
+    conversationId: string,
+    question: string,
+    versionIds: string[] = [],
+  ): AsyncIterable<RagStreamChunkResponseDto> {
+    const token = this.authService.accessToken();
+    const url = `${this.basePath}/conversations/${workspaceId}/ask/${conversationId}`;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ question, versionIds }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      throw new Error(`HTTP error ${response.status}: ${errText || response.statusText}`);
+    }
+
+    if (!response.body) {
+      throw new Error('ReadableStream not supported on response body');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        let jsonStr = trimmed;
+        if (trimmed.startsWith('data:')) {
+          jsonStr = trimmed.slice(5).trim();
+        }
+
+        if (jsonStr === '[DONE]') continue;
+
+        try {
+          const chunk: RagStreamChunkResponseDto = JSON.parse(jsonStr);
+          yield chunk;
+        } catch {
+          yield { content: trimmed, done: false };
+        }
+      }
+    }
+
+    if (buffer.trim()) {
+      const trimmed = buffer.trim();
+      const jsonStr = trimmed.startsWith('data:') ? trimmed.slice(5).trim() : trimmed;
+      if (jsonStr !== '[DONE]') {
+        try {
+          const chunk: RagStreamChunkResponseDto = JSON.parse(jsonStr);
+          yield chunk;
+        } catch {
+          yield { content: trimmed, done: false };
+        }
+      }
+    }
   }
 }

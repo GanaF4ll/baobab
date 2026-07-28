@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DrizzleModule } from './drizzle/drizzle.module';
-import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConversationsModule } from './conversations/conversations.module';
 import { DocumentsModule } from './documents/documents.module';
-import { StorageModule } from './shared/storage/storage.module';
+import { DrizzleModule } from './drizzle/drizzle.module';
 import { OllamaModule } from './ollama/ollama.module';
 import { RagModule } from './rag/rag.module';
-import { ConversationsModule } from './conversations/conversations.module';
+import { StorageModule } from './shared/storage/storage.module';
+import { UsersModule } from './users/users.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 
 @Module({

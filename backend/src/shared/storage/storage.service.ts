@@ -1,14 +1,14 @@
-import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
   CreateBucketCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
-  PutObjectCommand,
   PutBucketPolicyCommand,
+  PutObjectCommand,
   S3,
 } from '@aws-sdk/client-s3';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { StorageFolderName } from '../constants';
 
 @Injectable()

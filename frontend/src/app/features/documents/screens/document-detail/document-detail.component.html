@@ -50,8 +50,7 @@
         Loading secure document vault...
       </p>
     </div>
-    } <!-- Error State -->
-    @else if (error()) {
+    } <!-- Error State --> @else if (error()) {
     <div
       class="bg-surface-container-low border border-error rounded-2xl p-xl flex flex-col items-center justify-center text-center max-w-md mx-auto my-lg"
     >
@@ -68,8 +67,7 @@
         Back to Documents
       </a>
     </div>
-    } <!-- Content Display -->
-    @else if (document(); as doc) {
+    } <!-- Content Display --> @else if (document(); as doc) {
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-lg items-start">
       <!-- Main Document Area (3 columns wide) -->
       <div class="lg:col-span-3 flex flex-col gap-md">
@@ -316,18 +314,20 @@
               (change)="uploadNewVersion(fileInput.files)"
               class="hidden"
               [accept]="document()?.mimeType === 'application/pdf' ? '.pdf' : '.md,.txt'"
-            />
+            >
             <button
               (click)="fileInput.click()"
               [disabled]="isUploadingVersion() || isSaving() || isSavingTitle()"
               class="w-full py-sm bg-primary text-on-primary hover:opacity-90 rounded-xl transition-all duration-200 font-label-technical text-xs font-semibold cursor-pointer flex items-center justify-center gap-xs disabled:opacity-50"
             >
               @if (isUploadingVersion()) {
-                <span class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
-                <span>Uploading...</span>
+              <span
+                class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"
+              ></span>
+              <span>Uploading...</span>
               } @else {
-                <span class="material-symbols-outlined text-[16px]">upload_file</span>
-                <span>Upload New Version</span>
+              <span class="material-symbols-outlined text-[16px]">upload_file</span>
+              <span>Upload New Version</span>
               }
             </button>
           </div>

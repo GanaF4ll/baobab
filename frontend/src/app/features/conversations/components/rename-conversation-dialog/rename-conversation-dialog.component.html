@@ -1,0 +1,44 @@
+<div class="space-y-md">
+  <hlm-dialog-header>
+    <h3 hlmDialogTitle class="text-headline-md font-bold text-on-surface">Renommer cette conversation</h3>
+  </hlm-dialog-header>
+
+  <form (submit)="submit(); $event.preventDefault()" class="space-y-lg pt-sm">
+    <!-- Conversation Title Input -->
+    <div class="space-y-sm">
+      <input
+        hlmInput
+        type="text"
+        name="title"
+        [(ngModel)]="title"
+        placeholder="Titre de la conversation"
+        class="w-full bg-surface-container-lowest border border-outline-variant rounded px-md py-sm focus:border-primary text-body-md text-on-surface"
+        required
+        autocomplete="off"
+      >
+    </div>
+
+    <!-- Action Buttons -->
+    <hlm-dialog-footer
+      class="flex flex-col-reverse sm:flex-row justify-end gap-sm pt-md border-t border-outline-variant"
+    >
+      <button
+        hlmBtn
+        variant="ghost"
+        type="button"
+        (click)="cancel()"
+        class="border border-outline-variant text-on-surface hover:bg-surface-container-high font-semibold py-1.5 px-4 cursor-pointer"
+      >
+        Annuler
+      </button>
+      <button
+        hlmBtn
+        type="submit"
+        [disabled]="!title.trim()"
+        class="bg-primary text-on-primary hover:opacity-90 font-semibold py-1.5 px-4 cursor-pointer disabled:opacity-50"
+      >
+        Renommer
+      </button>
+    </hlm-dialog-footer>
+  </form>
+</div>

@@ -1,18 +1,18 @@
-import { Inject, Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
-import { CreateConversationDto } from './dto/input/create-conversation.dto';
-import { DrizzleDb } from 'src/drizzle/types/drizzle';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { and, count, eq, ilike, isNull } from 'drizzle-orm';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import { DrizzleDb } from 'src/drizzle/types/drizzle';
+import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
 import * as schema from '../drizzle/schema';
 import { ConversationFilterDto } from './dto/input/conversation-filter.dto';
-import { and, count, eq, ilike, isNull } from 'drizzle-orm';
-import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
-import { ConversationEntity } from './entities/conversation.entity';
-import { UpdateConversationDto } from './dto/input/update-conversation.dto';
+import { CreateConversationDto } from './dto/input/create-conversation.dto';
 import { CreateMessageDto } from './dto/input/create-message.dto';
+import { UpdateConversationDto } from './dto/input/update-conversation.dto';
 import {
   FindOneConversationResponseData,
   MessageResponseDto,
 } from './dto/output/find-one-conversation-response.dto';
+import { ConversationEntity } from './entities/conversation.entity';
 
 @Injectable()
 export class ConversationsService {

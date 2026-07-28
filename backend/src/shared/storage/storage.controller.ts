@@ -8,12 +8,12 @@ import {
   Req,
   UseInterceptors,
 } from '@nestjs/common';
-import { StorageService } from './storage.service';
-import { Public } from 'src/auth/decorators/public.decorator';
 import { ApiConsumes, ApiExcludeController } from '@nestjs/swagger';
 import { FastifyRequest } from 'fastify';
-import { FastifyFilesInterceptor } from './interceptors/fastify-file.interceptor';
+import { Public } from 'src/auth/decorators/public.decorator';
 import { StorageFolderName } from '../constants';
+import { FastifyFilesInterceptor } from './interceptors/fastify-file.interceptor';
+import { StorageService } from './storage.service';
 
 @Controller('storage')
 @ApiExcludeController()

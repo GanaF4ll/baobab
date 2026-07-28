@@ -1,0 +1,65 @@
+<div class="flex gap-md max-w-2xl mx-auto w-full py-md px-md sm:px-lg">
+  <div
+    class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-0.5 shadow-xs"
+  >
+    <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+  </div>
+
+  <div class="flex-1 min-w-0">
+    <div class="flex items-center gap-xs mb-xs">
+      <span class="font-label-technical text-[12px] font-bold text-on-surface">Assistant IA</span>
+      @if (message().isStreaming) {
+      <span
+        class="inline-flex items-center gap-1 text-[10px] text-primary font-label-technical animate-pulse"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        Génération...
+      </span>
+      }
+    </div>
+    @if (!message().content && message().isStreaming) {
+    <div class="flex items-center gap-xs text-on-surface/60 text-body-md py-xs">
+      <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+      <span class="italic text-xs font-label-technical">Réflexion en cours...</span>
+    </div>
+    } @else {
+    <div
+      class="font-body-md text-body-md leading-relaxed text-on-surface whitespace-pre-wrap break-words"
+    >
+      {{ message().content }}
+      @if (message().isStreaming) {
+      <span class="inline-block w-2 h-4 bg-primary align-middle ml-0.5 animate-pulse"></span>
+      }
+    </div>
+    }
+    <!-- Sources block if provided -->
+    @if (message().sources && message().sources.length > 0) {
+    <div class="mt-sm pt-xs border-t border-outline-variant/40">
+      <p
+        class="text-[11px] font-label-technical font-semibold text-on-surface/70 mb-xs flex items-center gap-xs"
+      >
+        <span class="material-symbols-outlined text-[14px]">description</span>
+        Sources :
+      </p>
+      <div class="flex flex-wrap gap-xs">
+        @for (source of message().sources; track $index) {
+        <span
+          class="px-xs py-0.5 rounded bg-surface-container-high border border-outline-variant text-[10px] font-label-technical text-on-surface/80"
+        >
+          {{ typeof source === 'string' ? source : (source.title || source.documentName || 'Document #' + ($index + 1)) }}
+        </span>
+        }
+      </div>
+    </div>
+    } @if (message().error) {
+    <div class="mt-xs text-xs text-error font-label-technical flex items-center gap-xs">
+      <span class="material-symbols-outlined text-[14px]">error</span>
+      Une erreur est survenue lors de la réponse.
+    </div>
+    }
+
+    <span class="text-[9px] text-on-surface opacity-40 mt-xs block font-label-technical">
+      {{ message().createdAt | date:'shortTime' }}
+    </span>
+  </div>
+</div>

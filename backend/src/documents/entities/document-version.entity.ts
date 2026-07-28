@@ -8,7 +8,8 @@ export class DocumentVersionEntity {
 
   @ApiProperty({ description: 'id of the document' })
   @IsUUID()
-  documentId: string;
+  @IsOptional()
+  documentId?: string;
 
   @ApiProperty({ description: 'version number of the document' })
   @IsInt()

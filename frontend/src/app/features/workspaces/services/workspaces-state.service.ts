@@ -1,11 +1,15 @@
-import { computed, effect, inject, Service, signal } from '@angular/core';
-import { WorkspacesService } from '../../../../client/services/workspaces.service';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { WorkspacesResource } from '../../../../client/resources/workspaces.resource';
+import { WorkspacesService } from '../../../../client/services/workspaces.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
-@Service()
+@Injectable({
+  providedIn: 'root',
+})
 export class WorkspacesStateService {
   private readonly workspacesService = inject(WorkspacesService);
   private readonly workspacesResource = inject(WorkspacesResource);
+  private readonly authService = inject(AuthService);
 
   public readonly activeWorkspaceId = signal<string | null>(
     localStorage.getItem('activeWorkspaceId'),
@@ -39,6 +43,19 @@ export class WorkspacesStateService {
   });
 
   constructor() {
+    effect(
+      () => {
+        const isAuth = this.authService.isAuthenticated();
+        if (isAuth) {
+          this.workspacesQuery.reload();
+        } else {
+          this.activeWorkspaceId.set(null);
+          localStorage.removeItem('activeWorkspaceId');
+        }
+      },
+      { allowSignalWrites: true },
+    );
+
     effect(
       () => {
         const items = this.workspaces();
