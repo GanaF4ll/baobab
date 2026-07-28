@@ -1,10 +1,9 @@
-import { NestFactory } from '@nestjs/core';
 import contentParser from '@fastify/multipart';
-
-import { AppModule } from './app.module';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 import { buildSwaggerDocument, SWAGGER_OPTIONS } from './swagger.config';
 
 async function bootstrap() {
@@ -20,14 +19,15 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-
-  const allowedOrigins = ['http://localhost:3000'];
+  const frontendUrl = process.env.FRONTEND_URL;
+  const allowedOrigins = ['http://localhost:3000', 'http://localhost:4200', frontendUrl ?? ''];
 
   const document = SwaggerModule.createDocument(app, buildSwaggerDocument());
   SwaggerModule.setup('swagger', app, document, SWAGGER_OPTIONS);
   app.enableCors({
     origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
   });
 

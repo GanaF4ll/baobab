@@ -9,7 +9,9 @@
   <form (submit)="submit(); $event.preventDefault()" class="space-y-lg pt-sm">
     <!-- Workspace Name -->
     <div class="space-y-sm">
-      <label class="font-label-technical text-label-technical block text-on-surface-variant font-semibold">
+      <label
+        class="font-label-technical text-label-technical block text-on-surface-variant font-semibold"
+      >
         Workspace Name
       </label>
       <input
@@ -21,12 +23,14 @@
         class="w-full bg-surface-container-lowest border border-outline-variant rounded px-md py-sm focus:border-primary text-body-md text-on-surface"
         required
         autocomplete="off"
-      />
+      >
     </div>
 
     <!-- Description -->
     <div class="space-y-sm">
-      <label class="font-label-technical text-label-technical block text-on-surface-variant font-semibold">
+      <label
+        class="font-label-technical text-label-technical block text-on-surface-variant font-semibold"
+      >
         Description
       </label>
       <textarea
@@ -40,7 +44,9 @@
     </div>
 
     <!-- Action Buttons -->
-    <hlm-dialog-footer class="flex flex-col-reverse sm:flex-row justify-end gap-sm pt-md border-t border-outline-variant">
+    <hlm-dialog-footer
+      class="flex flex-col-reverse sm:flex-row justify-end gap-sm pt-md border-t border-outline-variant"
+    >
       <button
         hlmBtn
         variant="ghost"

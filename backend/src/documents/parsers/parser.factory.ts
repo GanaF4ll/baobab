@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IDocumentParser } from './document-parser.interface';
-import { PdfParser } from './pdf.parser';
 import { MarkdownParser } from './markdown.parser';
+import { PdfParser } from './pdf.parser';
 
 @Injectable()
 export class ParserFactory {

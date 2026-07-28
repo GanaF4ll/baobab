@@ -1,8 +1,5 @@
 <!-- Sidebar Shell -->
-<app-sidebar
-  [inWorkspace]="true"
-  (uploadClick)="handleSidebarBottomClick()"
-></app-sidebar>
+<app-sidebar [inWorkspace]="true" (uploadClick)="handleSidebarBottomClick()"></app-sidebar>
 
 <!-- Top App Bar Shell -->
 <app-header></app-header>
@@ -10,107 +7,148 @@
 <!-- Main Content Area -->
 <main
   [class.md:ml-64]="sidebarService.isOpen()"
-  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] flex flex-col transition-all duration-300 ease-in-out overflow-hidden ml-0"
+  [class.gap-md]="isSourcesOpen()"
+  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] flex flex-row transition-all duration-300 ease-in-out overflow-hidden ml-0"
 >
-  <div class="max-w-container-max mx-auto w-full flex-1 flex flex-col bg-surface-container-low border border-outline-variant rounded-lg overflow-hidden min-h-0">
+  <div
+    class="max-w-container-max mx-auto w-full flex-1 flex flex-col bg-surface-container-low border border-outline-variant rounded-lg overflow-hidden min-h-0 min-w-0"
+  >
     @if (isLoading()) {
-      <div class="flex-1 flex items-center justify-center min-h-[400px]">
-        <div class="flex flex-col items-center gap-md">
-          <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p class="font-label-technical text-label-technical text-on-surface opacity-75">Loading conversation history...</p>
-        </div>
-      </div>
-    } @else if (error()) {
-      <div class="flex-1 flex flex-col items-center justify-center text-center p-xl min-h-[350px]">
-        <span class="material-symbols-outlined text-[48px] text-error mb-md">warning</span>
-        <h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Failed to load conversation</h3>
-        <p class="font-body-md text-body-md text-on-surface opacity-75 max-w-md mb-lg">
-          We encountered an error while trying to fetch the conversation log.
+    <div class="flex-1 flex items-center justify-center min-h-[400px]">
+      <div class="flex flex-col items-center gap-md">
+        <div
+          class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"
+        ></div>
+        <p class="font-label-technical text-label-technical text-on-surface opacity-75">
+          Loading conversation history...
         </p>
-        <a routerLink="/" class="px-md py-sm bg-primary text-on-primary rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity">
-          Back to Workspaces
-        </a>
       </div>
+    </div>
+    } @else if (error()) {
+    <div class="flex-1 flex flex-col items-center justify-center text-center p-xl min-h-[350px]">
+      <span class="material-symbols-outlined text-[48px] text-error mb-md">warning</span>
+      <h3 class="font-headline-md text-headline-md text-on-surface mb-xs">
+        Failed to load conversation
+      </h3>
+      <p class="font-body-md text-body-md text-on-surface opacity-75 max-w-md mb-lg">
+        We encountered an error while trying to fetch the conversation log.
+      </p>
+      <a
+        routerLink="/"
+        class="px-md py-sm bg-primary text-on-primary rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity"
+      >
+        Back to Workspaces
+      </a>
+    </div>
     } @else if (conversation(); as conv) {
-      <!-- Chat Header -->
-      <div class="px-md sm:px-lg py-md border-b border-outline-variant flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md bg-surface-container">
-        <div class="flex items-center gap-sm">
-          <div class="w-9 h-9 rounded bg-primary/10 flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined">forum</span>
-          </div>
-          <div>
-            <h3 class="font-headline-md text-headline-md font-bold text-on-surface mb-xs">{{ conv.title }}</h3>
-            <p class="text-[11px] font-label-technical text-on-surface opacity-60">Secure RAG Chat Session</p>
-          </div>
+    <!-- Chat Header -->
+    <div
+      class="hidden sm:flex px-md sm:px-lg py-md border-b border-outline-variant flex-col sm:flex-row justify-between items-start sm:items-center gap-md bg-surface-container"
+    >
+      <div class="flex items-center gap-sm">
+        <div class="w-9 h-9 rounded bg-primary/10 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined">forum</span>
         </div>
         <div>
-          <a
-            [routerLink]="['/workspace', workspaceIdParam()]"
-            class="px-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs text-xs"
-          >
-            <span class="material-symbols-outlined text-[14px]">arrow_back</span>
-            Workspace Dashboard
-          </a>
+          <h3 class="font-headline-md text-headline-md font-bold text-on-surface mb-xs">
+            {{ conv.title }}
+          </h3>
         </div>
       </div>
-
-      <!-- Messages Area -->
-      <div
-        #messagesContainer
-        (scroll)="onScroll($event)"
-        class="flex-1 p-md sm:p-lg overflow-y-auto space-y-md sm:space-y-lg flex flex-col min-h-0"
-      >
-        <!-- Loading spinner at the top of scroll list -->
-        @if (isLoadingMore()) {
-          <div class="py-sm flex justify-center w-full bg-transparent">
-            <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        }
-
-        @if (loadedMessages().length === 0) {
-          <div class="h-full flex flex-col items-center justify-center text-center opacity-60 max-w-md mx-auto py-xl">
-            <span class="material-symbols-outlined text-[40px] text-primary mb-sm">chat_bubble_outline</span>
-            <p class="font-headline-md text-headline-md text-on-surface mb-xs">Empty Conversation</p>
-            <p class="font-body-md text-body-md text-on-surface opacity-75">
-              Type your first question below to begin retrieving information and chatting with your secure RAG agent.
-            </p>
-          </div>
-        } @else {
-          @for (msg of loadedMessages(); track msg.id) {
-            @if (msg.role === 'user') {
-              <app-user-message [message]="msg"></app-user-message>
-            } @else {
-              <!-- Centered AI Assistant Message (no bubble, left-aligned text) -->
-              <div class="max-w-2xl mx-auto w-full py-md px-md sm:px-lg">
-                <div class="font-body-md text-body-md leading-relaxed text-on-surface whitespace-pre-wrap">
-                  {{ msg.content }}
-                </div>
-                <span class="text-[9px] text-on-surface opacity-40 mt-xs block">
-                  {{ msg.createdAt | date:'shortTime' }}
-                </span>
-              </div>
-            }
-          }
-        }
-      </div>
-
-      <!-- Message Input Box -->
-      <div class="p-md border-t border-outline-variant bg-surface-container-low">
-        <form (submit)="sendMessage($event, chatInput)" class="flex gap-md">
-          <input
-            #chatInput
-            type="text"
-            placeholder="Ask a question about your documents..."
-            class="flex-1 bg-surface-container-high border border-outline-variant rounded-full py-2.5 px-md text-body-md text-on-surface focus:border-primary focus:ring-0 placeholder:text-on-surface/40 transition-colors"
-          />
-          <button
-            type="submit"
-            class="bg-primary hover:opacity-90 transition-opacity text-on-primary rounded-full w-10 h-10 flex items-center justify-center shadow-md cursor-pointer flex-shrink-0"
+      <div class="flex items-center gap-sm">
+        <!-- Toggle Sources Drawer Button -->
+        <button
+          type="button"
+          (click)="isSourcesOpen.set(!isSourcesOpen())"
+          [class.bg-primary-container]="isSourcesOpen()"
+          [class.text-primary]="isSourcesOpen()"
+          class="px-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs text-xs"
+        >
+          <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+          Sources @if (selectedVersionIds().length > 0) {
+          <span
+            class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-primary text-on-primary font-bold"
           >
-            <span class="material-symbols-outlined">send</span>
-          </button>
-        </form>
+            {{ selectedVersionIds().length }}
+          </span>
+          }
+        </button>
+
+        <a
+          [routerLink]="['/workspace', workspaceIdParam()]"
+          class="px-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs text-xs"
+        >
+          <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+          Workspace Dashboard
+        </a>
       </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div
+      #messagesContainer
+      (scroll)="onScroll($event)"
+      class="flex-1 p-md sm:p-lg overflow-y-auto space-y-md sm:space-y-lg flex flex-col min-h-0"
+    >
+      <!-- Loading spinner at the top of scroll list -->
+      @if (isLoadingMore()) {
+      <div class="py-sm flex justify-center w-full bg-transparent">
+        <div
+          class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"
+        ></div>
+      </div>
+      } @if (loadedMessages().length === 0) {
+      <div
+        class="h-full flex flex-col items-center justify-center text-center opacity-60 max-w-md mx-auto py-xl"
+      >
+        <span class="material-symbols-outlined text-[40px] text-primary mb-sm"
+          >chat_bubble_outline</span
+        >
+        <p class="font-headline-md text-headline-md text-on-surface mb-xs">Empty Conversation</p>
+        <p class="font-body-md text-body-md text-on-surface opacity-75">
+          Type your first question below to begin retrieving information and chatting with your
+          secure RAG agent.
+        </p>
+      </div>
+      } @else { @for (msg of loadedMessages(); track msg.id) { @if (msg.role === 'user') {
+      <app-user-message [message]="msg"></app-user-message>
+      } @else {
+      <app-assistant-message [message]="msg"></app-assistant-message>
+      } } }
+    </div>
+
+    <!-- Message Input Box -->
+    <div class="p-md border-t border-outline-variant bg-surface-container-low">
+      <form (submit)="sendMessage($event, chatInput)" class="flex gap-md">
+        <input
+          #chatInput
+          type="text"
+          [disabled]="isGenerating()"
+          placeholder="Ask a question about your documents..."
+          class="flex-1 bg-surface-container-high border border-outline-variant rounded-full py-2.5 px-md text-body-md text-on-surface focus:border-primary focus:ring-0 placeholder:text-on-surface/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+        <button
+          type="submit"
+          [disabled]="isGenerating()"
+          class="bg-primary hover:opacity-90 transition-opacity text-on-primary rounded-full w-10 h-10 flex items-center justify-center shadow-md cursor-pointer flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          @if (isGenerating()) {
+          <div
+            class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"
+          ></div>
+          } @else {
+          <span class="material-symbols-outlined">send</span>
+          }
+        </button>
+      </form>
+    </div>
     }
   </div>
+  <!-- Right Drawer Sources Panel -->
+  <app-sources-panel
+    [isOpen]="isSourcesOpen()"
+    [workspaceId]="workspaceIdParam()"
+    (selectedVersionIdsChange)="selectedVersionIds.set($event)"
+    (closePanel)="isSourcesOpen.set(false)"
+  ></app-sources-panel>
 </main>

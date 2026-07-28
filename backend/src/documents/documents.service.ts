@@ -1,20 +1,27 @@
-import { StorageFolderName } from './../shared/constants';
-import { BadRequestException, ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
-import { DRIZZLE } from 'src/drizzle/drizzle.module';
-import { DrizzleDb } from 'src/drizzle/types/drizzle';
-import { StorageService } from 'src/shared/storage/storage.service';
-import { DocumentEntity } from './entities/document.entity';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, count, eq } from 'drizzle-orm';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
-import { FindOneWithVersionsResponseData } from './dto/output/find-one-with-versions-response.dto';
-import { ParserFactory } from './parsers/parser.factory';
-import { ChunkerService } from './chunking/chunker.service';
-import { CreateFileDto } from 'src/shared/storage/dto/create-file.dto';
-import { DocumentFilterDto } from './dto/input/document-filter.dto';
-import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
-import { DocumentVersionEntity } from './entities/document-version.entity';
+import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { OllamaService } from 'src/ollama/ollama.service';
+import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
+import { CreateFileDto } from 'src/shared/storage/dto/create-file.dto';
+import { StorageService } from 'src/shared/storage/storage.service';
+import { StorageFolderName } from './../shared/constants';
+import { ChunkerService } from './chunking/chunker.service';
+import { DocumentFilterDto } from './dto/input/document-filter.dto';
+import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
+import { FindOneWithVersionsResponseData } from './dto/output/find-one-with-versions-response.dto';
+import { DocumentEntity } from './entities/document.entity';
+import { DocumentVersionEntity } from './entities/document-version.entity';
+import { ParserFactory } from './parsers/parser.factory';
 
 @Injectable()
 export class DocumentsService {
@@ -125,6 +132,19 @@ export class DocumentsService {
               : []),
             ...(cursor ? [ne(documents.id, cursor)] : []),
           ),
+        with: {
+          versions: {
+            columns: {
+              id: true,
+              documentId: true,
+              versionNumber: true,
+              storageKey: true,
+              changeSummary: true,
+              createdAt: true,
+            },
+            orderBy: (versions, { desc }) => desc(versions.versionNumber),
+          },
+        },
         limit: take + 1,
         orderBy: (documents, { desc, asc }) =>
           order === 'desc' ? desc(documents.createdAt) : asc(documents.createdAt),

@@ -1,12 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { AuthService } from 'src/auth/auth.service';
-import { UsersService } from 'src/users/users.service';
-import { TokenType } from 'src/shared/constants';
-import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import { JwtService } from '@nestjs/jwt';
+import { Test, TestingModule } from '@nestjs/testing';
 import * as argon2 from 'argon2';
+import { AuthService } from 'src/auth/auth.service';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import { TokenType } from 'src/shared/constants';
+import { UsersService } from 'src/users/users.service';
 
 // ---------------------------------------------------------------------------
 // Mock argon2

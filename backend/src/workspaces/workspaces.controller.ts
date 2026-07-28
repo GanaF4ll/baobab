@@ -1,40 +1,40 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  ParseUUIDPipe,
+  Get,
   HttpCode,
   HttpStatus,
   NotFoundException,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
   Query,
 } from '@nestjs/common';
-import { WorkspacesService } from './workspaces.service';
-import { CreateWorkspaceDto } from './dto/input/create-workspace.dto';
-import { UpdateWorkspaceDto } from './dto/input/update-workspace.dto';
 import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiCreatedResponse,
-  ApiUnauthorizedResponse,
-  ApiOkResponse,
-  ApiNotFoundResponse,
-  ApiNoContentResponse,
   ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { WORKSPACES_SWAGGER_TAG } from '../swagger.config';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Protected } from 'src/auth/decorators/protected.decorator';
-import { WorkspaceEntity } from './entities/workspace.entity';
-import { ApiResponseDto } from 'src/shared/dto/output/api-response.dto';
-import { FindOneWorkspaceResponseDto } from './dto/output/find-one-workspace-response.dto';
-import { WorkspaceFilterDto } from './dto/input/workspace-filter.dto';
-import { WorkspaceCollectionResponseDto } from './dto/output/workspace-collection-response.dto';
 import { ApiCollectionResponseDto } from 'src/shared/dto/output/api-collection-response.dto';
+import { ApiResponseDto } from 'src/shared/dto/output/api-response.dto';
+import { WORKSPACES_SWAGGER_TAG } from '../swagger.config';
+import { CreateWorkspaceDto } from './dto/input/create-workspace.dto';
+import { UpdateWorkspaceDto } from './dto/input/update-workspace.dto';
+import { WorkspaceFilterDto } from './dto/input/workspace-filter.dto';
+import { FindOneWorkspaceResponseDto } from './dto/output/find-one-workspace-response.dto';
+import { WorkspaceCollectionResponseDto } from './dto/output/workspace-collection-response.dto';
+import { WorkspaceEntity } from './entities/workspace.entity';
+import { WorkspacesService } from './workspaces.service';
 
 @ApiTags(WORKSPACES_SWAGGER_TAG)
 @Controller('workspaces')
@@ -127,7 +127,7 @@ export class WorkspacesController {
 
   @Delete(':id')
   @Protected()
-  @ApiOperation({ summary: 'deletes a workspace, set a deleted at timestamp' })
+  @ApiOperation({ summary: 'soft deletes a workspace, set a deleted at timestamp' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Workspace not found' })
   @ApiBadRequestResponse({ description: 'Workspace already deleted' })

@@ -1,12 +1,12 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
-import { HeaderComponent } from '../../../../core/layout/header/header.component';
 import { WorkspacesResource } from '../../../../../client/resources';
-import { WorkspacesStateService } from '../../services/workspaces-state.service';
+import { HeaderComponent } from '../../../../core/layout/header/header.component';
+import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
 import { SidebarService } from '../../../../core/services/sidebar.service';
+import { WorkspacesStateService } from '../../services/workspaces-state.service';
 
 @Component({
   selector: 'app-workspace-detail',

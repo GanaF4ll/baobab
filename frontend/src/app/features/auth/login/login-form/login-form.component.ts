@@ -1,5 +1,5 @@
 import { Component, input, output, signal } from '@angular/core';
-import { form, FormField, required, email, submit } from '@angular/forms/signals';
+import { email, FormField, form, required, submit } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-login-form',

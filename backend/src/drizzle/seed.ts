@@ -1,8 +1,8 @@
+import * as argon2 from 'argon2';
+import { config } from 'dotenv';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
-import { config } from 'dotenv';
-import * as argon2 from 'argon2';
 
 config({ path: '../.env.dev' });
 

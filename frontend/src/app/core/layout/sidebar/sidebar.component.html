@@ -1,8 +1,8 @@
 @if (isOpen()) {
-  <div
-    class="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity"
-    (click)="sidebarService.close()"
-  ></div>
+<div
+  class="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity"
+  (click)="sidebarService.close()"
+></div>
 }
 
 <aside
@@ -20,69 +20,92 @@
         </div>
         <div>
           <h1 class="font-headline-md text-headline-md font-bold text-on-surface">Baobab AI</h1>
-          <p class="font-label-technical text-label-technical text-on-surface opacity-70">Privacy-First RAG</p>
+          <p class="font-label-technical text-label-technical text-on-surface opacity-70">
+            Privacy-First RAG
+          </p>
         </div>
       </div>
     </div>
-
     @if (inWorkspace()) {
-      <!-- Workspace Header Context -->
-      <div class="px-lg py-sm mb-xs border-b border-outline-variant bg-surface-container-high/40 rounded-lg mx-sm">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-xs min-w-0">
-            <span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0">workspaces</span>
-            <span class="font-label-technical text-label-technical font-bold text-on-surface truncate">
-              {{ activeWorkspace()?.name || 'Workspace' }}
-            </span>
-          </div>
-          <a routerLink="/" class="text-xs text-primary hover:underline font-medium flex-shrink-0 flex items-center gap-0.5">
-            <span class="material-symbols-outlined text-[12px]">arrow_back</span>
-            Change
+    <!-- Workspace Header Context -->
+    <div
+      class="px-lg py-sm mb-xs border-b border-outline-variant bg-surface-container-high/40 rounded-lg mx-sm"
+    >
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-xs min-w-0">
+          <span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0"
+            >workspaces</span
+          >
+          <span
+            class="font-label-technical text-label-technical font-bold text-on-surface truncate"
+          >
+            {{ activeWorkspace()?.name || 'Workspace' }}
+          </span>
+        </div>
+        <a
+          routerLink="/"
+          class="text-xs text-primary hover:underline font-medium flex-shrink-0 flex items-center gap-0.5"
+        >
+          <span class="material-symbols-outlined text-[12px]">arrow_back</span>
+          Change
+        </a>
+      </div>
+    </div>
+
+    <!-- Navigation items for Workspace View -->
+    <nav class="flex-1 px-sm space-y-1">
+      <!-- Conversations section header -->
+      <div class="px-md mt-sm">
+        <div class="flex items-center justify-between px-xs mb-xs">
+          <span
+            class="font-label-technical text-[11px] font-bold text-on-surface opacity-50 uppercase tracking-wider"
+            >Conversations</span
+          >
+          <!-- Create new conversation button -->
+          <button
+            (click)="createNewConversation()"
+            class="text-primary hover:opacity-100 opacity-60 bg-transparent border-0 cursor-pointer p-0.5 flex items-center justify-center"
+            title="New Conversation"
+          >
+            <span class="material-symbols-outlined text-[16px]">add_comment</span>
+          </button>
+        </div>
+
+        <div class="space-y-0.5 max-h-[200px] overflow-y-auto custom-scrollbar">
+          @if (conversationService.isLoading()) {
+          <div class="px-sm py-xs text-xs text-on-surface opacity-60 animate-pulse">Loading...</div>
+          } @else if (conversationService.conversations().length === 0) {
+          <div class="px-sm py-xs text-xs text-on-surface opacity-50 italic">No conversations</div>
+          } @else { @for (conv of conversationService.conversations(); track conv.id) {
+          <a
+            [routerLink]="['/workspace', state.activeWorkspaceId(), 'conversation', conv.id]"
+            routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
+            class="relative flex items-center gap-xs px-sm py-1.5 rounded hover:bg-surface-container/60 transition-colors group text-on-surface opacity-85 text-sm pr-8"
+          >
+            <span class="material-symbols-outlined text-[16px] opacity-75">chat_bubble</span>
+            <span class="truncate flex-1">{{ conv.title }}</span>
+            
+            <button
+              (click)="$event.preventDefault(); $event.stopPropagation(); toggleMenu($event, conv)"
+              class="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:flex text-on-surface/60 hover:text-on-surface hover:bg-surface-container-high/80 p-0.5 rounded cursor-pointer transition-colors z-20"
+              [class.flex]="activeMenuConversation()?.id === conv.id"
+            >
+              <span class="material-symbols-outlined text-[16px]">more_vert</span>
+            </button>
           </a>
+          } }
         </div>
       </div>
 
-      <!-- Navigation items for Workspace View -->
-      <nav class="flex-1 px-sm space-y-1">
-        <!-- Conversations section header -->
-        <div class="px-md mt-sm">
-          <div class="flex items-center justify-between px-xs mb-xs">
-            <span class="font-label-technical text-[11px] font-bold text-on-surface opacity-50 uppercase tracking-wider">Conversations</span>
-            <!-- Create new conversation button -->
-            <button (click)="createNewConversation()" class="text-primary hover:opacity-100 opacity-60 bg-transparent border-0 cursor-pointer p-0.5 flex items-center justify-center" title="New Conversation">
-              <span class="material-symbols-outlined text-[16px]">add_comment</span>
-            </button>
-          </div>
-          
-          <div class="space-y-0.5 max-h-[200px] overflow-y-auto custom-scrollbar">
-            @if (conversationService.isLoading()) {
-              <div class="px-sm py-xs text-xs text-on-surface opacity-60 animate-pulse">Loading...</div>
-            } @else if (conversationService.conversations().length === 0) {
-              <div class="px-sm py-xs text-xs text-on-surface opacity-50 italic">No conversations</div>
-            } @else {
-              @for (conv of conversationService.conversations(); track conv.id) {
-                <a
-                  [routerLink]="['/workspace', state.activeWorkspaceId(), 'conversation', conv.id]"
-                  routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
-                  class="flex items-center gap-xs px-sm py-1.5 rounded hover:bg-surface-container/60 transition-colors group text-on-surface opacity-85 text-sm truncate"
-                >
-                  <span class="material-symbols-outlined text-[16px] opacity-75">chat_bubble</span>
-                  <span class="truncate flex-1">{{ conv.title }}</span>
-                </a>
-              }
-            }
-          </div>
-        </div>
-
-        <a
-          [routerLink]="['/workspace', state.activeWorkspaceId(), 'documents']"
-          routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
-          class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
-        >
-          <span class="material-symbols-outlined text-[20px]">database</span>
-          <span class="font-label-technical text-label-technical">Documents</span>
-        </a>
-        <!-- <a
+      <a
+        [routerLink]="['/workspace', state.activeWorkspaceId(), 'documents']"
+        routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
+        class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+      >
+        <span class="material-symbols-outlined text-[20px]">database</span>
+        <span class="font-label-technical text-label-technical">Documents</span>
+      </a>
+      <!-- <a
           href="#"
           (click)="$event.preventDefault()"
           class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
@@ -90,7 +113,7 @@
           <span class="material-symbols-outlined text-[20px]">history</span>
           <span class="font-label-technical text-label-technical">History</span>
         </a> -->
-        <!-- <a
+      <!-- <a
           href="#"
           (click)="$event.preventDefault()"
           class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
@@ -106,60 +129,107 @@
           <span class="material-symbols-outlined text-[20px]">help_center</span>
           <span class="font-label-technical text-label-technical">Support</span>
         </a> -->
-      </nav>
+    </nav>
 
-      <!-- Upload Document Button -->
-      <div class="px-md mt-auto">
-        <button
-          hlmBtn
-          (click)="onUpload()"
-          class="w-full py-sm bg-secondary-container text-on-secondary-fixed rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer"
-        >
-          <span class="material-symbols-outlined text-[18px]">upload_file</span>
-          Upload Document
-        </button>
-      </div>
+    <!-- Upload Document Button -->
+    <div class="px-md mt-auto">
+      <button
+        hlmBtn
+        (click)="onUpload()"
+        class="w-full py-sm bg-secondary-container text-on-secondary-fixed rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[18px]">upload_file</span>
+        Upload Document
+      </button>
+    </div>
     } @else {
-      <!-- Navigation items for Workspaces List View -->
-      <nav class="flex-1 px-sm space-y-1">
-        <a
-          routerLink="/"
-          routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
-        >
-          <span class="material-symbols-outlined text-[20px]">workspaces</span>
-          <span class="font-label-technical text-label-technical">Workspaces</span>
-        </a>
-        <a
-          href="#"
-          (click)="$event.preventDefault()"
-          class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
-        >
-          <span class="material-symbols-outlined text-[20px]">settings</span>
-          <span class="font-label-technical text-label-technical">Global Settings</span>
-        </a>
-        <a
-          href="#"
-          (click)="$event.preventDefault()"
-          class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
-        >
-          <span class="material-symbols-outlined text-[20px]">help_center</span>
-          <span class="font-label-technical text-label-technical">Support</span>
-        </a>
-      </nav>
+    <!-- Navigation items for Workspaces List View -->
+    <nav class="flex-1 px-sm space-y-1">
+      <a
+        routerLink="/"
+        routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+      >
+        <span class="material-symbols-outlined text-[20px]">workspaces</span>
+        <span class="font-label-technical text-label-technical">Workspaces</span>
+      </a>
+      <a
+        href="#"
+        (click)="$event.preventDefault()"
+        class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+      >
+        <span class="material-symbols-outlined text-[20px]">settings</span>
+        <span class="font-label-technical text-label-technical">Global Settings</span>
+      </a>
+      <a
+        href="#"
+        (click)="$event.preventDefault()"
+        class="flex items-center gap-md px-md py-sm transition-colors duration-200 hover:bg-surface-container group text-on-surface opacity-80 font-medium"
+      >
+        <span class="material-symbols-outlined text-[20px]">help_center</span>
+        <span class="font-label-technical text-label-technical">Support</span>
+      </a>
+    </nav>
 
-      <!-- Create Workspace Button -->
-      <div class="px-md mt-auto">
-        <button
-          hlmBtn
-          (click)="onUpload()"
-          class="w-full py-sm bg-secondary-container text-on-secondary-fixed rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer"
-        >
-          <span class="material-symbols-outlined text-[18px]">add</span>
-          New Workspace
-        </button>
-      </div>
+    <!-- Create Workspace Button -->
+    <div class="px-md mt-auto">
+      <button
+        hlmBtn
+        (click)="onUpload()"
+        class="w-full py-sm bg-secondary-container text-on-secondary-fixed rounded font-label-technical text-label-technical font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        New Workspace
+      </button>
+    </div>
     }
   </div>
+
+  @if (activeMenuConversation(); as conv) {
+  <div
+    (click)="$event.stopPropagation()"
+    [style.top.px]="menuPosition()?.top"
+    [style.left.px]="menuPosition()?.left"
+    class="fixed z-[100] min-w-[200px] bg-surface-container-high border border-outline-variant rounded-lg shadow-lg py-1 text-sm text-on-surface animate-in fade-in slide-in-from-top-1 duration-100 font-normal"
+  >
+    <!-- Partager -->
+    <button
+      (click)="shareConversation(conv)"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/90 border-0 bg-transparent text-sm"
+    >
+      <span class="material-symbols-outlined text-[16px] opacity-75">share</span>
+      Partager la conversation
+    </button>
+
+    <!-- Épingler -->
+    <button
+      (click)="pinConversation(conv)"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/90 border-0 bg-transparent text-sm"
+    >
+      <span class="material-symbols-outlined text-[16px] opacity-75">keep</span>
+      Épingler
+    </button>
+
+    <!-- Renommer -->
+    <button
+      (click)="openRenameDialog(conv)"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/90 border-0 bg-transparent text-sm"
+    >
+      <span class="material-symbols-outlined text-[16px] opacity-75">edit</span>
+      Renommer
+    </button>
+
+    <div class="h-[1px] bg-outline-variant/40 my-1"></div>
+
+    <!-- Supprimer -->
+    <button
+      (click)="deleteConversation(conv)"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-sm"
+    >
+      <span class="material-symbols-outlined text-[16px] opacity-75 text-error">delete</span>
+      Supprimer
+    </button>
+  </div>
+  }
 </aside>

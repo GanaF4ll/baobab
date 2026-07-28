@@ -1,26 +1,20 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  Query,
-  UseGuards,
-  UseInterceptors,
-  Req,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
   StreamableFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { DocumentsService } from './documents.service';
-import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { DocumentFilterDto } from './dto/input/document-filter.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { Protected } from 'src/auth/decorators/protected.decorator';
 import {
   ApiBadRequestResponse,
   ApiConsumes,
@@ -34,17 +28,23 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ApiCollectionResponseDto } from 'src/shared/dto/output/api-collection-response.dto';
-import { DocumentEntity } from './entities/document.entity';
-import { DOCUMENTS_SWAGGER_TAG } from 'src/swagger.config';
-import { FindOneWithVersionsResponseDto } from './dto/output/find-one-with-versions-response.dto';
-import { FastifyFilesInterceptor } from 'src/shared/storage/interceptors/fastify-file.interceptor';
 import { FastifyRequest } from 'fastify';
-import { DocumentVersionResponseDto } from './dto/output/document-version-response.dto';
-import { DeleteVersionDto } from './dto/input/delete-version.dto';
-import { CreateDocumentDto } from './dto/input/create-document.dto';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { Protected } from 'src/auth/decorators/protected.decorator';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { ApiCollectionResponseDto } from 'src/shared/dto/output/api-collection-response.dto';
+import { FastifyFilesInterceptor } from 'src/shared/storage/interceptors/fastify-file.interceptor';
+import { DOCUMENTS_SWAGGER_TAG } from 'src/swagger.config';
 import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
+import { DocumentsService } from './documents.service';
+import { CreateDocumentDto } from './dto/input/create-document.dto';
+import { DeleteVersionDto } from './dto/input/delete-version.dto';
+import { DocumentFilterDto } from './dto/input/document-filter.dto';
+import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
 import { DocumentCollectionResponseDto } from './dto/output/document-collection-response.dto';
+import { DocumentVersionResponseDto } from './dto/output/document-version-response.dto';
+import { FindOneWithVersionsResponseDto } from './dto/output/find-one-with-versions-response.dto';
+import { DocumentEntity } from './entities/document.entity';
 
 @Controller('documents')
 @ApiTags(DOCUMENTS_SWAGGER_TAG)

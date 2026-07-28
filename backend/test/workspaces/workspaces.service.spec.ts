@@ -1,9 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { WorkspacesService } from 'src/workspaces/workspaces.service';
-import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import * as schema from 'src/drizzle/schema';
+import { Test, TestingModule } from '@nestjs/testing';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { OrderFilter } from 'src/shared/constants';
+import { WorkspacesService } from 'src/workspaces/workspaces.service';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -100,7 +99,11 @@ describe('WorkspacesService', () => {
     const ownerId = 'owner-uuid-1';
 
     it('should successfully create and return a workspace', async () => {
-      const createdWorkspace = { ...mockWorkspace, name: createDto.name, description: createDto.description };
+      const createdWorkspace = {
+        ...mockWorkspace,
+        name: createDto.name,
+        description: createDto.description,
+      };
       db.insertReturning.mockResolvedValue([createdWorkspace]);
 
       const result = await service.create(createDto, ownerId);

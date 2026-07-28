@@ -58,7 +58,7 @@ export class DocumentDropzoneComponent {
     } else {
       this.state.showToast(
         'Invalid File Type',
-        `'${file.name}' is not supported. Please upload a PDF or Markdown (.md) file.`
+        `'${file.name}' is not supported. Please upload a PDF or Markdown (.md) file.`,
       );
     }
   }

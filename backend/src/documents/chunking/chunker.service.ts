@@ -1,6 +1,6 @@
 // backend/src/documents/chunking/chunker.service.ts
 import { Injectable } from '@nestjs/common';
-import { encode, decode } from 'gpt-tokenizer';
+import { decode, encode } from 'gpt-tokenizer';
 
 export interface IChunkResult {
   content: string;

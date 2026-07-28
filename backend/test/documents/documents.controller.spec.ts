@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { DocumentsController } from 'src/documents/documents.controller';
 import { DocumentsService } from 'src/documents/documents.service';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
-import { UpdateDocumentTitleDto } from 'src/documents/dto/input/update-document-title.dto';
-import { DocumentFilterDto } from 'src/documents/dto/input/document-filter.dto';
 import { DeleteVersionDto } from 'src/documents/dto/input/delete-version.dto';
+import { DocumentFilterDto } from 'src/documents/dto/input/document-filter.dto';
+import { UpdateDocumentTitleDto } from 'src/documents/dto/input/update-document-title.dto';
+import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
 
 describe('DocumentsController', () => {
   let controller: DocumentsController;
@@ -48,7 +48,11 @@ describe('DocumentsController', () => {
   // -------------------------------------------------------------------------
   describe('create', () => {
     it('calls service.create with the first incoming file from request', async () => {
-      const mockFile = { buffer: Buffer.from('test'), mimetype: 'application/pdf', originalname: 'test.pdf' } as any;
+      const mockFile = {
+        buffer: Buffer.from('test'),
+        mimetype: 'application/pdf',
+        originalname: 'test.pdf',
+      } as any;
       const request = { incomingFiles: [mockFile] } as any;
       const workspaceId = 'workspace-123';
       const dto = { workspaceId } as any;
@@ -56,12 +60,21 @@ describe('DocumentsController', () => {
 
       const result = await controller.create(request, 'debug-user-id', dto);
 
-      expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, workspaceId, undefined);
+      expect(serviceMock.create).toHaveBeenCalledWith(
+        'debug-user-id',
+        mockFile,
+        workspaceId,
+        undefined,
+      );
       expect(result).toEqual({ data: 'Mocked response' });
     });
 
     it('calls service.create with documentId when provided', async () => {
-      const mockFile = { buffer: Buffer.from('test'), mimetype: 'application/pdf', originalname: 'test.pdf' } as any;
+      const mockFile = {
+        buffer: Buffer.from('test'),
+        mimetype: 'application/pdf',
+        originalname: 'test.pdf',
+      } as any;
       const request = { incomingFiles: [mockFile] } as any;
       const workspaceId = 'workspace-123';
       const docId = 'doc-123';
@@ -70,7 +83,12 @@ describe('DocumentsController', () => {
 
       const result = await controller.create(request, 'debug-user-id', dto);
 
-      expect(serviceMock.create).toHaveBeenCalledWith('debug-user-id', mockFile, workspaceId, docId);
+      expect(serviceMock.create).toHaveBeenCalledWith(
+        'debug-user-id',
+        mockFile,
+        workspaceId,
+        docId,
+      );
       expect(result).toEqual({ data: 'Mocked response' });
     });
   });
@@ -145,7 +163,12 @@ describe('DocumentsController', () => {
 
       await controller.removeVersion(dto, userId);
 
-      expect(serviceMock.removeVersion).toHaveBeenCalledWith(dto.documentId, userId, dto.id, dto.workspaceId);
+      expect(serviceMock.removeVersion).toHaveBeenCalledWith(
+        dto.documentId,
+        userId,
+        dto.id,
+        dto.workspaceId,
+      );
     });
   });
 });

@@ -1,6 +1,6 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StorageService } from 'src/shared/storage/storage.service';
-import { ConfigService } from '@nestjs/config';
 
 describe('StorageService', () => {
   let service: StorageService;
