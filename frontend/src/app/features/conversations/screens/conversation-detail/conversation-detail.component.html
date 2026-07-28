@@ -53,9 +53,6 @@
           <h3 class="font-headline-md text-headline-md font-bold text-on-surface mb-xs">
             {{ conv.title }}
           </h3>
-          <p class="text-[11px] font-label-technical text-on-surface opacity-60">
-            Secure RAG Chat Session
-          </p>
         </div>
       </div>
       <div class="flex items-center gap-sm">
@@ -154,21 +151,4 @@
     (selectedVersionIdsChange)="selectedVersionIds.set($event)"
     (closePanel)="isSourcesOpen.set(false)"
   ></app-sources-panel>
-  <!-- Floating Button to Reopen Sources Panel when Collapsed -->
-  @if (!isSourcesOpen()) {
-  <button
-    type="button"
-    (click)="isSourcesOpen.set(true)"
-    class="fixed right-4 top-20 sm:top-24 z-30 px-3 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded-full shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center gap-xs text-xs font-label-technical font-semibold active:scale-95"
-    title="Ouvrir le panneau des sources"
-  >
-    <span class="material-symbols-outlined text-[18px] text-primary">auto_awesome</span>
-    <span class="hidden sm:inline">Sources</span>
-    @if (selectedVersionIds().length > 0) {
-    <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-primary text-on-primary font-bold">
-      {{ selectedVersionIds().length }}
-    </span>
-    }
-  </button>
-  }
 </main>
