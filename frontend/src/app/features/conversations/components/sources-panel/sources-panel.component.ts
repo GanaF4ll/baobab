@@ -25,6 +25,7 @@ import { WorkspacesStateService } from '../../../workspaces/services/workspaces-
 })
 export class SourcesPanelComponent {
   public readonly workspaceId = input.required<string>();
+  public readonly isOpen = input<boolean>(true);
   public readonly selectedVersionIdsChange = output<string[]>();
   public readonly closePanel = output<void>();
 
@@ -129,6 +130,10 @@ export class SourcesPanelComponent {
     }
     this.checkedVersionIds.set(next);
     this.emitSelectedVersionIds();
+  }
+
+  isSingleVersionDoc(doc: DocumentEntity): boolean {
+    return !doc.versions || doc.versions.length <= 1;
   }
 
   isDocActive(doc: DocumentEntity): boolean {

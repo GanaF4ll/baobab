@@ -80,10 +80,18 @@
           <a
             [routerLink]="['/workspace', state.activeWorkspaceId(), 'conversation', conv.id]"
             routerLinkActive="bg-surface-container text-primary font-bold border-r-2 border-primary"
-            class="flex items-center gap-xs px-sm py-1.5 rounded hover:bg-surface-container/60 transition-colors group text-on-surface opacity-85 text-sm truncate"
+            class="relative flex items-center gap-xs px-sm py-1.5 rounded hover:bg-surface-container/60 transition-colors group text-on-surface opacity-85 text-sm pr-8"
           >
             <span class="material-symbols-outlined text-[16px] opacity-75">chat_bubble</span>
             <span class="truncate flex-1">{{ conv.title }}</span>
+            
+            <button
+              (click)="$event.preventDefault(); $event.stopPropagation(); toggleMenu($event, conv)"
+              class="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:flex text-on-surface/60 hover:text-on-surface hover:bg-surface-container-high/80 p-0.5 rounded cursor-pointer transition-colors z-20"
+              [class.flex]="activeMenuConversation()?.id === conv.id"
+            >
+              <span class="material-symbols-outlined text-[16px]">more_vert</span>
+            </button>
           </a>
           } }
         </div>
@@ -177,4 +185,51 @@
     </div>
     }
   </div>
+
+  @if (activeMenuConversation(); as conv) {
+  <div
+    (click)="$event.stopPropagation()"
+    [style.top.px]="menuPosition()?.top"
+    [style.left.px]="menuPosition()?.left"
+    class="fixed z-[100] min-w-[200px] bg-surface-container-high border border-outline-variant rounded-lg shadow-lg py-1 text-sm text-on-surface animate-in fade-in slide-in-from-top-1 duration-100 font-normal"
+  >
+    <!-- Partager -->
+    <button
+      (click)="shareConversation(conv)"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/90 border-0 bg-transparent text-sm"
+    >
+      <span class="material-symbols-outlined text-[16px] opacity-75">share</span>
+      Partager la conversation
+    </button>
+
+    <!-- Épingler -->
+    <button
+      (click)="pinConversation(conv)"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/90 border-0 bg-transparent text-sm"
+    >
+      <span class="material-symbols-outlined text-[16px] opacity-75">keep</span>
+      Épingler
+    </button>
+
+    <!-- Renommer -->
+    <button
+      (click)="openRenameDialog(conv)"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/90 border-0 bg-transparent text-sm"
+    >
+      <span class="material-symbols-outlined text-[16px] opacity-75">edit</span>
+      Renommer
+    </button>
+
+    <div class="h-[1px] bg-outline-variant/40 my-1"></div>
+
+    <!-- Supprimer -->
+    <button
+      (click)="deleteConversation(conv)"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-sm"
+    >
+      <span class="material-symbols-outlined text-[16px] opacity-75 text-error">delete</span>
+      Supprimer
+    </button>
+  </div>
+  }
 </aside>

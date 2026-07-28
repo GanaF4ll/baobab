@@ -81,6 +81,14 @@ export class ConversationDetailComponent implements OnInit {
   private loadedConversationId: string | null = null;
 
   constructor() {
+    // Reload active conversation details if it gets renamed (using Signals)
+    effect(() => {
+      const lastUpdated = this.appConversationService.lastUpdatedConversationId();
+      if (lastUpdated && lastUpdated.id === this.idParam()) {
+        this.conversationQuery.reload();
+      }
+    });
+
     // Synchronize initial messages when conversationQuery finishes loading or conversationId changes
     effect(() => {
       const data = this.conversationQuery.value()?.data;

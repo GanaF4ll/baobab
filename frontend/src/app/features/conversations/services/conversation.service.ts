@@ -1,4 +1,4 @@
-import { computed, inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { RagStreamChunkResponseDto } from '../../../../client/models';
 import { ConversationsResource } from '../../../../client/resources/conversations.resource';
@@ -17,6 +17,8 @@ export class ConversationService {
   private readonly authService = inject(AuthService);
   private readonly basePath = inject(BASE_PATH_DEFAULT);
   private readonly router = inject(Router);
+
+  public readonly lastUpdatedConversationId = signal<{ id: string; timestamp: number } | null>(null);
 
   // Dynamic signal based on the active workspace ID
   private readonly activeWorkspaceId = computed(
@@ -63,6 +65,44 @@ export class ConversationService {
         },
       });
   }
+
+  renameConversation(id: string, title: string) {
+    const workspaceId = this.activeWorkspaceId();
+    if (!workspaceId) return;
+
+    this.conversationsService
+      .conversationsControllerUpdate(id, workspaceId, { title })
+      .subscribe({
+        next: () => {
+          this.conversationsQuery.reload();
+          this.lastUpdatedConversationId.set({ id, timestamp: Date.now() });
+        },
+        error: (err) => {
+          console.error('Failed to rename conversation', err);
+        },
+      });
+  }
+
+  deleteConversation(id: string) {
+    const workspaceId = this.activeWorkspaceId();
+    if (!workspaceId) return;
+
+    this.conversationsService
+      .conversationsControllerSoftDelete(id, workspaceId)
+      .subscribe({
+        next: () => {
+          this.conversationsQuery.reload();
+          const currentUrl = this.router.url;
+          if (currentUrl.includes(`/conversation/${id}`)) {
+            this.router.navigate(['/workspace', workspaceId]);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to delete conversation', err);
+        },
+      });
+  }
+
 
   /**
    * Stream LLM response chunk by chunk using fetch & ReadableStream

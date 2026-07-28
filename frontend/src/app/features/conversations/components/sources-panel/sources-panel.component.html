@@ -1,114 +1,121 @@
 <aside
-  class="w-80 h-full bg-surface-container-low border-l border-outline-variant flex flex-col min-h-0 overflow-hidden shadow-lg transition-all duration-300"
+  [class.w-80]="isOpen()"
+  [class.w-0]="!isOpen()"
+  [class.border-l]="isOpen()"
+  [class.border-transparent]="!isOpen()"
+  class="h-full rounded bg-surface-container-low flex flex-col min-h-0 overflow-hidden shadow-lg transition-all duration-300 ease-in-out shrink-0"
 >
-  <!-- Hidden File Input for uploading sources -->
-  <input
-    #fileInput
-    type="file"
-    accept=".pdf,.md,.markdown"
-    (change)="onFileSelected($event)"
-    class="hidden"
-  >
+  <div class="w-80 h-full flex flex-col min-h-0 overflow-hidden">
+    <!-- Hidden File Input for uploading sources -->
+    <input
+      #fileInput
+      type="file"
+      accept=".pdf,.md,.markdown"
+      (change)="onFileSelected($event)"
+      class="hidden"
+    >
 
-  <!-- Header -->
-  <div
-    class="p-md border-b border-outline-variant flex items-center justify-between bg-surface-container gap-sm"
-  >
-    <div class="flex items-center gap-xs">
-      <span class="material-symbols-outlined text-primary text-[20px]">auto_awesome</span>
-      <h3 class="font-headline-md text-headline-md font-bold text-on-surface">Sources</h3>
-      <span
-        class="ml-xs px-2 py-0.5 rounded-full text-[11px] font-label-technical font-medium bg-primary/10 text-primary border border-primary/20"
+    <!-- Header -->
+    <div
+      class="p-md border-b border-outline-variant flex items-center justify-between bg-surface-container gap-sm"
+    >
+      <div class="flex items-center gap-xs">
+        <span class="material-symbols-outlined text-primary text-[20px]">auto_awesome</span>
+        <h3 class="font-headline-md text-headline-md font-bold text-on-surface">Sources</h3>
+        <span
+          class="ml-xs px-2 py-0.5 rounded-full text-[11px] font-label-technical font-medium bg-primary/10 text-primary border border-primary/20"
+        >
+          {{ selectedCount() }}/{{ totalCount() }}
+        </span>
+      </div>
+      <button
+        type="button"
+        (click)="closePanel.emit()"
+        class="p-1 rounded hover:bg-surface-container-highest text-on-surface/70 hover:text-on-surface transition-colors cursor-pointer"
+        title="Réduire le panneau"
       >
-        {{ selectedCount() }}/{{ totalCount() }}
+        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+      </button>
+    </div>
+
+    <!-- Search & Add Source Actions -->
+    <div class="p-md border-b border-outline-variant flex flex-col gap-sm bg-surface-container-low">
+      <button
+        type="button"
+        [disabled]="isUploading()"
+        (click)="fileInput.click()"
+        class="w-full py-2 px-md bg-primary hover:opacity-90 transition-opacity text-on-primary rounded-md font-label-technical text-label-technical font-semibold cursor-pointer flex items-center justify-center gap-xs shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        @if (isUploading()) {
+        <div
+          class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"
+        ></div>
+        <span>Envoi en cours...</span>
+        } @else {
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        <span>Ajouter des sources</span>
+        }
+      </button>
+
+      <div class="relative w-full">
+        <span
+          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/40 text-[18px] pointer-events-none"
+        >
+          search
+        </span>
+        <input
+          type="text"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          placeholder="Filtrer les sources..."
+          class="w-full bg-surface-container-high border border-outline-variant rounded-md py-1.5 pl-9 pr-md text-xs text-on-surface placeholder:text-on-surface/40 focus:border-primary focus:ring-0 transition-colors"
+        >
+      </div>
+    </div>
+
+    <!-- Global Selection Bar -->
+    <div
+      class="px-md py-sm border-b border-outline-variant flex items-center justify-between bg-surface-container-high/50"
+    >
+      <div class="flex items-center gap-sm">
+        <hlm-checkbox
+          inputId="select-all-sources"
+          [checked]="isAllSelected()"
+          [indeterminate]="isSomeSelected()"
+          (checkedChange)="toggleSelectAll($event)"
+        />
+        <label
+          for="select-all-sources"
+          class="font-label-technical text-xs font-semibold text-on-surface cursor-pointer select-none"
+        >
+          Tout sélectionner
+        </label>
+      </div>
+      <span class="text-[11px] text-on-surface/60 font-label-technical">
+        {{ selectedCount() }}
+        active(s)
       </span>
     </div>
-    <button
-      type="button"
-      (click)="closePanel.emit()"
-      class="p-1 rounded hover:bg-surface-container-highest text-on-surface/70 hover:text-on-surface transition-colors cursor-pointer"
-      title="Fermer le panneau"
-    >
-      <span class="material-symbols-outlined text-[18px]">close</span>
-    </button>
-  </div>
 
-  <!-- Search & Add Source Actions -->
-  <div class="p-md border-b border-outline-variant flex flex-col gap-sm bg-surface-container-low">
-    <button
-      type="button"
-      [disabled]="isUploading()"
-      (click)="fileInput.click()"
-      class="w-full py-2 px-md bg-primary hover:opacity-90 transition-opacity text-on-primary rounded-md font-label-technical text-label-technical font-semibold cursor-pointer flex items-center justify-center gap-xs shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      @if (isUploading()) {
-      <div
-        class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"
-      ></div>
-      <span>Envoi en cours...</span>
-      } @else {
-      <span class="material-symbols-outlined text-[18px]">add</span>
-      <span>Ajouter des sources</span>
-      }
-    </button>
-
-    <div class="relative w-full">
-      <span
-        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/40 text-[18px] pointer-events-none"
-      >
-        search
-      </span>
-      <input
-        type="text"
-        [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event)"
-        placeholder="Filtrer les sources..."
-        class="w-full bg-surface-container-high border border-outline-variant rounded-md py-1.5 pl-9 pr-md text-xs text-on-surface placeholder:text-on-surface/40 focus:border-primary focus:ring-0 transition-colors"
-      >
-    </div>
-  </div>
-
-  <!-- Global Selection Bar -->
-  <div
-    class="px-md py-sm border-b border-outline-variant flex items-center justify-between bg-surface-container-high/50"
-  >
-    <div class="flex items-center gap-sm">
-      <hlm-checkbox
-        inputId="select-all-sources"
-        [checked]="isAllSelected()"
-        [indeterminate]="isSomeSelected()"
-        (checkedChange)="toggleSelectAll($event)"
-      />
-      <label for="select-all-sources" class="font-label-technical text-xs font-semibold text-on-surface cursor-pointer select-none">
-        Tout sélectionner
-      </label>
-    </div>
-    <span class="text-[11px] text-on-surface/60 font-label-technical">
-      {{ selectedCount() }}
-      actif(s)
-    </span>
-  </div>
-
-  <!-- Document List Area -->
-  <div class="flex-1 overflow-y-auto p-sm space-y-xs min-h-0">
-    @if (isLoading()) {
-    <div class="py-xl flex flex-col items-center justify-center gap-xs text-on-surface/60">
-      <div
-        class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"
-      ></div>
-      <p class="text-xs font-label-technical">Chargement des documents...</p>
-    </div>
-    } @else if (error()) {
-    <div class="p-md text-center text-error text-xs font-label-technical">
-      Erreur lors du chargement des sources.
-    </div>
-    } @else if (filteredDocuments().length === 0) {
-    <div class="py-xl px-md text-center text-on-surface/50 text-xs font-label-technical">
-      @if (searchQuery()) { Aucun document ne correspond à "{{ searchQuery() }}". } @else { Aucune
-      source disponible dans ce workspace. }
-    </div>
-    } @else { @for (doc of filteredDocuments(); track doc.id) {
-      @if (!doc.versions || doc.versions.length <= 1) {
+    <!-- Document List Area -->
+    <div class="flex-1 overflow-y-auto p-sm space-y-xs min-h-0">
+      @if (isLoading()) {
+      <div class="py-xl flex flex-col items-center justify-center gap-xs text-on-surface/60">
+        <div
+          class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"
+        ></div>
+        <p class="text-xs font-label-technical">Chargement des documents...</p>
+      </div>
+      } @else if (error()) {
+      <div class="p-md text-center text-error text-xs font-label-technical">
+        Erreur lors du chargement des sources.
+      </div>
+      } @else if (filteredDocuments().length === 0) {
+      <div class="py-xl px-md text-center text-on-surface/50 text-xs font-label-technical">
+        @if (searchQuery()) { Aucun document ne correspond à "{{ searchQuery() }}". } @else { Aucune
+        source disponible dans ce workspace. }
+      </div>
+      } @else { @for (doc of filteredDocuments(); track doc.id) { @if (isSingleVersionDoc(doc)) {
       <div
         [class.bg-surface-container]="isDocActive(doc)"
         [class.bg-surface-container-low]="!isDocActive(doc)"
@@ -135,8 +142,10 @@
             </span>
           </label>
         </div>
-        <span class="text-[10px] font-label-technical px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface/70 shrink-0 font-medium">
-          v{{ doc.currentVersion }} (courante)
+        <span
+          class="text-[10px] font-label-technical px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface/70 shrink-0 font-medium"
+        >
+          v{{ doc.currentVersion }}
         </span>
       </div>
       } @else {
@@ -169,8 +178,11 @@
               </span>
             </label>
           </div>
-          <span class="text-[10px] font-label-technical px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold shrink-0">
-            {{ doc.versions.length }} versions
+          <span
+            class="text-[10px] font-label-technical px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold shrink-0"
+          >
+            {{ doc.versions?.length || 0 }}
+            versions
           </span>
         </div>
 
@@ -188,22 +200,19 @@
               class="font-label-technical text-[11px] text-on-surface/80 hover:text-on-surface cursor-pointer select-none"
             >
               v{{ v.versionNumber }}
-              @if (v.versionNumber === doc.currentVersion) {
-              <span class="text-primary font-semibold">(courante)</span>
-              }
             </label>
           </div>
           }
         </div>
       </div>
-      }
-    } }
-  </div>
+      } } }
+    </div>
 
-  <!-- Footer hint -->
-  <div
-    class="p-xs px-sm border-t border-outline-variant bg-surface-container-high/40 text-[10px] font-label-technical text-on-surface/60 text-center"
-  >
-    Les sources cochées alimentent le contexte RAG
+    <!-- Footer hint -->
+    <div
+      class="p-xs px-sm border-t border-outline-variant bg-surface-container-high/40 text-[10px] font-label-technical text-on-surface/60 text-center"
+    >
+      Les sources cochées alimentent le contexte RAG
+    </div>
   </div>
 </aside>

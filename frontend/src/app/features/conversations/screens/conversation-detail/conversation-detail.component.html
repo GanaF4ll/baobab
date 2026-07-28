@@ -7,7 +7,8 @@
 <!-- Main Content Area -->
 <main
   [class.md:ml-64]="sidebarService.isOpen()"
-  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] flex flex-row gap-md transition-all duration-300 ease-in-out overflow-hidden ml-0"
+  [class.gap-md]="isSourcesOpen()"
+  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] flex flex-row transition-all duration-300 ease-in-out overflow-hidden ml-0"
 >
   <div
     class="max-w-container-max mx-auto w-full flex-1 flex flex-col bg-surface-container-low border border-outline-variant rounded-lg overflow-hidden min-h-0 min-w-0"
@@ -67,9 +68,10 @@
           class="px-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs text-xs"
         >
           <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
-          Sources
-          @if (selectedVersionIds().length > 0) {
-          <span class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-primary text-on-primary font-bold">
+          Sources @if (selectedVersionIds().length > 0) {
+          <span
+            class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-primary text-on-primary font-bold"
+          >
             {{ selectedVersionIds().length }}
           </span>
           }
@@ -146,11 +148,27 @@
     }
   </div>
   <!-- Right Drawer Sources Panel -->
-  @if (isSourcesOpen()) {
   <app-sources-panel
+    [isOpen]="isSourcesOpen()"
     [workspaceId]="workspaceIdParam()"
     (selectedVersionIdsChange)="selectedVersionIds.set($event)"
     (closePanel)="isSourcesOpen.set(false)"
   ></app-sources-panel>
+  <!-- Floating Button to Reopen Sources Panel when Collapsed -->
+  @if (!isSourcesOpen()) {
+  <button
+    type="button"
+    (click)="isSourcesOpen.set(true)"
+    class="fixed right-4 top-20 sm:top-24 z-30 px-3 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded-full shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center gap-xs text-xs font-label-technical font-semibold active:scale-95"
+    title="Ouvrir le panneau des sources"
+  >
+    <span class="material-symbols-outlined text-[18px] text-primary">auto_awesome</span>
+    <span class="hidden sm:inline">Sources</span>
+    @if (selectedVersionIds().length > 0) {
+    <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-primary text-on-primary font-bold">
+      {{ selectedVersionIds().length }}
+    </span>
+    }
+  </button>
   }
 </main>
