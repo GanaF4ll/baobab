@@ -1,12 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { OllamaService } from '../ollama/ollama.service';
-import * as schema from 'src/drizzle/schema';
-import { DRIZZLE } from 'src/drizzle/drizzle.module';
-import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { cosineDistance, inArray } from 'drizzle-orm';
 import { map } from 'rxjs';
-import { getSystemInstructions } from './system-instructions';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import * as schema from 'src/drizzle/schema';
+import { DrizzleDb } from 'src/drizzle/types/drizzle';
+import { OllamaService } from '../ollama/ollama.service';
 import { SimilarChunkResponseDto } from './dto/output/similar-chunk-response.dto';
+import { getSystemInstructions } from './system-instructions';
 
 @Injectable()
 export class RagService {

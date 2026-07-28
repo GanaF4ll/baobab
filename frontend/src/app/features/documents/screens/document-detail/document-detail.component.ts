@@ -1,30 +1,29 @@
 import { CommonModule, DatePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import {
   Component,
-  OnInit,
   computed,
-  inject,
-  signal,
   effect,
-  resource,
+  inject,
   linkedSignal,
+  OnInit,
+  resource,
+  signal,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-
-import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
-import { HeaderComponent } from '../../../../core/layout/header/header.component';
-import { DocumentsResource } from '../../../../../client/resources';
+import { map } from 'rxjs/operators';
 import { DocumentsService } from '../../../../../client';
+import { DocumentsResource } from '../../../../../client/resources';
 import { BASE_PATH_DEFAULT } from '../../../../../client/tokens';
-import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
-import { SidebarService } from '../../../../core/services/sidebar.service';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { HeaderComponent } from '../../../../core/layout/header/header.component';
+import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
+import { SidebarService } from '../../../../core/services/sidebar.service';
+import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
 
 @Component({
   selector: 'app-document-detail',
@@ -268,7 +267,12 @@ export class DocumentDetailComponent implements OnInit {
       return;
     }
 
-    if (isMarkdown && file.type !== 'text/markdown' && !file.name.endsWith('.md') && !file.name.endsWith('.txt')) {
+    if (
+      isMarkdown &&
+      file.type !== 'text/markdown' &&
+      !file.name.endsWith('.md') &&
+      !file.name.endsWith('.txt')
+    ) {
       this.state.showToast(
         'Invalid File Type',
         'Please upload a Markdown (.md) file for this document.',
@@ -290,7 +294,10 @@ export class DocumentDetailComponent implements OnInit {
     this.http.post(`${this.basePath}/documents`, formData).subscribe({
       next: () => {
         this.isUploadingVersion.set(false);
-        this.state.showToast('Version Uploaded', 'A new version snapshot has been processed successfully.');
+        this.state.showToast(
+          'Version Uploaded',
+          'A new version snapshot has been processed successfully.',
+        );
         this.selectedVersionId.set(null); // automatically falls back to current (latest)
         this.documentQuery.reload();
       },

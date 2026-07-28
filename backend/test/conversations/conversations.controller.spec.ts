@@ -1,11 +1,11 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { of, throwError } from 'rxjs';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { ConversationsController } from 'src/conversations/conversations.controller';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { RagService } from 'src/rag/rag.service';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
-import { NotFoundException } from '@nestjs/common';
-import { of, throwError } from 'rxjs';
 
 const mockConversation = {
   id: 'conv-uuid-1',
@@ -188,7 +188,9 @@ describe('ConversationsController', () => {
     });
 
     it('should propagate NotFoundException if conversation not found (service throws)', async () => {
-      conversationsService.findOne.mockRejectedValue(new NotFoundException('Conversation not found'));
+      conversationsService.findOne.mockRejectedValue(
+        new NotFoundException('Conversation not found'),
+      );
 
       await expect(controller.findOne('conv-1', 'ws-1')).rejects.toThrow(
         new NotFoundException('Conversation not found'),
@@ -214,7 +216,11 @@ describe('ConversationsController', () => {
 
       const result = await controller.update('conv-1', { title: 'New Title' }, 'ws-1');
 
-      expect(conversationsService.update).toHaveBeenCalledWith('conv-1', { title: 'New Title' }, 'ws-1');
+      expect(conversationsService.update).toHaveBeenCalledWith(
+        'conv-1',
+        { title: 'New Title' },
+        'ws-1',
+      );
       expect(result).toBeUndefined();
     });
   });

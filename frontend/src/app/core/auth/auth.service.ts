@@ -1,4 +1,4 @@
-import { inject, signal, computed, Injectable } from '@angular/core';
+import { computed, Injectable, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import {
   AuthService as ApiAuthService,

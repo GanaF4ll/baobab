@@ -1,13 +1,13 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { AuthService } from './auth.service';
 import { WorkspacesStateService } from '../../features/workspaces/services/workspaces-state.service';
+import { AuthService } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const workspacesState = inject(WorkspacesStateService);
-  
+
   const token = authService.accessToken();
   const activeWorkspaceId = workspacesState.activeWorkspaceId();
 

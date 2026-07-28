@@ -1,8 +1,8 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 const mockConversation = {
   id: 'conv-uuid-1',
@@ -279,7 +279,9 @@ describe('ConversationsService', () => {
         deletedAt: null,
       });
 
-      await expect(service.restore('conv-uuid-1', 'ws-uuid-1')).rejects.toThrow(BadRequestException);
+      await expect(service.restore('conv-uuid-1', 'ws-uuid-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

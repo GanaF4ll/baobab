@@ -1,10 +1,10 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import * as schema from 'src/drizzle/schema';
+import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { DRIZZLE } from 'src/drizzle/drizzle.module';
-import { DrizzleDb } from 'src/drizzle/types/drizzle';
-import * as schema from 'src/drizzle/schema';
 
 @Injectable()
 export class UsersService {

@@ -1,13 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DocumentsService } from 'src/documents/documents.service';
-import { DRIZZLE } from 'src/drizzle/drizzle.module';
-import { StorageService } from 'src/shared/storage/storage.service';
 import { NotFoundException } from '@nestjs/common';
-import * as schema from 'src/drizzle/schema';
-import { StorageFolderName, OrderFilter } from 'src/shared/constants';
-import { ParserFactory } from 'src/documents/parsers/parser.factory';
+import { Test, TestingModule } from '@nestjs/testing';
 import { ChunkerService } from 'src/documents/chunking/chunker.service';
+import { DocumentsService } from 'src/documents/documents.service';
+import { ParserFactory } from 'src/documents/parsers/parser.factory';
+import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import * as schema from 'src/drizzle/schema';
 import { OllamaService } from 'src/ollama/ollama.service';
+import { OrderFilter, StorageFolderName } from 'src/shared/constants';
+import { StorageService } from 'src/shared/storage/storage.service';
 
 describe('DocumentsService', () => {
   let service: DocumentsService;
@@ -166,9 +166,9 @@ describe('DocumentsService', () => {
       dbMock.query.workspaces.findFirst.mockResolvedValue({ id: workspaceId });
       dbMock.query.documents.findFirst.mockResolvedValue(null);
 
-      await expect(service.create(userId, mockFile, workspaceId, 'non-existent-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.create(userId, mockFile, workspaceId, 'non-existent-id'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('throws NotFoundException if workspace is not found', async () => {
@@ -242,7 +242,10 @@ describe('DocumentsService', () => {
       const selectFromMock = jest.fn().mockReturnValue({ where: selectWhereMock });
       dbMock.select.mockReturnValue({ from: selectFromMock });
 
-      await service.findAllByWorkspace(userId, 'workspace-123', { cursor: 'doc-cursor', order: OrderFilter.ASC } as any);
+      await service.findAllByWorkspace(userId, 'workspace-123', {
+        cursor: 'doc-cursor',
+        order: OrderFilter.ASC,
+      } as any);
 
       expect(dbMock.query.documents.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -383,9 +386,9 @@ describe('DocumentsService', () => {
       };
       dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
 
-      await expect(service.removeVersion(docId, userId, 'non-existent-version-id', 'workspace-123')).rejects.toThrow(
-        new NotFoundException('Version not found'),
-      );
+      await expect(
+        service.removeVersion(docId, userId, 'non-existent-version-id', 'workspace-123'),
+      ).rejects.toThrow(new NotFoundException('Version not found'));
     });
   });
 

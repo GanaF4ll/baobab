@@ -1,28 +1,35 @@
 import {
   Component,
   computed,
+  ElementRef,
+  effect,
   inject,
   OnInit,
   signal,
-  effect,
   viewChild,
-  ElementRef,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
-import { HeaderComponent } from '../../../../core/layout/header/header.component';
-import { UserMessageComponent } from '../../components/user-message/user-message.component';
-import { ConversationsResource } from '../../../../../client/resources';
 import { ConversationsService } from '../../../../../client';
-import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
+import { ConversationsResource } from '../../../../../client/resources';
+import { HeaderComponent } from '../../../../core/layout/header/header.component';
+import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
 import { SidebarService } from '../../../../core/services/sidebar.service';
+import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
+import { AssistantMessageComponent } from '../../components/assistant-message/assistant-message.component';
+import { UserMessageComponent } from '../../components/user-message/user-message.component';
+import { ConversationService } from '../../services/conversation.service';
 
 @Component({
   selector: 'app-conversation-detail',
-  imports: [SidebarComponent, HeaderComponent, RouterLink, DatePipe, UserMessageComponent],
+  imports: [
+    SidebarComponent,
+    HeaderComponent,
+    RouterLink,
+    UserMessageComponent,
+    AssistantMessageComponent,
+  ],
   templateUrl: './conversation-detail.component.html',
   styleUrls: [],
 })
@@ -30,6 +37,7 @@ export class ConversationDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly conversationsResource = inject(ConversationsResource);
   private readonly conversationsService = inject(ConversationsService);
+  private readonly appConversationService = inject(ConversationService);
   protected readonly state = inject(WorkspacesStateService);
   protected readonly sidebarService = inject(SidebarService);
   private readonly messagesContainer = viewChild<ElementRef<HTMLDivElement>>('messagesContainer');
@@ -62,13 +70,21 @@ export class ConversationDetailComponent implements OnInit {
   protected readonly loadedMessages = signal<any[]>([]);
   private readonly nextCursor = signal<string | null>(null);
   protected readonly isLoadingMore = signal(false);
+  protected readonly isGenerating = signal(false);
   private hasMore = true;
+  private loadedConversationId: string | null = null;
 
   constructor() {
-    // Synchronize initial messages when conversationQuery finishes loading
+    // Synchronize initial messages when conversationQuery finishes loading or conversationId changes
     effect(() => {
       const data = this.conversationQuery.value()?.data;
-      if (data) {
+      const conversationId = this.idParam();
+
+      if (
+        data &&
+        (this.loadedConversationId !== conversationId || this.loadedMessages().length === 0)
+      ) {
+        this.loadedConversationId = conversationId;
         const initialMsgs = (data as any).messages || [];
         // The API returns newest first (descending), reverse it for chronological display
         const chronologicalMsgs = [...initialMsgs].reverse();
@@ -168,15 +184,88 @@ export class ConversationDetailComponent implements OnInit {
       });
   }
 
-  sendMessage(event: Event, inputEl: HTMLInputElement) {
+  async sendMessage(event: Event, inputEl: HTMLInputElement) {
     event.preventDefault();
     const content = inputEl.value.trim();
-    if (!content) return;
+    if (!content || this.isGenerating()) return;
+
+    const workspaceId = this.workspaceIdParam();
+    const conversationId = this.idParam();
+    if (!workspaceId || !conversationId) return;
 
     inputEl.value = '';
-    this.state.showToast(
-      'Message Sent',
-      'Your message has been processed by the secure RAG agent.',
-    );
+
+    const userMsgId = 'user-' + Date.now();
+    const assistantMsgId = 'assistant-' + Date.now();
+
+    const userMsg = {
+      id: userMsgId,
+      role: 'user' as const,
+      content,
+      createdAt: new Date(),
+    };
+
+    const assistantMsg = {
+      id: assistantMsgId,
+      role: 'assistant' as const,
+      content: '',
+      sources: [],
+      createdAt: new Date(),
+      isStreaming: true,
+    };
+
+    this.loadedMessages.update((msgs) => [...msgs, userMsg, assistantMsg]);
+    this.isGenerating.set(true);
+    this.scrollToBottom();
+
+    try {
+      for await (const chunk of this.appConversationService.askStream(
+        workspaceId,
+        conversationId,
+        content,
+        [],
+      )) {
+        if (chunk.content) {
+          this.loadedMessages.update((msgs) =>
+            msgs.map((m) =>
+              m.id === assistantMsgId
+                ? {
+                    ...m,
+                    content: m.content + chunk.content,
+                    sources: chunk.sources && chunk.sources.length > 0 ? chunk.sources : m.sources,
+                  }
+                : m,
+            ),
+          );
+          this.scrollToBottom();
+        }
+
+        if (chunk.sources && chunk.sources.length > 0) {
+          this.loadedMessages.update((msgs) =>
+            msgs.map((m) => (m.id === assistantMsgId ? { ...m, sources: chunk.sources } : m)),
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Failed to stream LLM response', err);
+      this.loadedMessages.update((msgs) =>
+        msgs.map((m) =>
+          m.id === assistantMsgId
+            ? {
+                ...m,
+                error: true,
+                content:
+                  m.content || 'Une erreur s’est produite lors de la génération de la réponse.',
+              }
+            : m,
+        ),
+      );
+    } finally {
+      this.loadedMessages.update((msgs) =>
+        msgs.map((m) => (m.id === assistantMsgId ? { ...m, isStreaming: false } : m)),
+      );
+      this.isGenerating.set(false);
+      this.scrollToBottom();
+    }
   }
 }

@@ -1,12 +1,12 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { UsersService } from 'src/users/users.service';
+import { Test, TestingModule } from '@nestjs/testing';
 import { IS_PUBLIC_KEY } from 'src/auth/decorators/public.decorator';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import { UsersService } from 'src/users/users.service';
 
 // ---------------------------------------------------------------------------
 // Helpers

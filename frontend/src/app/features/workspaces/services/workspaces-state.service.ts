@@ -1,6 +1,6 @@
 import { computed, effect, inject, Service, signal } from '@angular/core';
-import { WorkspacesService } from '../../../../client/services/workspaces.service';
 import { WorkspacesResource } from '../../../../client/resources/workspaces.resource';
+import { WorkspacesService } from '../../../../client/services/workspaces.service';
 
 @Service()
 export class WorkspacesStateService {

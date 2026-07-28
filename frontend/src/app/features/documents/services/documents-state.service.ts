@@ -1,6 +1,6 @@
 import { computed, inject, Service, signal } from '@angular/core';
-import { DocumentsResource } from '../../../../client/resources';
 import { DocumentsService } from '../../../../client';
+import { DocumentsResource } from '../../../../client/resources';
 import { WorkspacesStateService } from '../../workspaces/services/workspaces-state.service';
 
 @Service()

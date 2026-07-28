@@ -1,6 +1,4 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -9,11 +7,13 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { RegisterAndLoginResponseDto } from './dto/output/register-and-login-response.dto';
-import { LoginDto } from './dto/input/login.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
-import { RefreshTokenDto } from './dto/input/refresh-token.dto';
 import { AUTH_SWAGGER_TAG } from 'src/swagger.config';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/input/login.dto';
+import { RefreshTokenDto } from './dto/input/refresh-token.dto';
+import { RegisterAndLoginResponseDto } from './dto/output/register-and-login-response.dto';
 
 @Controller('auth')
 @ApiTags(AUTH_SWAGGER_TAG)

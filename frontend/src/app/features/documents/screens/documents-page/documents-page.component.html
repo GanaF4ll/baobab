@@ -21,7 +21,6 @@
 
     <!-- Filters -->
     <app-document-filter (selectedMimeType)="onMimeTypeSelected($event)"></app-document-filter>
-
     <!-- Main Results View -->
     @if (documentsQuery.isLoading()) {
     <div
@@ -53,21 +52,21 @@
     >
       <!-- Dropzone is always shown as the first card in the grid -->
       <app-document-dropzone (fileSelected)="uploadFile($event)"></app-document-dropzone>
-
       @for (doc of documents(); track doc.id) {
       <app-document-card [document]="doc"></app-document-card>
       }
     </div>
-
     @if (documents().length === 0 && selectedMimeType()) {
-      <!-- Info text indicating filter has no results -->
-      <p class="text-center font-body-sm text-xs text-on-surface-variant/70 mt-lg">
-        No files matching the selected filter. 
-        <button (click)="onMimeTypeSelected(null)" class="text-primary underline font-bold cursor-pointer hover:opacity-85">
-          Clear Filter
-        </button>
-      </p>
-    }
-    }
+    <!-- Info text indicating filter has no results -->
+    <p class="text-center font-body-sm text-xs text-on-surface-variant/70 mt-lg">
+      No files matching the selected filter.
+      <button
+        (click)="onMimeTypeSelected(null)"
+        class="text-primary underline font-bold cursor-pointer hover:opacity-85"
+      >
+        Clear Filter
+      </button>
+    </p>
+    } }
   </div>
 </main>

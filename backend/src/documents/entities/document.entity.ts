@@ -1,6 +1,6 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsUUID } from 'class-validator';
 import { mimeTypeEnum } from './../../drizzle/schema';
-import { ApiProperty } from '@nestjs/swagger';
 
 export class DocumentEntity {
   @ApiProperty({

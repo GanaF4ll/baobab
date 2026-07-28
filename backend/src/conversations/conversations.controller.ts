@@ -1,28 +1,18 @@
-import { RagService } from './../rag/rag.service';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  Res,
-  UseGuards,
-  Query,
-  NotFoundException,
+  Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
-import { ConversationsService } from './conversations.service';
-import { CreateConversationDto } from './dto/input/create-conversation.dto';
-import { UpdateConversationDto } from './dto/input/update-conversation.dto';
-import { FastifyReply } from 'fastify';
-import { AskLlmDto } from 'src/rag/dto/input/ask-llm.dto';
-import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { Protected } from 'src/auth/decorators/protected.decorator';
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
@@ -34,19 +24,28 @@ import {
   ApiProduces,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { FastifyReply } from 'fastify';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { Protected } from 'src/auth/decorators/protected.decorator';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { AskLlmDto } from 'src/rag/dto/input/ask-llm.dto';
 import { RagStreamChunkResponseDto } from 'src/rag/dto/output/rag-steam-chunk-response.dto';
-import { ConversationFilterDto } from './dto/input/conversation-filter.dto';
+import { FilterDto } from 'src/shared/dto/input/filter.dto';
 import { ApiCollectionResponseDto } from 'src/shared/dto/output/api-collection-response.dto';
+import { ApiResponseDto } from 'src/shared/dto/output/api-response.dto';
+import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
+import { RagService } from './../rag/rag.service';
+import { ConversationsService } from './conversations.service';
+import { ConversationFilterDto } from './dto/input/conversation-filter.dto';
+import { CreateConversationDto } from './dto/input/create-conversation.dto';
+import { UpdateConversationDto } from './dto/input/update-conversation.dto';
 import {
   ConversationCollectionData,
   ConversationCollectionResponseDto,
 } from './dto/output/conversation-collection-response.dto';
-import { ConversationEntity } from './entities/conversation.entity';
-import { ApiResponseDto } from 'src/shared/dto/output/api-response.dto';
-import { MessageResponseDto } from './dto/output/find-one-conversation-response.dto';
 import { findNextMessagesResponseDto } from './dto/output/find-next-messages-response.dto';
-
-import { FilterDto } from 'src/shared/dto/input/filter.dto';
+import { MessageResponseDto } from './dto/output/find-one-conversation-response.dto';
+import { ConversationEntity } from './entities/conversation.entity';
 
 @Controller('conversations')
 @UseGuards(AuthGuard)
@@ -76,6 +75,7 @@ export class ConversationsController {
   }
 
   @Post(':workspaceId/ask/:conversationId')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(WorkspaceMemberGuard)
   @ApiProduces('text/event-stream')
   @ApiOperation({ summary: 'Ask a question to the AI (Streaming SSE)' })
@@ -90,7 +90,12 @@ export class ConversationsController {
     @Param('conversationId') conversationId: string,
     @Param('workspaceId') workspaceId: string,
   ) {
-    //? simulate SSE / Streaming behaviour
+    const origin = res.request.headers.origin;
+    if (origin) {
+      res.raw.setHeader('Access-Control-Allow-Origin', origin);
+      res.raw.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    res.raw.statusCode = 200;
     res.raw.setHeader('Content-Type', 'text/event-stream');
     res.raw.setHeader('Cache-Control', 'no-cache');
     res.raw.setHeader('Connection', 'keep-alive');

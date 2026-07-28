@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { Test, TestingModule } from '@nestjs/testing';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
+import { UsersService } from 'src/users/users.service';
 
 // ---------------------------------------------------------------------------
 // Helpers

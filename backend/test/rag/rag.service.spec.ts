@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RagService } from '../../src/rag/rag.service';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
-import { OllamaService } from 'src/ollama/ollama.service';
 import * as schema from 'src/drizzle/schema';
+import { OllamaService } from 'src/ollama/ollama.service';
+import { RagService } from '../../src/rag/rag.service';
 
 describe('RagService', () => {
   let service: RagService;
@@ -60,8 +60,20 @@ describe('RagService', () => {
       const documentIds = ['doc-1', 'doc-2'];
       const topK = 3;
       const mockResults = [
-        { id: 'chunk-1', documentId: 'doc-1', content: 'chunk content 1', chunkIndex: 0, distance: 0.1 },
-        { id: 'chunk-2', documentId: 'doc-2', content: 'chunk content 2', chunkIndex: 1, distance: 0.2 },
+        {
+          id: 'chunk-1',
+          documentId: 'doc-1',
+          content: 'chunk content 1',
+          chunkIndex: 0,
+          distance: 0.1,
+        },
+        {
+          id: 'chunk-2',
+          documentId: 'doc-2',
+          content: 'chunk content 2',
+          chunkIndex: 1,
+          distance: 0.2,
+        },
       ];
 
       ollamaServiceMock.generateSingleEmbedding.mockResolvedValue(mockEmbedding);
@@ -89,4 +101,3 @@ describe('RagService', () => {
     });
   });
 });
-

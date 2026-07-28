@@ -1,19 +1,25 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { DocumentEntity } from '../../../../../client/models';
 import { DocumentsResource } from '../../../../../client/resources';
+import { BASE_PATH_DEFAULT } from '../../../../../client/tokens';
 import { HeaderComponent } from '../../../../core/layout/header/header.component';
 import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
 import { SidebarService } from '../../../../core/services/sidebar.service';
 import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
-import { DocumentFilterComponent } from '../../components/document-filter/document-filter.component';
 import { DocumentCardComponent } from '../../components/document-card/document-card.component';
 import { DocumentDropzoneComponent } from '../../components/document-dropzone/document-dropzone.component';
-import { DocumentEntity } from '../../../../../client/models';
-import { HttpClient } from '@angular/common/http';
-import { BASE_PATH_DEFAULT } from '../../../../../client/tokens';
+import { DocumentFilterComponent } from '../../components/document-filter/document-filter.component';
 
 @Component({
   selector: 'app-documents-page',
-  imports: [SidebarComponent, HeaderComponent, DocumentFilterComponent, DocumentCardComponent, DocumentDropzoneComponent],
+  imports: [
+    SidebarComponent,
+    HeaderComponent,
+    DocumentFilterComponent,
+    DocumentCardComponent,
+    DocumentDropzoneComponent,
+  ],
   templateUrl: './documents-page.component.html',
   styleUrl: './documents-page.component.css',
 })
@@ -65,12 +71,18 @@ export class DocumentsPageComponent implements OnInit {
 
     this.http.post(`${this.basePath}/documents`, formData).subscribe({
       next: () => {
-        this.state.showToast('Upload Successful', `'${file.name}' has been processed successfully.`);
+        this.state.showToast(
+          'Upload Successful',
+          `'${file.name}' has been processed successfully.`,
+        );
         this.documentsQuery.reload();
       },
       error: (err) => {
         console.error('Upload failed:', err);
-        this.state.showToast('Upload Failed', 'Failed to upload document. Please check the console.');
+        this.state.showToast(
+          'Upload Failed',
+          'Failed to upload document. Please check the console.',
+        );
       },
     });
   }
