@@ -19,31 +19,23 @@
   <!-- Title & Description -->
   <h3 class="font-headline-md text-headline-md mb-xs text-on-surface">{{ workspace.name }}</h3>
   <p class="font-body-md text-body-md text-on-surface opacity-70 mb-lg line-clamp-2">
-    {{ descriptionText }}
+    {{ workspace.description }}
   </p>
 
   <!-- Progress and Info -->
   <div class="mt-auto space-y-md">
-    <div class="flex items-center gap-md">
-      <div class="flex-1 h-1 bg-surface-container-highest rounded-full overflow-hidden">
-        <div class="h-full bg-primary" [style.width.%]="syncPercent"></div>
-      </div>
-      <span class="font-label-technical text-label-technical">
-        {{ syncText }}
-      </span>
-    </div>
     <div class="flex items-center justify-between border-t border-outline-variant pt-md">
       <div class="flex items-center gap-xs">
         <span class="material-symbols-outlined text-[16px] text-on-surface opacity-60"
           >description</span
         >
         <span class="font-label-technical text-label-technical text-on-surface opacity-60"
-          >{{ docCount }}
+          >{{ workspace.documentCount }}
           Docs</span
         >
       </div>
       <span class="font-label-technical text-label-technical text-on-surface opacity-60"
-        >{{ lastActive }}</span
+        >{{ workspace.createdAt| date: 'dd MMMM, yyyy' }}</span
       >
     </div>
   </div>

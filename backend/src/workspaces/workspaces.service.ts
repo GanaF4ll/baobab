@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { and, count, eq, ilike, isNotNull } from 'drizzle-orm';
+import { and, count, eq, ilike, inArray, isNotNull, isNull } from 'drizzle-orm';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
@@ -26,7 +26,10 @@ export class WorkspacesService {
       .returning();
 
     this.logger.debug(`Workspace created, [${newWorkspace.id}]`);
-    return newWorkspace;
+    return {
+      ...newWorkspace,
+      documentCount: 0,
+    };
   }
 
   async findAll(
@@ -59,6 +62,7 @@ export class WorkspacesService {
               : []),
             ...(cursor ? [ne(workspaces.id, cursor)] : []),
           ),
+
         limit: take + 1,
         orderBy: (workspaces, { asc, desc }) =>
           order === 'desc' ? desc(workspaces.createdAt) : asc(workspaces.createdAt),
@@ -75,7 +79,31 @@ export class WorkspacesService {
     ]);
 
     const hasNextPage = workspaces.length > take;
-    const items = hasNextPage ? workspaces.slice(0, take) : workspaces;
+    const rawItems = hasNextPage ? workspaces.slice(0, take) : workspaces;
+
+    const workspaceIds = rawItems.map((w) => w.id);
+    let countsMap = new Map<string, number>();
+    if (workspaceIds.length > 0) {
+      const docCounts = await this.db
+        .select({
+          workspaceId: schema.documents.workspaceId,
+          count: count(schema.documents.id),
+        })
+        .from(schema.documents)
+        .where(
+          and(
+            inArray(schema.documents.workspaceId, workspaceIds),
+            isNull(schema.documents.deletedAt),
+          ),
+        )
+        .groupBy(schema.documents.workspaceId);
+      countsMap = new Map(docCounts.map((c) => [c.workspaceId, Number(c.count)]));
+    }
+
+    const items = rawItems.map((w) => ({
+      ...w,
+      documentCount: countsMap.get(w.id) ?? 0,
+    }));
     const nextCursor = hasNextPage ? items[items.length - 1]?.id : null;
 
     return {
@@ -96,7 +124,15 @@ export class WorkspacesService {
       throw new NotFoundException('Workspace not found');
     }
 
-    return existingWs;
+    const [docCount] = await this.db
+      .select({ count: count(schema.documents.id) })
+      .from(schema.documents)
+      .where(and(eq(schema.documents.workspaceId, id), isNull(schema.documents.deletedAt)));
+
+    return {
+      ...existingWs,
+      documentCount: Number(docCount?.count ?? 0),
+    };
   }
 
   async update(
@@ -116,7 +152,10 @@ export class WorkspacesService {
       .returning();
 
     this.logger.log(`Workspace updated with ID ${updatedWs.id}`);
-    return updatedWs;
+    return {
+      ...updatedWs,
+      documentCount: existingWs.documentCount,
+    };
   }
 
   async softDelete(id: string, ownerId: string): Promise<void> {
@@ -152,6 +191,9 @@ export class WorkspacesService {
     if (!restoredWs) throw new BadRequestException('Workspace is not deleted');
 
     this.logger.log(`Workspace restored with ID ${restoredWs.id}`);
-    return restoredWs;
+    return {
+      ...restoredWs,
+      documentCount: existingWs.documentCount,
+    };
   }
 }
