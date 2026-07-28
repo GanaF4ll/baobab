@@ -1,9 +1,11 @@
-import { computed, inject, Service, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { DocumentsService } from '../../../../client';
 import { DocumentsResource } from '../../../../client/resources';
 import { WorkspacesStateService } from '../../workspaces/services/workspaces-state.service';
 
-@Service()
+@Injectable({
+  providedIn: 'root',
+})
 export class DocumentsStateService {
   private readonly documentRessource = inject(DocumentsResource);
   private readonly documentService = inject(DocumentsService);

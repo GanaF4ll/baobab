@@ -132,6 +132,19 @@ export class DocumentsService {
               : []),
             ...(cursor ? [ne(documents.id, cursor)] : []),
           ),
+        with: {
+          versions: {
+            columns: {
+              id: true,
+              documentId: true,
+              versionNumber: true,
+              storageKey: true,
+              changeSummary: true,
+              createdAt: true,
+            },
+            orderBy: (versions, { desc }) => desc(versions.versionNumber),
+          },
+        },
         limit: take + 1,
         orderBy: (documents, { desc, asc }) =>
           order === 'desc' ? desc(documents.createdAt) : asc(documents.createdAt),

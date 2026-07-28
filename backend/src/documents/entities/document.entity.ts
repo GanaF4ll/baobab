@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsUUID } from 'class-validator';
 import { mimeTypeEnum } from './../../drizzle/schema';
+import { DocumentVersionEntity } from './document-version.entity';
 
 export class DocumentEntity {
   @ApiProperty({
@@ -60,4 +61,11 @@ export class DocumentEntity {
     enum: mimeTypeEnum.enumValues,
   })
   mimeType: (typeof mimeTypeEnum.enumValues)[number];
+
+  @ApiProperty({
+    description: 'The versions of the document',
+    type: () => [DocumentVersionEntity],
+    required: false,
+  })
+  versions?: DocumentVersionEntity[];
 }

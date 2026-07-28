@@ -126,6 +126,7 @@ describe('DocumentsService', () => {
         StorageFolderName.DOCUMENTS,
         'new-doc-id/1/test.pdf',
         mockFile.buffer,
+        mockFile.mimetype,
       );
       expect(result).toEqual(mockVersion);
     });
@@ -158,6 +159,7 @@ describe('DocumentsService', () => {
         StorageFolderName.DOCUMENTS,
         'doc-123/2/test.pdf',
         mockFile.buffer,
+        mockFile.mimetype,
       );
       expect(result).toEqual(mockVersion);
     });

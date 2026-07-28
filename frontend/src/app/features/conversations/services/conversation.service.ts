@@ -1,4 +1,4 @@
-import { computed, inject, Service } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { RagStreamChunkResponseDto } from '../../../../client/models';
 import { ConversationsResource } from '../../../../client/resources/conversations.resource';
@@ -7,7 +7,9 @@ import { BASE_PATH_DEFAULT } from '../../../../client/tokens';
 import { AuthService } from '../../../core/auth/auth.service';
 import { WorkspacesStateService } from '../../workspaces/services/workspaces-state.service';
 
-@Service()
+@Injectable({
+  providedIn: 'root',
+})
 export class ConversationService {
   private readonly conversationsResource = inject(ConversationsResource);
   private readonly conversationsService = inject(ConversationsService);

@@ -10,7 +10,7 @@ export class FindOneWithVersionsResponseData extends DocumentEntity {
     type: [VersionDto],
     description: 'the different versions of the document',
   })
-  versions: VersionDto[];
+  declare versions: VersionDto[];
 }
 
 export class FindOneWithVersionsResponseDto extends ApiResponseDto<FindOneWithVersionsResponseData> {

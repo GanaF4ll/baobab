@@ -18,6 +18,7 @@ import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.compon
 import { SidebarService } from '../../../../core/services/sidebar.service';
 import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
 import { AssistantMessageComponent } from '../../components/assistant-message/assistant-message.component';
+import { SourcesPanelComponent } from '../../components/sources-panel/sources-panel.component';
 import { UserMessageComponent } from '../../components/user-message/user-message.component';
 import { ConversationService } from '../../services/conversation.service';
 
@@ -29,6 +30,7 @@ import { ConversationService } from '../../services/conversation.service';
     RouterLink,
     UserMessageComponent,
     AssistantMessageComponent,
+    SourcesPanelComponent,
   ],
   templateUrl: './conversation-detail.component.html',
   styleUrls: [],
@@ -41,6 +43,10 @@ export class ConversationDetailComponent implements OnInit {
   protected readonly state = inject(WorkspacesStateService);
   protected readonly sidebarService = inject(SidebarService);
   private readonly messagesContainer = viewChild<ElementRef<HTMLDivElement>>('messagesContainer');
+
+  // Sources drawer state and selected version IDs for RAG
+  protected readonly isSourcesOpen = signal(true);
+  protected readonly selectedVersionIds = signal<string[]>([]);
 
   // Extract params as signals
   private readonly idParam = toSignal(
@@ -223,7 +229,7 @@ export class ConversationDetailComponent implements OnInit {
         workspaceId,
         conversationId,
         content,
-        [],
+        this.selectedVersionIds(),
       )) {
         if (chunk.content) {
           this.loadedMessages.update((msgs) =>

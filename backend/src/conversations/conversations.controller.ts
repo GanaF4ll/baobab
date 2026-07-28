@@ -90,7 +90,7 @@ export class ConversationsController {
     @Param('conversationId') conversationId: string,
     @Param('workspaceId') workspaceId: string,
   ) {
-    const origin = res.request.headers.origin;
+    const origin = res.request?.headers?.origin;
     if (origin) {
       res.raw.setHeader('Access-Control-Allow-Origin', origin);
       res.raw.setHeader('Access-Control-Allow-Credentials', 'true');

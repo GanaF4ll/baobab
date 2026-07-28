@@ -1,6 +1,8 @@
-import { Service, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
-@Service()
+@Injectable({
+  providedIn: 'root',
+})
 export class SidebarService {
   private readonly MOBILE_BREAKPOINT = 768;
 

@@ -7,10 +7,10 @@
 <!-- Main Content Area -->
 <main
   [class.md:ml-64]="sidebarService.isOpen()"
-  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] flex flex-col transition-all duration-300 ease-in-out overflow-hidden ml-0"
+  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] flex flex-row gap-md transition-all duration-300 ease-in-out overflow-hidden ml-0"
 >
   <div
-    class="max-w-container-max mx-auto w-full flex-1 flex flex-col bg-surface-container-low border border-outline-variant rounded-lg overflow-hidden min-h-0"
+    class="max-w-container-max mx-auto w-full flex-1 flex flex-col bg-surface-container-low border border-outline-variant rounded-lg overflow-hidden min-h-0 min-w-0"
   >
     @if (isLoading()) {
     <div class="flex-1 flex items-center justify-center min-h-[400px]">
@@ -42,7 +42,7 @@
     } @else if (conversation(); as conv) {
     <!-- Chat Header -->
     <div
-      class="px-md sm:px-lg py-md border-b border-outline-variant flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md bg-surface-container"
+      class="hidden sm:flex px-md sm:px-lg py-md border-b border-outline-variant flex-col sm:flex-row justify-between items-start sm:items-center gap-md bg-surface-container"
     >
       <div class="flex items-center gap-sm">
         <div class="w-9 h-9 rounded bg-primary/10 flex items-center justify-center text-primary">
@@ -57,7 +57,24 @@
           </p>
         </div>
       </div>
-      <div>
+      <div class="flex items-center gap-sm">
+        <!-- Toggle Sources Drawer Button -->
+        <button
+          type="button"
+          (click)="isSourcesOpen.set(!isSourcesOpen())"
+          [class.bg-primary-container]="isSourcesOpen()"
+          [class.text-primary]="isSourcesOpen()"
+          class="px-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs text-xs"
+        >
+          <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+          Sources
+          @if (selectedVersionIds().length > 0) {
+          <span class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-primary text-on-primary font-bold">
+            {{ selectedVersionIds().length }}
+          </span>
+          }
+        </button>
+
         <a
           [routerLink]="['/workspace', workspaceIdParam()]"
           class="px-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs text-xs"
@@ -128,4 +145,12 @@
     </div>
     }
   </div>
+  <!-- Right Drawer Sources Panel -->
+  @if (isSourcesOpen()) {
+  <app-sources-panel
+    [workspaceId]="workspaceIdParam()"
+    (selectedVersionIdsChange)="selectedVersionIds.set($event)"
+    (closePanel)="isSourcesOpen.set(false)"
+  ></app-sources-panel>
+  }
 </main>
