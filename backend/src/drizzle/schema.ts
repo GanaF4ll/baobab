@@ -55,6 +55,7 @@ export const workspaces = pgTable('workspaces', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   deletedAt: timestamp('deleted_at'),
+  icon: text('icon'),
 });
 
 // export const workspaceMembers = pgTable('workspace_members', {

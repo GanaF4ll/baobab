@@ -29,6 +29,13 @@
       "when": 1781867413796,
       "tag": "0003_oval_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785257710112,
+      "tag": "0004_vengeful_white_queen",
+      "breakpoints": true
     }
   ]
 }

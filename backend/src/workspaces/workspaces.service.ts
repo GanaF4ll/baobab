@@ -22,6 +22,7 @@ export class WorkspacesService {
         ownerId: ownerId,
         name: createWorkspaceDto.name,
         description: createWorkspaceDto.description ?? null,
+        icon: createWorkspaceDto.icon ?? null,
       })
       .returning();
 
@@ -147,6 +148,7 @@ export class WorkspacesService {
         name: updateWorkspaceDto.name ?? existingWs.name,
         description: updateWorkspaceDto.description ?? existingWs.description,
         updatedAt: new Date(),
+        icon: updateWorkspaceDto.icon ?? existingWs.icon,
       })
       .where(eq(schema.workspaces.id, existingWs.id))
       .returning();

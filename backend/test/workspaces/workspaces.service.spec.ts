@@ -16,6 +16,8 @@ const mockWorkspace = {
   createdAt: new Date('2026-06-19T12:00:00Z'),
   updatedAt: new Date('2026-06-19T12:00:00Z'),
   deletedAt: null as Date | null,
+  documentCount: 0,
+  icon: null as string | null,
 };
 
 // ---------------------------------------------------------------------------
@@ -29,7 +31,35 @@ const buildDbMock = () => {
 
   const countWhereMock = jest.fn().mockResolvedValue([{ countValue: 1 }]);
   const countFromMock = jest.fn().mockReturnValue({ where: countWhereMock });
-  const selectMock = jest.fn().mockReturnValue({ from: countFromMock });
+
+  const selectMock = jest.fn().mockImplementation((fields) => {
+    const chain = {
+      from: jest.fn().mockReturnThis(),
+      where: jest.fn().mockImplementation((...args) => {
+        const promise = countWhereMock(...args);
+        const thenable = {
+          then: (onFulfilled: any, onRejected: any) => {
+            return Promise.resolve(promise)
+              .then((val) => {
+                if (Array.isArray(val) && val.length === 1 && val[0] && 'countValue' in val[0]) {
+                  if (fields && 'count' in fields && !('workspaceId' in fields)) {
+                    return [{ count: 0 }];
+                  }
+                  if (fields && 'workspaceId' in fields) {
+                    return [];
+                  }
+                }
+                return val;
+              })
+              .then(onFulfilled, onRejected);
+          },
+          groupBy: jest.fn().mockImplementation(() => thenable),
+        };
+        return thenable;
+      }),
+    };
+    return chain;
+  });
 
   const updateReturningMock = jest.fn().mockResolvedValue([mockWorkspace]);
   const updateWhereMock = jest.fn().mockReturnValue({ returning: updateReturningMock });
@@ -113,6 +143,7 @@ describe('WorkspacesService', () => {
         ownerId,
         name: createDto.name,
         description: createDto.description,
+        icon: null,
       });
       expect(result).toEqual(createdWorkspace);
     });
@@ -144,7 +175,7 @@ describe('WorkspacesService', () => {
 
       expect(db.query.workspaces.findFirst).not.toHaveBeenCalled();
       expect(db.query.workspaces.findMany).toHaveBeenCalledTimes(1);
-      expect(db.select).toHaveBeenCalledTimes(1);
+      expect(db.select).toHaveBeenCalledTimes(2);
       expect(result).toEqual({
         items: [mockWorkspace],
         totalCount: 1,
