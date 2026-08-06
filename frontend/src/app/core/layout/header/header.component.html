@@ -11,7 +11,22 @@
     >
       <span class="material-symbols-outlined">menu</span>
     </button>
-    <nav class="hidden sm:flex gap-md">
+
+    @if(inWorkspace()){
+
+      <div class="flex items-center gap-xs min-w-0">
+        <span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0"
+          >{{activeWorkspace()?.icon || 'workspaces'}}</span
+        >
+        <span
+          class="font-label-technical text-label-technical font-bold text-on-surface truncate"
+            >
+              {{ activeWorkspace()?.name || 'Workspace' }}
+            </span>
+          </div>
+
+    }
+    <!-- <nav class="hidden sm:flex gap-md">
       <a
         class="font-label-technical text-label-technical text-on-surface font-bold border-b-2 border-primary pb-1"
         href="#"
@@ -30,7 +45,7 @@
         (click)="$event.preventDefault()"
         >Security</a
       >
-    </nav>
+    </nav> -->
   </div>
 
   <!-- Search and Actions -->

@@ -1,8 +1,9 @@
-import { Component, EventEmitter, inject, Output } from '@angular/core';
+import { Component, computed, EventEmitter, inject, input, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SidebarService } from '../../services/sidebar.service';
+import { WorkspacesStateService } from '../../../features/workspaces/services/workspaces-state.service';
 
 @Component({
   selector: 'app-header',
@@ -14,8 +15,17 @@ export class HeaderComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   protected readonly sidebarService = inject(SidebarService);
+  protected readonly state = inject(WorkspacesStateService);
 
   protected readonly currentUser = this.authService.currentUser;
+
+  readonly inWorkspace = input<boolean>(false);
+
+  protected readonly activeWorkspace = computed(() => {
+    const id = this.state.activeWorkspaceId();
+    if (!id) return null;
+    return this.state.workspaces().find((w) => w.id === id) || null;
+  });
 
   @Output() searchChange = new EventEmitter<string>();
 
