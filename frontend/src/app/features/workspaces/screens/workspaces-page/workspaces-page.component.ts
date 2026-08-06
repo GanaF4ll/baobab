@@ -22,7 +22,7 @@ export class WorkspacesPageComponent {
   protected readonly sidebarService = inject(SidebarService);
 
   onWorkspaceSelect(id: string) {
-    this.router.navigate(['/workspace', id]);
+    this.router.navigate(['/workspace', id, 'documents']);
   }
 
   openCreateWorkspaceDialog() {
