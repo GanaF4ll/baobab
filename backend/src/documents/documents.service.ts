@@ -319,6 +319,13 @@ todo: method updateContent which allows to replace the content of a document wit
       })
       .returning();
 
+    await this.db
+      .update(schema.documents)
+      .set({
+        currentVersion: newVersionNumber,
+      })
+      .where(eq(schema.documents.id, existingDoc.id));
+
     await this.storeChunks(file, workspaceId, newDocVersion.id);
 
     return newDocVersion;

@@ -9,7 +9,6 @@ import { DocumentEntity } from '../../../../../client/models';
   standalone: true,
   imports: [HlmCardImports, DatePipe, RouterLink],
   templateUrl: './document-card.component.html',
-  styleUrl: './document-card.component.css',
   host: {
     class: 'block h-full',
   },
