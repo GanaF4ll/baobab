@@ -41,6 +41,7 @@ export class WorkspaceEntity {
     description: 'Icon of the workspace',
     required: false,
     nullable: true,
+    example: '🐲',
     type: String,
   })
   @IsOptional()

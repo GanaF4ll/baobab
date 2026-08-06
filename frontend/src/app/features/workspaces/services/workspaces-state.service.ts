@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, Injectable, inject, signal } from '@angular/core';
 import { WorkspacesResource } from '../../../../client/resources/workspaces.resource';
 import { WorkspacesService } from '../../../../client/services/workspaces.service';
 import { AuthService } from '../../../core/auth/auth.service';
