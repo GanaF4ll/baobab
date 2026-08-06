@@ -32,8 +32,11 @@
         class="mt-xs font-label-technical text-[10px] text-on-surface-variant/70 flex items-center gap-xs"
       >
         <span class="font-semibold">{{ getFileTypeLabel(document().mimeType) }}</span>
-        <span>•</span>
-        <span>v{{ document().currentVersion }}</span>
+        @if(document().currentVersion > 1) {
+
+          <span>•</span>
+          <span class="text-on-surface-variant/80 font-medium underline">{{ document().currentVersion }} versions</span>
+        }
       </p>
     </div>
   </div>
