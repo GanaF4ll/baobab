@@ -27,7 +27,7 @@ export class WorkspaceEntity {
   @IsDateString()
   updatedAt: Date;
 
-  @ApiProperty({ description: 'Date of deletion of the workspace', nullable: true })
+  @ApiProperty({ description: 'Date of deletion of the workspace', nullable: true, type: Date })
   @IsOptional()
   @IsDateString()
   deletedAt?: Date | null;
@@ -36,4 +36,15 @@ export class WorkspaceEntity {
   @IsOptional()
   @IsNumber()
   documentCount?: number;
+
+  @ApiProperty({
+    description: 'Icon of the workspace',
+    required: false,
+    nullable: true,
+    example: '🐲',
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  icon?: string | null;
 }
