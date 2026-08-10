@@ -4,6 +4,7 @@ import { map } from 'rxjs';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
+import { DocumentsService } from '../documents/documents.service';
 import { OllamaService } from '../ollama/ollama.service';
 import { SimilarChunkResponseDto } from './dto/output/similar-chunk-response.dto';
 import { getSystemInstructions } from './system-instructions';
@@ -15,6 +16,7 @@ export class RagService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly ollamaService: OllamaService,
+    private readonly documentsService: DocumentsService,
   ) {}
 
   /**
@@ -50,6 +52,8 @@ export class RagService {
       this.logger.warn('No document IDs provided for multi-document vector search.');
       return [];
     }
+
+    await this.documentsService.ensureChunksExist(versionIds);
 
     const questionVector = await this.vectorizeQuestion(question);
 

@@ -1,5 +1,5 @@
 import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { and, count, eq, max } from 'drizzle-orm';
+import { and, count, eq, inArray, isNull, max } from 'drizzle-orm';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
@@ -87,8 +87,68 @@ export class DocumentsService {
       })
       .returning();
 
-    await this.storeChunks(file, workspaceId, newDocVersion.id);
+    await this.storeChunks(file.buffer, resolvedMimeType, workspaceId, newDocVersion.id);
 
+    return newDocVersion;
+  }
+
+  /**
+   * @description Handles the creation of a new version for an existing document.
+   * @param documentId document id
+   * @param userId user id
+   * @param file file to upload
+   * @returns new document version
+   */
+  private async createNewDocumentVersion(
+    documentId: string,
+    userId: string,
+    file: CreateFileDto,
+    workspaceId: string,
+  ): Promise<DocumentVersionEntity> {
+    const existingDoc = await this.db.query.documents.findFirst({
+      where: (documents, { eq, and }) =>
+        and(eq(documents.id, documentId), eq(documents.userId, userId)),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (!existingDoc) {
+      this.logger.error(`error finding document [${documentId}] for user [${userId}]`);
+      throw new NotFoundException('Document not found');
+    }
+
+    const [maxVersionResult] = await this.db
+      .select({ maxVersion: max(schema.documentVersions.versionNumber) })
+      .from(schema.documentVersions)
+      .where(eq(schema.documentVersions.documentId, existingDoc.id));
+
+    const newVersionNumber = (maxVersionResult?.maxVersion ?? 0) + 1;
+
+    this.logger.log(
+      `Document [${existingDoc.id}] found, new version [${newVersionNumber}] will be created`,
+    );
+
+    const fileName = `${documentId}/${newVersionNumber}/${file.originalname}`;
+    const storageKey = await this.storage.upload(
+      StorageFolderName.DOCUMENTS,
+      fileName,
+      file.buffer,
+      file.mimetype,
+    );
+
+    const [newDocVersion] = await this.db
+      .insert(schema.documentVersions)
+      .values({
+        documentId: existingDoc.id,
+        versionNumber: newVersionNumber,
+        storageKey,
+      })
+      .returning();
+
+    const resolvedMimeType = this.resolveMimeType(file.mimetype, file.originalname);
+
+    await this.storeChunks(file.buffer, resolvedMimeType, workspaceId, newDocVersion.id);
     return newDocVersion;
   }
 
@@ -117,6 +177,8 @@ export class DocumentsService {
             eq(documents.userId, userId),
             eq(documents.workspaceId, workspaceId),
             ...(mimeType ? [eq(documents.mimeType, mimeType)] : []),
+            isNull(schema.documents.deletedAt),
+
             ...(cursorDate
               ? order === 'desc'
                 ? [lte(documents.createdAt, cursorDate)]
@@ -148,6 +210,7 @@ export class DocumentsService {
           and(
             eq(schema.documents.userId, userId),
             ...(mimeType ? [eq(schema.documents.mimeType, mimeType)] : []),
+            isNull(schema.documents.deletedAt),
           ),
         ),
     ]);
@@ -214,6 +277,7 @@ export class DocumentsService {
             storageKey: true,
             changeSummary: true,
             createdAt: true,
+            deletedAt: true,
           },
         },
       },
@@ -246,19 +310,123 @@ todo: method updateContent which allows to replace the content of a document wit
 
   */
 
+  async restoreDocument(documentId: string, workspaceId: string, userId: string): Promise<void> {
+    const existingDoc = await this.findOneWithVersions(documentId, userId);
+
+    if (existingDoc.workspaceId !== workspaceId) {
+      this.logger.error(
+        `The document [${existingDoc.id}] does not belong to the workspace [${workspaceId}]`,
+      );
+      throw new ForbiddenException('You are not authorized to perform this action');
+    }
+
+    await this.db
+      .update(schema.documents)
+      .set({
+        deletedAt: null,
+      })
+      .where(eq(schema.documents.id, existingDoc.id));
+
+    await this.db
+      .update(schema.documentVersions)
+      .set({
+        deletedAt: null,
+      })
+      .where(eq(schema.documentVersions.documentId, existingDoc.id));
+
+    const latestVersion = [...existingDoc.versions].sort(
+      (a, b) => b.versionNumber - a.versionNumber,
+    )[0];
+
+    if (latestVersion) {
+      const file = await this.storage.download(latestVersion.storageKey);
+      const mimeType = this.resolveMimeType(existingDoc.mimeType, latestVersion.storageKey);
+
+      await this.storeChunks(file, mimeType, workspaceId, latestVersion.id);
+    }
+  }
+
   /**
-   * @description removes a document version.
-   * @param id document id
+   * @description moves a document and its versions to the trash
+   * @param documentId
+   * @param workspaceId
+   * @param userId
+   */
+  async softDeleteDocument(documentId: string, workspaceId: string, userId: string): Promise<void> {
+    const existingDoc = await this.findOneWithVersions(documentId, userId);
+
+    if (existingDoc.workspaceId !== workspaceId) {
+      this.logger.error(
+        `The document [${existingDoc.id}] does not belong to the workspace [${workspaceId}]`,
+      );
+      throw new ForbiddenException('You are not authorized to perform this action');
+    }
+
+    await this.db
+      .update(schema.documents)
+      .set({
+        deletedAt: new Date(),
+      })
+      .where(eq(schema.documents.id, existingDoc.id));
+
+    await this.db
+      .update(schema.documentVersions)
+      .set({
+        deletedAt: new Date(),
+      })
+      .where(eq(schema.documentVersions.documentId, existingDoc.id));
+
+    await this.db.delete(schema.chunks).where(
+      inArray(
+        schema.chunks.versionId,
+        existingDoc.versions.map((v) => v.id),
+      ),
+    );
+  }
+
+  async removeDocument(documentId: string, workspaceId: string, userId: string): Promise<void> {
+    const existingDoc = await this.findOneWithVersions(documentId, userId);
+
+    if (existingDoc.workspaceId !== workspaceId) {
+      this.logger.error(
+        `The document [${existingDoc.id}] does not belong to the workspace [${workspaceId}]`,
+      );
+      throw new ForbiddenException('You are not authorized to perform this action');
+    }
+
+    await this.storage.deleteBulk(existingDoc.versions.map((v) => v.storageKey));
+
+    await this.db.delete(schema.documents).where(eq(schema.documents.id, existingDoc.id));
+
+    await this.db
+      .delete(schema.documentVersions)
+      .where(eq(schema.documentVersions.documentId, existingDoc.id));
+
+    await this.db.delete(schema.chunks).where(
+      inArray(
+        schema.chunks.versionId,
+        existingDoc.versions.map((v) => v.id),
+      ),
+    );
+
+    this.logger.debug(
+      `Document [${documentId}] and its versions have been deleted from the workspace [${workspaceId}] for user [${userId}]`,
+    );
+  }
+
+  /**
+   * @description soft deletes a document version. Destroys the embeddings.
+   * @param documentId document id
    * @param userId user id
    * @param versionId version id to remove
    */
-  async removeVersion(
-    id: string,
+  async softDeleteVersion(
+    documentId: string,
     userId: string,
     versionId: string,
     workspaceId: string,
   ): Promise<void> {
-    const existingDoc = await this.findOneWithVersions(id, userId);
+    const existingDoc = await this.findOneWithVersions(documentId, userId);
 
     if (existingDoc.workspaceId !== workspaceId) {
       this.logger.error(
@@ -270,15 +438,83 @@ todo: method updateContent which allows to replace the content of a document wit
     const targetVersion = existingDoc.versions.find((v) => v.id === versionId);
 
     if (!targetVersion) {
-      this.logger.error(`error finding version ${versionId} for document ${id} and user ${userId}`);
+      this.logger.error(
+        `error finding version ${versionId} for document ${documentId} and user ${userId}`,
+      );
       throw new NotFoundException('Version not found');
+    }
+
+    if (targetVersion.deletedAt) {
+      this.logger.error(
+        `Version [${targetVersion.versionNumber}] of document [${documentId}] has already been marked for deletion`,
+      );
+      throw new ForbiddenException('Version has already been marked for deletion');
+    }
+
+    await this.db
+      .update(schema.documentVersions)
+      .set({
+        deletedAt: new Date(),
+      })
+      .where(eq(schema.documentVersions.id, targetVersion.id));
+
+    this.logger.debug(
+      `Version [${targetVersion.versionNumber}] soft deleted for the document [${documentId}]`,
+    );
+
+    await this.db.delete(schema.chunks).where(eq(schema.chunks.versionId, targetVersion.id));
+
+    if (existingDoc.versions.length === 1) {
+      await this.db.update(schema.documents).set({
+        deletedAt: new Date(),
+      });
+    }
+  }
+
+  /**
+   * @description removes a document version.
+   * @param documentId document id
+   * @param userId user id
+   * @param versionId version id to remove
+   */
+  async removeVersion(
+    documentId: string,
+    userId: string,
+    versionId: string,
+    workspaceId: string,
+  ): Promise<void> {
+    const existingDoc = await this.findOneWithVersions(documentId, userId);
+
+    if (existingDoc.workspaceId !== workspaceId) {
+      this.logger.error(
+        `The document [${existingDoc.id}] does not belong to the workspace [${workspaceId}]`,
+      );
+      throw new ForbiddenException('You are not authorized to perform this action');
+    }
+
+    const targetVersion = existingDoc.versions.find((v) => v.id === versionId);
+
+    if (!targetVersion) {
+      this.logger.error(
+        `error finding version ${versionId} for document ${documentId} and user ${userId}`,
+      );
+      throw new NotFoundException('Version not found');
+    }
+
+    if (!targetVersion.deletedAt) {
+      this.logger.error(
+        `Version [${targetVersion.versionNumber}] of document [${documentId}] has not been marked for deletion`,
+      );
+      throw new ForbiddenException('Version has not been marked for deletion');
     }
 
     await this.db
       .delete(schema.documentVersions)
       .where(eq(schema.documentVersions.id, targetVersion.id));
 
-    this.logger.debug(`Version [${targetVersion.versionNumber}] deleted for the document [${id}]`);
+    this.logger.debug(
+      `Version [${targetVersion.versionNumber}] deleted for the document [${documentId}]`,
+    );
     this.logger.log(`storageKey: ${targetVersion.storageKey}`);
 
     if (existingDoc.versions.length === 1) {
@@ -291,62 +527,57 @@ todo: method updateContent which allows to replace the content of a document wit
   }
 
   /**
-   * @description Handles the creation of a new version for an existing document.
+   * @description restores a document version. And recreates embeddings if the version was soft deleted.
    * @param documentId document id
    * @param userId user id
-   * @param file file to upload
-   * @returns new document version
+   * @param versionId version id to restore
+   * @param workspaceId workspace id
    */
-  private async createNewDocumentVersion(
+  async restoreVersion(
     documentId: string,
     userId: string,
-    file: CreateFileDto,
+    versionId: string,
     workspaceId: string,
-  ): Promise<DocumentVersionEntity> {
-    const existingDoc = await this.db.query.documents.findFirst({
-      where: (documents, { eq, and }) =>
-        and(eq(documents.id, documentId), eq(documents.userId, userId)),
-      columns: {
-        id: true,
-      },
-    });
+  ): Promise<void> {
+    const existingDoc = await this.findOneWithVersions(documentId, userId);
 
-    if (!existingDoc) {
-      this.logger.error(`error finding document [${documentId}] for user [${userId}]`);
-      throw new NotFoundException('Document not found');
+    if (existingDoc.workspaceId !== workspaceId) {
+      this.logger.error(
+        `The document [${existingDoc.id}] does not belong to the workspace [${workspaceId}]`,
+      );
+      throw new ForbiddenException('You are not authorized to perform this action');
     }
 
-    const [maxVersionResult] = await this.db
-      .select({ maxVersion: max(schema.documentVersions.versionNumber) })
-      .from(schema.documentVersions)
-      .where(eq(schema.documentVersions.documentId, existingDoc.id));
+    const targetVersion = existingDoc.versions.find((v) => v.id === versionId);
 
-    const newVersionNumber = (maxVersionResult?.maxVersion ?? 0) + 1;
+    if (!targetVersion) {
+      this.logger.error(
+        `error finding version ${versionId} for document ${documentId} and user ${userId}`,
+      );
+      throw new NotFoundException('Version not found');
+    }
 
-    this.logger.log(
-      `Document [${existingDoc.id}] found, new version [${newVersionNumber}] will be created`,
-    );
+    if (!targetVersion.deletedAt) {
+      this.logger.error(
+        `Version [${targetVersion.versionNumber}] of document [${documentId}] has not been marked for deletion`,
+      );
+      throw new ForbiddenException('Version has not been marked for deletion');
+    }
 
-    const fileName = `${documentId}/${newVersionNumber}/${file.originalname}`;
-    const storageKey = await this.storage.upload(
-      StorageFolderName.DOCUMENTS,
-      fileName,
-      file.buffer,
-      file.mimetype,
-    );
-
-    const [newDocVersion] = await this.db
-      .insert(schema.documentVersions)
-      .values({
-        documentId: existingDoc.id,
-        versionNumber: newVersionNumber,
-        storageKey,
+    await this.db
+      .update(schema.documentVersions)
+      .set({
+        deletedAt: null,
       })
-      .returning();
+      .where(eq(schema.documentVersions.id, targetVersion.id));
 
-    await this.storeChunks(file, workspaceId, newDocVersion.id);
+    const file = await this.storage.download(targetVersion.storageKey);
+    const mimeType = this.resolveMimeType(existingDoc.mimeType, targetVersion.storageKey);
 
-    return newDocVersion;
+    await this.storeChunks(file, mimeType, workspaceId, targetVersion.id);
+    this.logger.debug(
+      `Version [${targetVersion.versionNumber}] restored for the document [${documentId}]`,
+    );
   }
 
   /**
@@ -355,7 +586,7 @@ todo: method updateContent which allows to replace the content of a document wit
    * @param mimeType
    * @returns
    */
-  private async extractContent(fileBuffer: Buffer, mimeType: string): Promise<string> {
+  private extractContent(fileBuffer: Buffer, mimeType: string): Promise<string> {
     const parser = this.parserFactory.getParser(mimeType);
     return parser.parse(fileBuffer);
   }
@@ -390,6 +621,11 @@ todo: method updateContent which allows to replace the content of a document wit
       throw new NotFoundException('Version not found');
     }
 
+    if (version.deletedAt) {
+      this.logger.error(`Version [${versionId}] has been deleted (in the trash)`);
+      throw new NotFoundException('Version not found');
+    }
+
     const buffer = await this.storage.download(version.storageKey);
     const content = await this.extractContent(buffer, document.mimeType);
     return {
@@ -404,6 +640,11 @@ todo: method updateContent which allows to replace the content of a document wit
     userId: string,
   ): Promise<{ buffer: Buffer; mimeType: string; filename: string }> {
     const document = await this.findOneWithVersions(id, userId);
+
+    if (document.deletedAt) {
+      this.logger.error(`Document [${id}] has been deleted (in the trash)`);
+      throw new NotFoundException('Document not found');
+    }
 
     const version = document.versions.find((v) => v.id === versionId);
     if (!version) {
@@ -426,13 +667,12 @@ todo: method updateContent which allows to replace the content of a document wit
    * @param versionId version id
    */
   private async storeChunks(
-    file: CreateFileDto,
+    fileBuffer: Buffer,
+    mimeType: string,
     workspaceId: string,
     versionId: string,
   ): Promise<void> {
-    const mimeType = this.resolveMimeType(file.mimetype, file.originalname);
-    const text = await this.extractContent(file.buffer, mimeType);
-
+    const text = await this.extractContent(fileBuffer, mimeType);
     const chunks = this.chunkerService.chunkText(text);
 
     if (chunks.length === 0) return;
@@ -445,7 +685,6 @@ todo: method updateContent which allows to replace the content of a document wit
       versionId,
       chunkIndex: chunk.chunkIndex,
       content: chunk.content,
-
       embedding: embeddings[index],
     }));
 
@@ -453,6 +692,45 @@ todo: method updateContent which allows to replace the content of a document wit
 
     this.logger.debug(
       `Chunks et vecteurs stockés pour la version [${versionId}], ${chunks.length} chunks insérés.`,
+    );
+  }
+
+  /**
+   * @description Ensures that chunks exist for the specified version IDs.
+   * If any version is missing chunks, it downloads the file and generates chunks and embeddings.
+   * @param versionIds Array of version IDs to check
+   */
+  async ensureChunksExist(versionIds: string[]): Promise<void> {
+    if (!versionIds || versionIds.length === 0) return;
+
+    const existingChunkVersions = await this.db
+      .selectDistinct({ versionId: schema.chunks.versionId })
+      .from(schema.chunks)
+      .where(inArray(schema.chunks.versionId, versionIds));
+
+    const existingSet = new Set(existingChunkVersions.map((c) => c.versionId));
+    const missingVersionIds = versionIds.filter((id) => !existingSet.has(id));
+
+    if (missingVersionIds.length === 0) return;
+
+    const versionsToChunk = await this.db.query.documentVersions.findMany({
+      where: (versions, { inArray }) => inArray(versions.id, missingVersionIds),
+      with: {
+        document: {
+          columns: {
+            workspaceId: true,
+            mimeType: true,
+          },
+        },
+      },
+    });
+
+    await Promise.all(
+      versionsToChunk.map(async (v) => {
+        const file = await this.storage.download(v.storageKey);
+        const mimeType = this.resolveMimeType(v.document.mimeType, v.storageKey);
+        await this.storeChunks(file, mimeType, v.document.workspaceId, v.id);
+      }),
     );
   }
 }

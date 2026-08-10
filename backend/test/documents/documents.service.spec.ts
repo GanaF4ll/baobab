@@ -30,10 +30,14 @@ describe('DocumentsService', () => {
         workspaces: {
           findFirst: jest.fn(),
         },
+        documentVersions: {
+          findMany: jest.fn(),
+        },
       },
       select: jest.fn(),
+      selectDistinct: jest.fn().mockReturnValue({ from: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue([]) }) }),
       update: jest.fn().mockReturnValue({ set: setMock }),
-      delete: jest.fn(),
+      delete: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue([]) }),
     };
 
     storageServiceMock = {
@@ -196,8 +200,16 @@ describe('DocumentsService', () => {
 
     it('returns documents list, count and nextCursor without filter', async () => {
       const mockDocs = [
-        { id: 'doc-1', createdAt: new Date('2026-06-15T12:00:00.000Z'), versions: [{ versionNumber: 1 }] },
-        { id: 'doc-2', createdAt: new Date('2026-06-14T12:00:00.000Z'), versions: [{ versionNumber: 1 }] },
+        {
+          id: 'doc-1',
+          createdAt: new Date('2026-06-15T12:00:00.000Z'),
+          versions: [{ versionNumber: 1 }],
+        },
+        {
+          id: 'doc-2',
+          createdAt: new Date('2026-06-14T12:00:00.000Z'),
+          versions: [{ versionNumber: 1 }],
+        },
       ];
 
       // Mock database findMany
@@ -225,8 +237,16 @@ describe('DocumentsService', () => {
 
     it('handles pagination and sets nextCursor when more items are available', async () => {
       const mockDocs = [
-        { id: 'doc-1', createdAt: new Date('2026-06-15T12:00:00.000Z'), versions: [{ versionNumber: 1 }] },
-        { id: 'doc-2', createdAt: new Date('2026-06-14T12:00:00.000Z'), versions: [{ versionNumber: 1 }] },
+        {
+          id: 'doc-1',
+          createdAt: new Date('2026-06-15T12:00:00.000Z'),
+          versions: [{ versionNumber: 1 }],
+        },
+        {
+          id: 'doc-2',
+          createdAt: new Date('2026-06-14T12:00:00.000Z'),
+          versions: [{ versionNumber: 1 }],
+        },
       ];
 
       // Request limit is 1, but findMany returns 2 items (take + 1)
@@ -362,8 +382,8 @@ describe('DocumentsService', () => {
         id: docId,
         workspaceId: 'workspace-123',
         versions: [
-          { id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf' },
-          { id: 'v2-id', versionNumber: 2, storageKey: 'uploads/file2.pdf' },
+          { id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf', deletedAt: null },
+          { id: 'v2-id', versionNumber: 2, storageKey: 'uploads/file2.pdf', deletedAt: new Date() },
         ],
       };
       dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
@@ -401,6 +421,100 @@ describe('DocumentsService', () => {
   });
 
   // -------------------------------------------------------------------------
+  // softDeleteVersion
+  // -------------------------------------------------------------------------
+  describe('softDeleteVersion', () => {
+    const docId = 'doc-123';
+    const userId = 'user-123';
+    const workspaceId = 'workspace-123';
+
+    it('soft-deletes the version when document has multiple versions', async () => {
+      const mockDoc = {
+        id: docId,
+        workspaceId,
+        versions: [
+          { id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf', deletedAt: null },
+          { id: 'v2-id', versionNumber: 2, storageKey: 'uploads/file2.pdf', deletedAt: null },
+        ],
+      };
+      dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
+
+      await service.softDeleteVersion(docId, userId, 'v1-id', workspaceId);
+
+      expect(dbMock.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('soft-deletes the version AND the document when it is the only version', async () => {
+      const mockDoc = {
+        id: docId,
+        workspaceId,
+        versions: [
+          { id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf', deletedAt: null },
+        ],
+      };
+      dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
+
+      await service.softDeleteVersion(docId, userId, 'v1-id', workspaceId);
+
+      // 1st update: soft-delete the version, 2nd update: soft-delete the document
+      expect(dbMock.update).toHaveBeenCalledTimes(2);
+    });
+
+    it('throws NotFoundException when the document does not exist', async () => {
+      dbMock.query.documents.findFirst.mockResolvedValue(null);
+
+      await expect(service.softDeleteVersion(docId, userId, 'v1-id', workspaceId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws ForbiddenException when the workspace does not match', async () => {
+      const mockDoc = {
+        id: docId,
+        workspaceId: 'other-workspace',
+        versions: [
+          { id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf', deletedAt: null },
+        ],
+      };
+      dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
+
+      await expect(service.softDeleteVersion(docId, userId, 'v1-id', workspaceId)).rejects.toThrow(
+        'You are not authorized to perform this action',
+      );
+    });
+
+    it('throws NotFoundException when the version does not exist on the document', async () => {
+      const mockDoc = {
+        id: docId,
+        workspaceId,
+        versions: [
+          { id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf', deletedAt: null },
+        ],
+      };
+      dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
+
+      await expect(
+        service.softDeleteVersion(docId, userId, 'non-existent-version-id', workspaceId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws ForbiddenException when the version is already soft-deleted', async () => {
+      const mockDoc = {
+        id: docId,
+        workspaceId,
+        versions: [
+          { id: 'v1-id', versionNumber: 1, storageKey: 'uploads/file1.pdf', deletedAt: new Date() },
+        ],
+      };
+      dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
+
+      await expect(service.softDeleteVersion(docId, userId, 'v1-id', workspaceId)).rejects.toThrow(
+        'Version has already been marked for deletion',
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // storeChunks
   // -------------------------------------------------------------------------
   describe('storeChunks', () => {
@@ -431,7 +545,7 @@ describe('DocumentsService', () => {
       const valuesMock = jest.fn().mockResolvedValue({});
       dbMock.insert = jest.fn().mockReturnValue({ values: valuesMock });
 
-      await (service as any).storeChunks(mockFile, docId, versionId);
+      await (service as any).storeChunks(mockFile.buffer, mockFile.mimetype, docId, versionId);
 
       expect(parserFactoryMock.getParser).toHaveBeenCalledWith('application/pdf');
       expect(mockParser.parse).toHaveBeenCalledWith(mockFile.buffer);

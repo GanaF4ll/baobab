@@ -1,6 +1,7 @@
 import {
   CreateBucketCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadBucketCommand,
   PutBucketPolicyCommand,
@@ -154,6 +155,29 @@ export class StorageService implements OnModuleInit {
         new DeleteObjectCommand({
           Bucket: this.bucket,
           Key: key,
+        }),
+      );
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  /**
+   * @description Deletes multiple files from the S3 bucket
+   * @param filenames list of files to delete
+   */
+  async deleteBulk(filenames: string[]): Promise<void> {
+    try {
+      const keys = filenames.map((filename) => this.extractKey(filename));
+      await this.s3.send(
+        new DeleteObjectsCommand({
+          Bucket: this.bucket,
+          Delete: {
+            Objects: keys.map((key) => ({
+              Key: key,
+            })),
+          },
         }),
       );
     } catch (error) {

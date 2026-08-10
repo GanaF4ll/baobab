@@ -18,6 +18,7 @@ describe('DocumentsController', () => {
       findOne: jest.fn(),
       findOneWithVersions: jest.fn(),
       updateTitle: jest.fn(),
+      softDeleteVersion: jest.fn(),
       removeVersion: jest.fn(),
     } as any;
 
@@ -169,6 +170,54 @@ describe('DocumentsController', () => {
         dto.id,
         dto.workspaceId,
       );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // softDeleteVersion
+  // -------------------------------------------------------------------------
+  describe('softDeleteVersion', () => {
+    it('calls service.softDeleteVersion with documentId, userId, versionId and workspaceId from Dto', async () => {
+      const userId = 'user-123';
+      const dto: DeleteVersionDto = {
+        id: 'version-123',
+        documentId: 'doc-123',
+        workspaceId: 'workspace-123',
+      };
+      serviceMock.softDeleteVersion.mockResolvedValue(undefined);
+
+      await controller.softDeleteVersion(dto, userId);
+
+      expect(serviceMock.softDeleteVersion).toHaveBeenCalledWith(
+        dto.documentId,
+        userId,
+        dto.id,
+        dto.workspaceId,
+      );
+    });
+
+    it('returns void (undefined)', async () => {
+      const dto: DeleteVersionDto = {
+        id: 'version-123',
+        documentId: 'doc-123',
+        workspaceId: 'workspace-123',
+      };
+      serviceMock.softDeleteVersion.mockResolvedValue(undefined);
+
+      const result = await controller.softDeleteVersion(dto, 'user-123');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('propagates exceptions thrown by the service', async () => {
+      const dto: DeleteVersionDto = {
+        id: 'version-123',
+        documentId: 'doc-123',
+        workspaceId: 'workspace-123',
+      };
+      serviceMock.softDeleteVersion.mockRejectedValue(new Error('boom'));
+
+      await expect(controller.softDeleteVersion(dto, 'user-123')).rejects.toThrow('boom');
     });
   });
 });

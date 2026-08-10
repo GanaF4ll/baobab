@@ -12,5 +12,6 @@ import { PdfParser } from './parsers/pdf.parser';
   controllers: [DocumentsController],
   providers: [DocumentsService, ParserFactory, PdfParser, MarkdownParser, ChunkerService],
   imports: [StorageModule, OllamaModule],
+  exports: [DocumentsService],
 })
 export class DocumentsModule {}
