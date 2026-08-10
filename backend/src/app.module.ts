@@ -11,6 +11,7 @@ import { RagModule } from './rag/rag.module';
 import { StorageModule } from './shared/storage/storage.module';
 import { UsersModule } from './users/users.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
+import { TrashModule } from './trash/trash.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
     RagModule,
     ConversationsModule,
     WorkspacesModule,
+    TrashModule,
   ],
   controllers: [AppController],
   providers: [AppService],

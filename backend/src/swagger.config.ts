@@ -15,6 +15,10 @@ export const WORKSPACES_SWAGGER_TAG = 'Workspaces';
 export const WORKSPACES_SWAGGER_DESCRIPTION =
   'Endpoints for workspaces management for a user, including creation, retrieval, and deletion of workspaces';
 
+export const TRASH_SWAGGER_TAG = 'Trash';
+export const TRASH_SWAGGER_DESCRIPTION =
+  'Endpoints for trash management for a user, including retrieval of trashed items';
+
 export const SWAGGER_OPTIONS: SwaggerCustomOptions = {
   swaggerOptions: { operationsSorter: 'method', tagsSorter: 'alpha' },
 };
@@ -28,6 +32,7 @@ export function buildSwaggerDocument() {
     .addTag(DOCUMENTS_SWAGGER_TAG, DOCUMENTS_SWAGGER_DESCRIPTION)
     .addTag(CONVERSATIONS_SWAGGER_TAG, CONVERSATIONS_SWAGGER_DESCRIPTION)
     .addTag(WORKSPACES_SWAGGER_TAG, WORKSPACES_SWAGGER_DESCRIPTION)
+    .addTag(TRASH_SWAGGER_TAG, TRASH_SWAGGER_DESCRIPTION)
     .addBearerAuth(
       {
         bearerFormat: 'JWT',

@@ -25,6 +25,8 @@ export const llmModelStatusEnum = pgEnum('model_status', [
   'ready',
 ]);
 
+//* ─── Tables ───────────────────────────────────────────────────────────────────
+
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
@@ -80,7 +82,6 @@ export const documents = pgTable('documents', {
   workspaceId: uuid('workspace_id')
     .notNull()
     .references(() => workspaces.id, { onDelete: 'cascade' }),
-  currentVersion: integer('current_version').notNull().default(1),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   deletedAt: timestamp('deleted_at'),
@@ -95,6 +96,7 @@ export const documentVersions = pgTable('document_versions', {
   storageKey: text('storage_key').notNull(),
   changeSummary: text('change_summary'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 });
 
 /**

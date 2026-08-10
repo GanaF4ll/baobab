@@ -1,12 +1,5 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { and, count, eq } from 'drizzle-orm';
+import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { and, count, eq, max } from 'drizzle-orm';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
@@ -71,14 +64,13 @@ export class DocumentsService {
       .insert(schema.documents)
       .values({
         title: file.originalname,
-        currentVersion: 1,
         mimeType: resolvedMimeType,
         userId,
         workspaceId,
       })
       .returning();
 
-    const fileName = `${newDoc.id}/${newDoc.currentVersion}/${file.originalname}`;
+    const fileName = `${newDoc.id}/1/${file.originalname}`;
     const storageKey = await this.storage.upload(
       StorageFolderName.DOCUMENTS,
       fileName,
@@ -90,7 +82,7 @@ export class DocumentsService {
       .insert(schema.documentVersions)
       .values({
         documentId: newDoc.id,
-        versionNumber: newDoc.currentVersion,
+        versionNumber: 1,
         storageKey,
       })
       .returning();
@@ -161,8 +153,13 @@ export class DocumentsService {
     ]);
 
     const hasNextPage = documents.length > take;
-    const items = hasNextPage ? documents.slice(0, take) : documents;
-    const nextCursor = hasNextPage ? items[items.length - 1]?.id : null;
+    const rawItems = hasNextPage ? documents.slice(0, take) : documents;
+    const nextCursor = hasNextPage ? rawItems[rawItems.length - 1]?.id : null;
+
+    const items: DocumentEntity[] = rawItems.map((doc) => ({
+      ...doc,
+      currentVersion: doc.versions?.[0]?.versionNumber ?? 0,
+    }));
 
     return {
       items,
@@ -176,11 +173,21 @@ export class DocumentsService {
     userId: string,
   ): Promise<Pick<DocumentEntity, 'id' | 'currentVersion' | 'mimeType'>> {
     const document = await this.db.query.documents.findFirst({
-      where: (documents, { eq, and }) => and(eq(documents.id, id), eq(documents.userId, userId)),
+      where: (documents, { eq, and, isNull }) =>
+        and(eq(documents.id, id), eq(documents.userId, userId), isNull(documents.deletedAt)),
       columns: {
         id: true,
-        currentVersion: true,
         mimeType: true,
+      },
+      with: {
+        versions: {
+          where: (versions, { isNull }) => isNull(versions.deletedAt),
+          orderBy: (versions, { desc }) => [desc(versions.versionNumber)],
+          limit: 1,
+          columns: {
+            versionNumber: true,
+          },
+        },
       },
     });
 
@@ -189,7 +196,11 @@ export class DocumentsService {
       throw new NotFoundException('Document not found');
     }
 
-    return document;
+    return {
+      id: document.id,
+      mimeType: document.mimeType,
+      currentVersion: document.versions?.[0]?.versionNumber ?? 0,
+    };
   }
 
   async findOneWithVersions(id: string, userId: string): Promise<FindOneWithVersionsResponseData> {
@@ -213,7 +224,10 @@ export class DocumentsService {
       throw new NotFoundException('Document not found');
     }
 
-    return document;
+    return {
+      ...document,
+      currentVersion: document.versions?.[0]?.versionNumber ?? 0,
+    };
   }
 
   async updateTitle(id: string, userId: string, dto: UpdateDocumentTitleDto): Promise<void> {
@@ -264,9 +278,16 @@ todo: method updateContent which allows to replace the content of a document wit
       .delete(schema.documentVersions)
       .where(eq(schema.documentVersions.id, targetVersion.id));
 
-    this.logger.log(`Version [${targetVersion.versionNumber}] deleted for the document [${id}]`);
+    this.logger.debug(`Version [${targetVersion.versionNumber}] deleted for the document [${id}]`);
+    this.logger.log(`storageKey: ${targetVersion.storageKey}`);
 
-    await this.storage.deleteFile(StorageFolderName.DOCUMENTS, targetVersion.storageKey);
+    if (existingDoc.versions.length === 1) {
+      await this.db.update(schema.documents).set({
+        deletedAt: new Date(),
+      });
+    }
+
+    await this.storage.deleteFile(targetVersion.storageKey);
   }
 
   /**
@@ -286,7 +307,6 @@ todo: method updateContent which allows to replace the content of a document wit
       where: (documents, { eq, and }) =>
         and(eq(documents.id, documentId), eq(documents.userId, userId)),
       columns: {
-        currentVersion: true,
         id: true,
       },
     });
@@ -296,7 +316,12 @@ todo: method updateContent which allows to replace the content of a document wit
       throw new NotFoundException('Document not found');
     }
 
-    const newVersionNumber = existingDoc.currentVersion + 1;
+    const [maxVersionResult] = await this.db
+      .select({ maxVersion: max(schema.documentVersions.versionNumber) })
+      .from(schema.documentVersions)
+      .where(eq(schema.documentVersions.documentId, existingDoc.id));
+
+    const newVersionNumber = (maxVersionResult?.maxVersion ?? 0) + 1;
 
     this.logger.log(
       `Document [${existingDoc.id}] found, new version [${newVersionNumber}] will be created`,
@@ -318,13 +343,6 @@ todo: method updateContent which allows to replace the content of a document wit
         storageKey,
       })
       .returning();
-
-    await this.db
-      .update(schema.documents)
-      .set({
-        currentVersion: newVersionNumber,
-      })
-      .where(eq(schema.documents.id, existingDoc.id));
 
     await this.storeChunks(file, workspaceId, newDocVersion.id);
 
@@ -372,14 +390,7 @@ todo: method updateContent which allows to replace the content of a document wit
       throw new NotFoundException('Version not found');
     }
 
-    const match = version.storageKey.match(/\/documents\/(.+)$/);
-    if (!match) {
-      this.logger.error(`Invalid storageKey format [${version.storageKey}]`);
-      throw new BadRequestException('Invalid storage key');
-    }
-    const relativeKey = match[1];
-
-    const buffer = await this.storage.download(StorageFolderName.DOCUMENTS, relativeKey);
+    const buffer = await this.storage.download(version.storageKey);
     const content = await this.extractContent(buffer, document.mimeType);
     return {
       content,
@@ -400,14 +411,7 @@ todo: method updateContent which allows to replace the content of a document wit
       throw new NotFoundException('Version not found');
     }
 
-    const match = version.storageKey.match(/\/documents\/(.+)$/);
-    if (!match) {
-      this.logger.error(`Invalid storageKey format [${version.storageKey}]`);
-      throw new BadRequestException('Invalid storage key');
-    }
-    const relativeKey = match[1];
-
-    const buffer = await this.storage.download(StorageFolderName.DOCUMENTS, relativeKey);
+    const buffer = await this.storage.download(version.storageKey);
     return {
       buffer,
       mimeType: document.mimeType,

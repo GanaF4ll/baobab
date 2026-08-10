@@ -18,7 +18,9 @@ describe('DocumentsService', () => {
   let ollamaServiceMock: any;
 
   beforeEach(async () => {
-    // Re-create mocks for each test to avoid pollution
+    const updateWhereMock = jest.fn().mockResolvedValue([]);
+    const setMock = jest.fn().mockReturnValue({ where: updateWhereMock });
+
     dbMock = {
       query: {
         documents: {
@@ -30,7 +32,7 @@ describe('DocumentsService', () => {
         },
       },
       select: jest.fn(),
-      update: jest.fn(),
+      update: jest.fn().mockReturnValue({ set: setMock }),
       delete: jest.fn(),
     };
 
@@ -134,7 +136,7 @@ describe('DocumentsService', () => {
     it('successfully adds a new version to an existing document if documentId is provided', async () => {
       dbMock.query.workspaces.findFirst.mockResolvedValue({ id: workspaceId });
       const docId = 'doc-123';
-      const mockDoc = { id: docId, currentVersion: 1 };
+      const mockDoc = { id: docId };
       const mockVersion = {
         id: 'new-version-id',
         documentId: docId,
@@ -143,6 +145,10 @@ describe('DocumentsService', () => {
       };
 
       dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
+
+      const selectWhereMock = jest.fn().mockResolvedValue([{ maxVersion: 1 }]);
+      const selectFromMock = jest.fn().mockReturnValue({ where: selectWhereMock });
+      dbMock.select.mockReturnValue({ from: selectFromMock });
 
       const returningMock = jest.fn().mockResolvedValue([mockVersion]);
       const valuesMock = jest.fn().mockReturnValue({ returning: returningMock });
@@ -190,8 +196,8 @@ describe('DocumentsService', () => {
 
     it('returns documents list, count and nextCursor without filter', async () => {
       const mockDocs = [
-        { id: 'doc-1', createdAt: new Date('2026-06-15T12:00:00.000Z') },
-        { id: 'doc-2', createdAt: new Date('2026-06-14T12:00:00.000Z') },
+        { id: 'doc-1', createdAt: new Date('2026-06-15T12:00:00.000Z'), versions: [{ versionNumber: 1 }] },
+        { id: 'doc-2', createdAt: new Date('2026-06-14T12:00:00.000Z'), versions: [{ versionNumber: 1 }] },
       ];
 
       // Mock database findMany
@@ -208,7 +214,10 @@ describe('DocumentsService', () => {
       expect(dbMock.query.documents.findMany).toHaveBeenCalled();
       expect(dbMock.select).toHaveBeenCalled();
       expect(result).toEqual({
-        items: mockDocs,
+        items: [
+          { ...mockDocs[0], currentVersion: 1 },
+          { ...mockDocs[1], currentVersion: 1 },
+        ],
         totalCount: countValue,
         nextCursor: null,
       });
@@ -216,8 +225,8 @@ describe('DocumentsService', () => {
 
     it('handles pagination and sets nextCursor when more items are available', async () => {
       const mockDocs = [
-        { id: 'doc-1', createdAt: new Date('2026-06-15T12:00:00.000Z') },
-        { id: 'doc-2', createdAt: new Date('2026-06-14T12:00:00.000Z') },
+        { id: 'doc-1', createdAt: new Date('2026-06-15T12:00:00.000Z'), versions: [{ versionNumber: 1 }] },
+        { id: 'doc-2', createdAt: new Date('2026-06-14T12:00:00.000Z'), versions: [{ versionNumber: 1 }] },
       ];
 
       // Request limit is 1, but findMany returns 2 items (take + 1)
@@ -230,7 +239,7 @@ describe('DocumentsService', () => {
       const result = await service.findAllByWorkspace(userId, 'workspace-123', { limit: 1 } as any);
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]).toEqual(mockDocs[0]);
+      expect(result.items[0]).toEqual({ ...mockDocs[0], currentVersion: 1 });
       expect(result.totalCount).toBe(5);
       expect(result.nextCursor).toBe('doc-1');
     });
@@ -266,11 +275,11 @@ describe('DocumentsService', () => {
     const userId = 'user-123';
 
     it('returns the document metadata if found', async () => {
-      const mockDoc = { id: docId, currentVersion: 1, mimeType: 'application/pdf' };
+      const mockDoc = { id: docId, mimeType: 'application/pdf', versions: [{ versionNumber: 1 }] };
       dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
 
       const result = await service.findOne(docId, userId);
-      expect(result).toEqual(mockDoc);
+      expect(result).toEqual({ id: docId, mimeType: 'application/pdf', currentVersion: 1 });
     });
 
     it('throws NotFoundException if the document does not exist', async () => {
@@ -305,7 +314,7 @@ describe('DocumentsService', () => {
       dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
 
       const result = await service.findOneWithVersions(docId, userId);
-      expect(result).toEqual(mockDoc);
+      expect(result).toEqual({ ...mockDoc, currentVersion: 1 });
     });
 
     it('throws NotFoundException if the document does not exist', async () => {
@@ -325,7 +334,7 @@ describe('DocumentsService', () => {
     const userId = 'user-123';
 
     it('successfully updates document title', async () => {
-      const mockDoc = { id: docId, currentVersion: 1, mimeType: 'application/pdf' };
+      const mockDoc = { id: docId, mimeType: 'application/pdf', versions: [{ versionNumber: 1 }] };
       dbMock.query.documents.findFirst.mockResolvedValue(mockDoc);
 
       // Mock update query chain
@@ -366,10 +375,7 @@ describe('DocumentsService', () => {
 
       expect(dbMock.delete).toHaveBeenCalledWith(schema.documentVersions);
       expect(deleteWhereMock).toHaveBeenCalled();
-      expect(storageServiceMock.deleteFile).toHaveBeenCalledWith(
-        StorageFolderName.DOCUMENTS,
-        'uploads/file2.pdf',
-      );
+      expect(storageServiceMock.deleteFile).toHaveBeenCalledWith('uploads/file2.pdf');
     });
 
     it('throws NotFoundException if the document does not exist', async () => {
