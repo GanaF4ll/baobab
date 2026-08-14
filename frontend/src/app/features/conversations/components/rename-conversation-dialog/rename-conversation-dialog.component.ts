@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, signal } from '@angular/core';
+import { form, required } from '@angular/forms/signals';
 import { BrnDialogRef, injectBrnDialogContext } from '@spartan-ng/brain/dialog';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
@@ -7,7 +7,7 @@ import { HlmInput } from '@spartan-ng/helm/input';
 
 @Component({
   selector: 'app-rename-conversation-dialog',
-  imports: [FormsModule, HlmButton, HlmInput, HlmDialogImports],
+  imports: [HlmButton, HlmInput, HlmDialogImports],
   templateUrl: './rename-conversation-dialog.component.html',
   styles: [],
 })
@@ -17,14 +17,28 @@ export class RenameConversationDialogComponent {
     optional: true,
   });
 
-  protected title = this.dialogContext?.conversationTitle || '';
+  protected readonly model = signal({
+    title: this.dialogContext?.conversationTitle || '',
+  });
+
+  protected readonly renameForm = form(this.model, (p) => {
+    required(p.title, { message: 'Le titre de la conversation est obligatoire.' });
+  });
+
+  onTitleInput(value: string) {
+    this.model.update((m) => ({ ...m, title: value }));
+  }
 
   cancel() {
     this.dialogRef.close();
   }
 
   submit() {
-    if (!this.title.trim()) return;
-    this.dialogRef.close(this.title.trim());
+    if (this.renameForm().invalid()) {
+      return;
+    }
+
+    const { title } = this.model();
+    this.dialogRef.close(title.trim());
   }
 }
