@@ -26,8 +26,9 @@
         [class.border-outline-variant]="!(createForm.name().invalid() && (createForm.name().dirty() || createForm.name().touched()))"
         autocomplete="off"
       >
-      @if (createForm.name().invalid() && (createForm.name().dirty() || createForm.name().touched())) {
-        <p class="text-[12px] text-error">Workspace name is required.</p>
+      @if (createForm.name().invalid() && (createForm.name().dirty() ||
+      createForm.name().touched())) {
+      <p class="text-[12px] text-error">Workspace name is required.</p>
       }
     </div>
 

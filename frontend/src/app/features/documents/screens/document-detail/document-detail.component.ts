@@ -13,7 +13,8 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HlmDialogService } from '@spartan-ng/helm/dialog';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DocumentsService } from '../../../../../client';
@@ -24,6 +25,8 @@ import { HeaderComponent } from '../../../../core/layout/header/header.component
 import { SidebarComponent } from '../../../../core/layout/sidebar/sidebar.component';
 import { SidebarService } from '../../../../core/services/sidebar.service';
 import { WorkspacesStateService } from '../../../workspaces/services/workspaces-state.service';
+import { TrashDocumentDialogComponent } from '../../components/trash-document-dialog/trash-document-dialog.component';
+import { TrashVersionDialogComponent } from '../../components/trash-version-dialog/trash-version-dialog.component';
 
 @Component({
   selector: 'app-document-detail',
@@ -33,6 +36,8 @@ import { WorkspacesStateService } from '../../../workspaces/services/workspaces-
 })
 export class DocumentDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly hlmDialogService = inject(HlmDialogService);
   private readonly documentsResource = inject(DocumentsResource);
   private readonly documentsService = inject(DocumentsService);
   protected readonly state = inject(WorkspacesStateService);
@@ -123,6 +128,7 @@ export class DocumentDetailComponent implements OnInit {
   protected readonly isEditingTitle = signal<boolean>(false);
   protected readonly editedTitle = signal<string>('');
   protected readonly isSavingTitle = signal<boolean>(false);
+  protected readonly isTrashingDocument = signal<boolean>(false);
 
   constructor() {
     // Select workspace and active document
@@ -309,42 +315,121 @@ export class DocumentDetailComponent implements OnInit {
     });
   }
 
-  // Delete version controls
-  deleteVersion(versionId: string, event: Event) {
-    event.stopPropagation();
+  // Trash entire document (and all its versions)
+  trashDocument() {
+    const doc = this.document();
     const workspaceId = this.workspaceIdParam();
-    const docId = this.documentIdParam();
-    if (!workspaceId || !docId) return;
+    if (!doc || !workspaceId) return;
 
-    if (this.versions().length <= 1) {
-      this.state.showToast('Forbidden', 'A document must have at least one version.');
-      return;
-    }
+    const dialogRef = this.hlmDialogService.open(TrashDocumentDialogComponent, {
+      context: {
+        documentTitle: doc.title,
+        versionCount: this.versions().length,
+      },
+      contentClass:
+        'max-w-md p-6 bg-surface-container-low border border-outline-variant rounded-2xl shadow-xl',
+    });
 
-    if (!confirm('Are you sure you want to permanently delete this version from storage?')) {
-      return;
-    }
+    dialogRef.closed$.subscribe((confirmed) => {
+      if (!confirmed) return;
 
-    this.state.showToast('Deleting Version', 'Removing version snapshot...');
-    this.documentsService
-      .documentsControllerRemoveVersion({
-        documentId: docId,
-        id: versionId,
-        workspaceId: workspaceId,
-      })
-      .subscribe({
-        next: () => {
-          this.state.showToast('Version Removed', 'The version snapshot has been deleted.');
-          if (this.selectedVersionId() === versionId) {
-            this.selectedVersionId.set(null);
-          }
-          this.documentQuery.reload();
-        },
-        error: (err) => {
-          console.error('Delete version failed:', err);
-          this.state.showToast('Delete Failed', 'Failed to delete selected version.');
-        },
-      });
+      this.isTrashingDocument.set(true);
+      this.state.showToast(
+        'Mise à la corbeille',
+        `Déplacement du document "${doc.title}" et de ses versions dans la corbeille...`,
+      );
+
+      this.documentsService
+        .documentsControllerSoftDeleteDocument({
+          id: doc.id,
+          workspaceId: workspaceId,
+        })
+        .subscribe({
+          next: () => {
+            this.isTrashingDocument.set(false);
+            const activeDocId = localStorage.getItem('activeDocumentId');
+            if (activeDocId === doc.id) {
+              localStorage.removeItem('activeDocumentId');
+            }
+            this.state.showToast(
+              'Document dans la corbeille',
+              `Le document "${doc.title}" et ses ${this.versions().length} version(s) ont été déplacés dans la corbeille.`,
+            );
+            this.router.navigate(['/workspace', workspaceId, 'documents']);
+          },
+          error: (err) => {
+            console.error('Failed to trash document:', err);
+            this.state.showToast('Erreur', 'Impossible de déplacer le document dans la corbeille.');
+            this.isTrashingDocument.set(false);
+          },
+        });
+    });
+  }
+
+  // Trash a specific version snapshot
+  trashVersion(version: any, event: Event) {
+    event.stopPropagation();
+    const doc = this.document();
+    const workspaceId = this.workspaceIdParam();
+    if (!doc || !workspaceId || !version) return;
+
+    const isLastVersion = this.versions().length <= 1;
+    const isCurrentVersion = version.versionNumber === this.currentVersionNumber();
+
+    const dialogRef = this.hlmDialogService.open(TrashVersionDialogComponent, {
+      context: {
+        documentTitle: doc.title,
+        versionNumber: version.versionNumber,
+        isLastVersion,
+        isCurrentVersion,
+      },
+      contentClass:
+        'max-w-md p-6 bg-surface-container-low border border-outline-variant rounded-2xl shadow-xl',
+    });
+
+    dialogRef.closed$.subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      this.state.showToast(
+        'Mise à la corbeille',
+        `Déplacement de la version v${version.versionNumber} dans la corbeille...`,
+      );
+
+      this.documentsService
+        .documentsControllerSoftDeleteVersion({
+          documentId: doc.id,
+          id: version.id,
+          workspaceId: workspaceId,
+        })
+        .subscribe({
+          next: () => {
+            if (isLastVersion) {
+              const activeDocId = localStorage.getItem('activeDocumentId');
+              if (activeDocId === doc.id) {
+                localStorage.removeItem('activeDocumentId');
+              }
+              this.state.showToast(
+                'Document dans la corbeille',
+                `L'unique version ayant été supprimée, le document a été déplacé dans la corbeille.`,
+              );
+              this.router.navigate(['/workspace', workspaceId, 'documents']);
+            } else {
+              this.state.showToast(
+                'Version dans la corbeille',
+                `La version v${version.versionNumber} a été déplacée dans la corbeille.`,
+              );
+              if (this.selectedVersionId() === version.id) {
+                this.selectedVersionId.set(null);
+              }
+              this.documentQuery.reload();
+            }
+          },
+          error: (err) => {
+            console.error('Failed to trash version:', err);
+            this.state.showToast('Erreur', 'Impossible de déplacer la version dans la corbeille.');
+          },
+        });
+    });
   }
 
   // Render a safe, simple html representation of Markdown syntax

@@ -19,10 +19,11 @@
       </div>
       <div class="min-w-0">
         <h1 class="text-[15px] font-bold text-on-surface leading-tight font-geist">Baobab AI</h1>
-        <p class="text-[11px] text-on-surface/50 font-geist-mono leading-tight">Privacy-First RAG</p>
+        <p class="text-[11px] text-on-surface/50 font-geist-mono leading-tight">
+          Privacy-First RAG
+        </p>
       </div>
     </div>
-
     @if (inWorkspace()) {
     <!-- Workspace Context -->
     <div class="px-sm pt-sm pb-xs">
@@ -30,8 +31,12 @@
         routerLink="/"
         class="flex items-center gap-sm px-sm py-1.5 rounded-lg hover:bg-surface-container/60 transition-colors group text-on-surface"
       >
-        <span class="material-symbols-outlined text-[18px] text-primary flex-shrink-0">arrow_back</span>
-        <span class="text-[13px] font-medium text-primary group-hover:underline">Change workspace</span>
+        <span class="material-symbols-outlined text-[18px] text-primary flex-shrink-0"
+          >arrow_back</span
+        >
+        <span class="text-[13px] font-medium text-primary group-hover:underline"
+          >Change workspace</span
+        >
       </a>
     </div>
 
@@ -41,7 +46,9 @@
       <div class="flex items-center justify-between px-sm py-xs mt-xs">
         <div class="flex items-center gap-xs">
           <span class="material-symbols-outlined text-[16px] text-on-surface/50">chat</span>
-          <span class="text-[11px] font-bold text-on-surface/50 uppercase tracking-wider font-geist-mono">
+          <span
+            class="text-[11px] font-bold text-on-surface/50 uppercase tracking-wider font-geist-mono"
+          >
             Conversations
           </span>
         </div>
@@ -66,7 +73,9 @@
           routerLinkActive="bg-surface-container text-primary font-semibold"
           class="relative flex items-center gap-xs px-sm py-1.5 rounded-lg hover:bg-surface-container/60 transition-colors group text-on-surface/80 text-[13px] pr-8"
         >
-          <span class="material-symbols-outlined text-[16px] opacity-60 flex-shrink-0">chat_bubble</span>
+          <span class="material-symbols-outlined text-[16px] opacity-60 flex-shrink-0"
+            >chat_bubble</span
+          >
           <span class="truncate flex-1">{{ conv.title }}</span>
 
           <button
@@ -150,7 +159,6 @@
     </div>
     }
   </div>
-
   @if (activeMenuConversation(); as conv) {
   <div
     (click)="$event.stopPropagation()"
@@ -189,7 +197,7 @@
       class="w-full flex items-center gap-sm px-md py-2 hover:bg-error-container/40 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-[13px]"
     >
       <span class="material-symbols-outlined text-[16px] opacity-75 text-error">delete</span>
-      Supprimer
+      Archiver
     </button>
   </div>
   }

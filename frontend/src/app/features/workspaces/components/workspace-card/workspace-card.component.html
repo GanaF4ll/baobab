@@ -4,11 +4,13 @@
 >
   <!-- Header: Icon & Actions -->
   <div class="flex justify-between items-start mb-md">
-    <div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-[22px]">
+    <div
+      class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-[22px]"
+    >
       @if (workspace.icon) {
-        <span>{{ workspace.icon }}</span>
+      <span>{{ workspace.icon }}</span>
       } @else {
-        <span class="material-symbols-outlined text-[20px] text-primary">workspaces</span>
+      <span class="material-symbols-outlined text-[20px] text-primary">workspaces</span>
       }
     </div>
     <div class="flex gap-xs" (click)="$event.stopPropagation()">
@@ -47,7 +49,6 @@
     </div>
   </div>
 </div>
-
 @if (isMenuOpen()) {
 <div
   (click)="$event.stopPropagation()"
@@ -72,7 +73,7 @@
     class="w-full flex items-center gap-sm px-md py-2 hover:bg-error-container/40 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-[13px]"
   >
     <span class="material-symbols-outlined text-[16px] opacity-75 text-error">delete</span>
-    Supprimer
+    Archiver
   </button>
 </div>
 }

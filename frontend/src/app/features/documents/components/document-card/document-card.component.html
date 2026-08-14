@@ -34,8 +34,11 @@
         <span class="font-semibold">{{ getFileTypeLabel(document().mimeType) }}</span>
         @if(document().currentVersion > 1) {
 
-          <span>•</span>
-          <span class="text-on-surface-variant/80 font-medium underline">{{ document().currentVersion }} versions</span>
+        <span>•</span>
+        <span class="text-on-surface-variant/80 font-medium underline"
+          >{{ document().currentVersion }}
+          versions</span
+        >
         }
       </p>
     </div>

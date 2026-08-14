@@ -1,9 +1,18 @@
 import { DatePipe } from '@angular/common';
-import { Component, EventEmitter, HostListener, Input, Output, inject, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  Output,
+  inject,
+  signal,
+} from '@angular/core';
 import { HlmDialogService } from '@spartan-ng/helm/dialog';
 import { WorkspaceEntity } from '../../../../../client';
 import { WorkspacesStateService } from '../../services/workspaces-state.service';
 import { RenameWorkspaceDialogComponent } from '../rename-workspace-dialog/rename-workspace-dialog.component';
+import { TrashWorkspaceDialogComponent } from '../trash-workspace-dialog/trash-workspace-dialog.component';
 
 @Component({
   selector: 'app-workspace-card',
@@ -77,10 +86,22 @@ export class WorkspaceCardComponent {
   onDeleteWorkspace(event: MouseEvent) {
     event.stopPropagation();
     this.closeMenu();
-    this.deleteWorkspace.emit(this.workspace.id);
 
-    if (confirm(`Voulez-vous vraiment supprimer le workspace "${this.workspace.name}" ?`)) {
-      this.state.deleteWorkspace(this.workspace.id);
-    }
+    const dialogRef = this.hlmDialogService.open(TrashWorkspaceDialogComponent, {
+      context: {
+        workspaceName: this.workspace.name,
+        workspaceIcon: this.workspace.icon,
+        documentCount: this.workspace.documentCount ?? 0,
+      },
+      contentClass:
+        'max-w-md p-6 bg-surface-container-low border border-outline-variant rounded-2xl shadow-xl',
+    });
+
+    dialogRef.closed$.subscribe((confirmed) => {
+      if (confirmed) {
+        this.deleteWorkspace.emit(this.workspace.id);
+        this.state.deleteWorkspace(this.workspace.id);
+      }
+    });
   }
 }
