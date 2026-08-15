@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { cosineDistance, inArray } from 'drizzle-orm';
+import { and, cosineDistance, eq, inArray, isNull } from 'drizzle-orm';
 import { map } from 'rxjs';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
@@ -72,7 +72,16 @@ export class RagService {
         distance: cosineDistance(schema.chunks.embedding, questionVector),
       })
       .from(schema.chunks)
-      .where(inArray(schema.chunks.versionId, versionIds))
+      .innerJoin(
+        schema.documentVersions,
+        eq(schema.chunks.versionId, schema.documentVersions.id),
+      )
+      .where(
+        and(
+          inArray(schema.chunks.versionId, versionIds),
+          isNull(schema.documentVersions.deletedAt),
+        ),
+      )
       .orderBy(cosineDistance(schema.chunks.embedding, questionVector))
       .limit(topK);
 

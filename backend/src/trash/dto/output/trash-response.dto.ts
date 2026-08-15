@@ -11,6 +11,27 @@ import {
 } from 'class-validator';
 import { mimeTypeEnum } from 'src/drizzle/schema';
 
+export class TrashItemMetadataDto {
+  @ApiProperty({
+    description: 'The mime type of the document',
+    example: 'application/pdf',
+    enum: mimeTypeEnum.enumValues,
+  })
+  @IsEnum(mimeTypeEnum.enumValues)
+  @IsOptional()
+  @ValidateIf((o) => o.type === 'document')
+  mimeType?: (typeof mimeTypeEnum.enumValues)[number];
+
+  @ApiProperty({
+    description: 'The number of messages in the conversation',
+    example: 10,
+  })
+  @IsNumber()
+  @IsOptional()
+  @ValidateIf((o) => o.type === 'conversation')
+  messageCount?: number;
+}
+
 export class TrashItemDto {
   @ApiProperty({
     description: 'The id of the trash item',
@@ -69,29 +90,9 @@ export class TrashItemDto {
       mimeType: 'application/pdf',
       messageCount: 10,
     },
+    type: () => TrashItemMetadataDto,
   })
   @IsObject()
   @IsOptional()
   metadata?: TrashItemMetadataDto;
-}
-
-export class TrashItemMetadataDto {
-  @ApiProperty({
-    description: 'The mime type of the document',
-    example: 'application/pdf',
-    enum: mimeTypeEnum.enumValues,
-  })
-  @IsEnum(mimeTypeEnum.enumValues)
-  @IsOptional()
-  @ValidateIf((o) => o.type === 'document')
-  mimeType?: (typeof mimeTypeEnum.enumValues)[number];
-
-  @ApiProperty({
-    description: 'The number of messages in the conversation',
-    example: 10,
-  })
-  @IsNumber()
-  @IsOptional()
-  @ValidateIf((o) => o.type === 'conversation')
-  messageCount?: number;
 }
