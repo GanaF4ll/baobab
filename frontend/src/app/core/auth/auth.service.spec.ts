@@ -73,7 +73,7 @@ describe('AuthService', () => {
       return of(mockResponse);
     };
 
-    service.login('test@example.com').subscribe();
+    service.login('test@example.com', 'password123').subscribe();
 
     expect(service.accessToken()).toBe(token);
     expect(service.refreshToken()).toBe('refresh-token-value');
@@ -101,7 +101,7 @@ describe('AuthService', () => {
     };
 
     apiAuthServiceMock.authControllerLogin = () => of(mockResponse);
-    service.login('test@example.com').subscribe();
+    service.login('test@example.com', 'password123').subscribe();
 
     expect(service.isAuthenticated()).toBe(true);
 

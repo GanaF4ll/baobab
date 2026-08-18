@@ -1,6 +1,7 @@
 import {
   CreateBucketCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadBucketCommand,
   PutBucketPolicyCommand,
@@ -118,12 +119,38 @@ export class StorageService implements OnModuleInit {
   }
 
   /**
+   * @description Extract relative object key from a key or full URL
+   * @param keyOrUrl key or full URL
+   */
+  private extractKey(keyOrUrl: string): string {
+    if (!keyOrUrl) return keyOrUrl;
+    const bucketPrefix = `${this.bucket}/`;
+    if (keyOrUrl.includes(bucketPrefix)) {
+      return keyOrUrl.substring(keyOrUrl.indexOf(bucketPrefix) + bucketPrefix.length);
+    }
+    try {
+      if (keyOrUrl.startsWith('http://') || keyOrUrl.startsWith('https://')) {
+        const url = new URL(keyOrUrl);
+        const pathname = url.pathname.replace(/^\//, '');
+        if (pathname.startsWith(bucketPrefix)) {
+          return pathname.substring(bucketPrefix.length);
+        }
+        return pathname;
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+    return keyOrUrl;
+  }
+
+  /**
    * @description Deletes a file from the S3 bucket
    * @param filename
    */
-  async deleteFile(folder: StorageFolderName, filename: string): Promise<void> {
-    const key = `${folder}/${filename}`;
+  async deleteFile(filename: string): Promise<void> {
     try {
+      const key = this.extractKey(filename);
+      console.log('filename: ', key);
       await this.s3.send(
         new DeleteObjectCommand({
           Bucket: this.bucket,
@@ -137,13 +164,36 @@ export class StorageService implements OnModuleInit {
   }
 
   /**
+   * @description Deletes multiple files from the S3 bucket
+   * @param filenames list of files to delete
+   */
+  async deleteBulk(filenames: string[]): Promise<void> {
+    try {
+      const keys = filenames.map((filename) => this.extractKey(filename));
+      await this.s3.send(
+        new DeleteObjectsCommand({
+          Bucket: this.bucket,
+          Delete: {
+            Objects: keys.map((key) => ({
+              Key: key,
+            })),
+          },
+        }),
+      );
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      throw new BadRequestException(error);
+    }
+  }
+
+  /**
    * @description Downloads a file from the S3 bucket
    * @param folder
    * @param filename
    */
-  async download(folder: StorageFolderName, filename: string): Promise<Buffer> {
-    const key = `${folder}/${filename}`;
+  async download(filename: string): Promise<Buffer> {
     try {
+      const key = this.extractKey(filename);
       const response = await this.s3.send(
         new GetObjectCommand({
           Bucket: this.bucket,

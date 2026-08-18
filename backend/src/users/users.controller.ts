@@ -2,8 +2,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/commo
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { ApiExcludeController } from '@nestjs/swagger';
 
 @Controller('users')
+@ApiExcludeController()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

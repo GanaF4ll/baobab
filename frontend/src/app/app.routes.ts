@@ -4,6 +4,7 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { ConversationDetailComponent } from './features/conversations/screens/conversation-detail/conversation-detail.component';
 import { DocumentDetailComponent } from './features/documents/screens/document-detail/document-detail.component';
 import { DocumentsPageComponent } from './features/documents/screens/documents-page/documents-page.component';
+import { TrashPageComponent } from './features/trash/screens/trash-page/trash-page.component';
 import { WorkspacesPageComponent } from './features/workspaces/screens/workspaces-page/workspaces-page.component';
 
 export const routes: Routes = [
@@ -17,7 +18,11 @@ export const routes: Routes = [
     component: WorkspacesPageComponent,
     canActivate: [authGuard],
   },
-
+  {
+    path: 'trash',
+    component: TrashPageComponent,
+    canActivate: [authGuard],
+  },
   {
     path: 'workspace/:id/conversation/:conversationId',
     component: ConversationDetailComponent,

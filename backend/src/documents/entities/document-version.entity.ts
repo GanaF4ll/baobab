@@ -19,7 +19,11 @@ export class DocumentVersionEntity {
   @IsString()
   storageKey: string;
 
-  @ApiProperty({ description: 'change summary of the document' })
+  @ApiProperty({
+    description: 'change summary of the document',
+    nullable: true,
+    example: 'updated refund rules',
+  })
   @IsString()
   @IsOptional()
   changeSummary?: string | null;
@@ -27,4 +31,13 @@ export class DocumentVersionEntity {
   @ApiProperty({ description: 'creation date of the document' })
   @IsDateString()
   createdAt: Date;
+
+  @ApiProperty({
+    description: 'deletion date of the document',
+    nullable: true,
+    example: '2030-01-01T00:00:00.000Z',
+  })
+  @IsDateString()
+  @IsOptional()
+  deletedAt?: Date | null;
 }

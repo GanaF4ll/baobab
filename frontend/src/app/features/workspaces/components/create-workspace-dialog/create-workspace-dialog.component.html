@@ -12,18 +12,24 @@
       <label
         class="font-label-technical text-label-technical block text-on-surface-variant font-semibold"
       >
-        Workspace Name
+        Workspace Name *
       </label>
       <input
         hlmInput
         type="text"
         name="name"
-        [(ngModel)]="name"
+        [value]="model().name"
+        (input)="onNameInput($any($event.target).value)"
         placeholder="e.g. Legal Docs"
-        class="w-full bg-surface-container-lowest border border-outline-variant rounded px-md py-sm focus:border-primary text-body-md text-on-surface"
-        required
+        class="w-full bg-surface-container-lowest border rounded px-md py-sm text-body-md text-on-surface transition-colors"
+        [class.border-error]="createForm.name().invalid() && (createForm.name().dirty() || createForm.name().touched())"
+        [class.border-outline-variant]="!(createForm.name().invalid() && (createForm.name().dirty() || createForm.name().touched()))"
         autocomplete="off"
       >
+      @if (createForm.name().invalid() && (createForm.name().dirty() ||
+      createForm.name().touched())) {
+      <p class="text-[12px] text-error">Workspace name is required.</p>
+      }
     </div>
 
     <!-- Description -->
@@ -36,7 +42,8 @@
       <textarea
         hlmInput
         name="description"
-        [(ngModel)]="description"
+        [value]="model().description"
+        (input)="onDescriptionInput($any($event.target).value)"
         placeholder="Brief summary of the documents and purpose..."
         rows="3"
         class="w-full bg-surface-container-lowest border border-outline-variant rounded px-md py-sm focus:border-primary text-body-md text-on-surface resize-none"
@@ -59,7 +66,7 @@
       <button
         hlmBtn
         type="submit"
-        [disabled]="!name.trim()"
+        [disabled]="createForm().invalid()"
         class="bg-primary text-on-primary hover:opacity-90 font-semibold py-1.5 px-4 cursor-pointer disabled:opacity-50"
       >
         Create Workspace

@@ -4,15 +4,24 @@
 >
   <!-- Header: Icon & Actions -->
   <div class="flex justify-between items-start mb-md">
-    <div class="w-10 h-10 rounded flex items-center justify-center">
-      <span class="material-symbols-outlined">{{ workspace.icon || 'workspaces' }}</span>
+    <div
+      class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-[22px]"
+    >
+      @if (workspace.icon) {
+      <span>{{ workspace.icon }}</span>
+      } @else {
+      <span class="material-symbols-outlined text-[20px] text-primary">workspaces</span>
+      }
     </div>
     <div class="flex gap-xs" (click)="$event.stopPropagation()">
-      <span
-        class="material-symbols-outlined text-on-surface opacity-40 text-[18px] cursor-pointer hover:opacity-100"
+      <button
+        type="button"
+        (click)="toggleMenu($event)"
+        class="w-8 h-8 flex items-center justify-center text-on-surface opacity-40 hover:opacity-100 hover:bg-surface-container-high rounded-md cursor-pointer transition-colors bg-transparent border-0"
+        [class.opacity-100]="isMenuOpen()"
       >
-        more_vert
-      </span>
+        <span class="material-symbols-outlined text-[18px]">more_vert</span>
+      </button>
     </div>
   </div>
 
@@ -35,8 +44,36 @@
         >
       </div>
       <span class="font-label-technical text-label-technical text-on-surface opacity-60"
-        >{{ workspace.createdAt| date: 'dd MMMM, yyyy' }}</span
+        >{{ workspace.createdAt | date: 'dd MMMM, yyyy' }}</span
       >
     </div>
   </div>
 </div>
+@if (isMenuOpen()) {
+<div
+  (click)="$event.stopPropagation()"
+  [style.top.px]="menuPosition()?.top"
+  [style.left.px]="menuPosition()?.left"
+  class="fixed z-[100] min-w-[180px] bg-surface-container-high border border-outline-variant rounded-lg shadow-lg py-1 text-[13px] text-on-surface animate-in fade-in slide-in-from-top-1 duration-100"
+>
+  <button
+    type="button"
+    (click)="openRenameDialog($event)"
+    class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-[13px]"
+  >
+    <span class="material-symbols-outlined text-[16px] opacity-60">edit</span>
+    Renommer
+  </button>
+
+  <div class="h-px bg-outline-variant/40 my-1 mx-sm"></div>
+
+  <button
+    type="button"
+    (click)="onDeleteWorkspace($event)"
+    class="w-full flex items-center gap-sm px-md py-2 hover:bg-error-container/40 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-[13px]"
+  >
+    <span class="material-symbols-outlined text-[16px] opacity-75 text-error">delete</span>
+    Archiver
+  </button>
+</div>
+}

@@ -26,7 +26,7 @@
         @if (document()?.mimeType === 'text/markdown') {
         <button
           (click)="toggleEditMode()"
-          [disabled]="isSaving()"
+          [disabled]="isSaving() || isTrashingDocument()"
           [class]="isEditMode() 
               ? 'bg-surface-container-highest border border-outline-variant text-on-surface'
               : 'bg-primary text-on-primary hover:opacity-90'"
@@ -38,6 +38,23 @@
           {{ isEditMode() ? 'Cancel Edit' : 'Edit Document' }}
         </button>
         }
+
+        <button
+          (click)="trashDocument()"
+          [disabled]="isTrashingDocument() || isSaving() || isUploadingVersion()"
+          class="px-md py-sm rounded-xl font-label-technical text-xs font-semibold transition-all duration-200 flex items-center gap-xs cursor-pointer border border-error/30 text-error hover:bg-error-container/20 hover:border-error/50 disabled:opacity-50"
+          title="Déplacer le document et toutes ses versions dans la corbeille"
+        >
+          @if (isTrashingDocument()) {
+          <span
+            class="w-4 h-4 border-2 border-error border-t-transparent rounded-full animate-spin"
+          ></span>
+          <span>Mise à la corbeille...</span>
+          } @else {
+          <span class="material-symbols-outlined text-[16px]">delete</span>
+          <span>Mettre à la corbeille</span>
+          }
+        </button>
       </div>
     </div>
     <!-- Loading State -->
@@ -362,16 +379,14 @@
               <div class="text-[9px] text-on-surface-variant/70 mt-xs font-label-technical">
                 {{ ver.createdAt | date: 'medium' }}
               </div>
-              <!-- Actions (delete version) -->
-              @if (versions().length > 1) {
+              <!-- Actions (trash version) -->
               <button
-                (click)="deleteVersion(ver.id, $event)"
-                title="Permanently delete version snapshot"
-                class="absolute right-xs bottom-xs opacity-0 group-hover:opacity-100 hover:text-error hover:bg-error-container/10 p-xxs rounded transition-all duration-150 cursor-pointer"
+                (click)="trashVersion(ver, $event)"
+                title="Déplacer cette version dans la corbeille"
+                class="absolute right-xs bottom-xs opacity-0 group-hover:opacity-100 hover:text-error hover:bg-error-container/10 p-xxs rounded transition-all duration-150 cursor-pointer text-on-surface-variant"
               >
                 <span class="material-symbols-outlined text-[14px]">delete</span>
               </button>
-              }
             </div>
             }
           </div>
