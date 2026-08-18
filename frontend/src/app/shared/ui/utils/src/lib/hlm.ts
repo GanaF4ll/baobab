@@ -68,7 +68,9 @@ export function classes(computed: () => ClassValue[] | string, options: ClassesO
       const initialBaseClasses = new Set<string>();
 
       if (baseClasses) {
-        toClassList(baseClasses).forEach((cls) => initialBaseClasses.add(cls));
+        toClassList(baseClasses).forEach((cls) => {
+          initialBaseClasses.add(cls);
+        });
       }
 
       manager = {
@@ -174,8 +176,7 @@ function restoreTransitionSuppression(manager: ElementClassManager): void {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
-function setupGlobalObserver(platformId: Object): void {
+function setupGlobalObserver(platformId: object): void {
   if (isPlatformBrowser(platformId) && !globalObserver) {
     // Create single global observer that watches the entire document
     globalObserver = new MutationObserver((mutations) => {
@@ -236,7 +237,9 @@ function updateElement(manager: ElementClassManager): void {
     // Get all classes that will be applied by sources
     const allSourceClasses = new Set<string>();
     for (const source of manager.sources.values()) {
-      source.classes.forEach((className) => allSourceClasses.add(className));
+      source.classes.forEach((className) => {
+        allSourceClasses.add(className);
+      });
     }
 
     // Only consider classes as "base" if they're not produced by any source

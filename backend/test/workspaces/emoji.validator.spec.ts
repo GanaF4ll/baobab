@@ -1,5 +1,8 @@
 import { validate } from 'class-validator';
-import { IsUnicodeEmoji, IsUnicodeEmojiConstraint } from 'src/workspaces/validators/emoji.validator';
+import {
+  IsUnicodeEmoji,
+  IsUnicodeEmojiConstraint,
+} from 'src/workspaces/validators/emoji.validator';
 
 describe('IsUnicodeEmojiConstraint', () => {
   let constraint: IsUnicodeEmojiConstraint;

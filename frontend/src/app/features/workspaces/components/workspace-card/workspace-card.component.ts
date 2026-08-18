@@ -4,8 +4,8 @@ import {
   EventEmitter,
   HostListener,
   Input,
-  Output,
   inject,
+  Output,
   signal,
 } from '@angular/core';
 import { HlmDialogService } from '@spartan-ng/helm/dialog';

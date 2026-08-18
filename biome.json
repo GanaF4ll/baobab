@@ -63,11 +63,12 @@
       "formatter": { "enabled": true }
     },
     {
-      "includes": ["**/frontend/src/api/**"],
+      "includes": ["**/frontend/src/api/**", "**/frontend/src/client/**"],
       "linter": { "enabled": false },
       "formatter": { "enabled": false }
     }
   ],
+
   "files": {
     "includes": ["**", "!**/node_modules", "!**/dist", "!**/frontend/.angular"]
   }

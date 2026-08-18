@@ -11,20 +11,16 @@
     >
       <span class="material-symbols-outlined">menu</span>
     </button>
+    @if(inWorkspace()) {
 
-    @if(inWorkspace()){
-
-      <div class="flex items-center gap-xs min-w-0">
-        <span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0"
-          >{{activeWorkspace()?.icon || 'workspaces'}}</span
-        >
-        <span
-          class="font-label-technical text-label-technical font-bold text-on-surface truncate"
-            >
-              {{ activeWorkspace()?.name || 'Workspace' }}
-            </span>
-          </div>
-
+    <div class="flex items-center gap-xs min-w-0">
+      <span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0"
+        >{{ activeWorkspace()?.icon || 'workspaces' }}</span
+      >
+      <span class="font-label-technical text-label-technical font-bold text-on-surface truncate">
+        {{ activeWorkspace()?.name || 'Workspace' }}
+      </span>
+    </div>
     }
     <!-- <nav class="hidden sm:flex gap-md">
       <a

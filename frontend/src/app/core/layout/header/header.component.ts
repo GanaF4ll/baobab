@@ -2,8 +2,8 @@ import { Component, computed, EventEmitter, inject, input, Output } from '@angul
 import { Router } from '@angular/router';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { AuthService } from '../../../core/auth/auth.service';
-import { SidebarService } from '../../services/sidebar.service';
 import { WorkspacesStateService } from '../../../features/workspaces/services/workspaces-state.service';
+import { SidebarService } from '../../services/sidebar.service';
 
 @Component({
   selector: 'app-header',
