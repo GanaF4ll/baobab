@@ -50,8 +50,8 @@ export class AuthGuard implements CanActivate {
     if (type === 'Bearer') {
       return token;
     }
-    const query = request.query as Record<string, string>;
-    if (query && query['token']) {
+    const query = request.query as Record<string, string> | undefined;
+    if (query?.['token']) {
       return query['token'];
     }
     return undefined;

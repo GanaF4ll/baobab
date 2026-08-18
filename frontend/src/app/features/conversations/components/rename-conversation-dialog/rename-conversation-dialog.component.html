@@ -1,6 +1,8 @@
 <div class="space-y-md">
   <hlm-dialog-header>
-    <h3 hlmDialogTitle class="text-headline-md font-bold text-on-surface">Renommer cette conversation</h3>
+    <h3 hlmDialogTitle class="text-headline-md font-bold text-on-surface">
+      Renommer cette conversation
+    </h3>
   </hlm-dialog-header>
 
   <form (submit)="submit(); $event.preventDefault()" class="space-y-lg pt-sm">
@@ -18,8 +20,9 @@
         [class.border-outline-variant]="!(renameForm.title().invalid() && (renameForm.title().dirty() || renameForm.title().touched()))"
         autocomplete="off"
       >
-      @if (renameForm.title().invalid() && (renameForm.title().dirty() || renameForm.title().touched())) {
-        <p class="text-[12px] text-error">Le titre de la conversation est obligatoire.</p>
+      @if (renameForm.title().invalid() && (renameForm.title().dirty() ||
+      renameForm.title().touched())) {
+      <p class="text-[12px] text-error">Le titre de la conversation est obligatoire.</p>
       }
     </div>
 

@@ -72,10 +72,7 @@ export class RagService {
         distance: cosineDistance(schema.chunks.embedding, questionVector),
       })
       .from(schema.chunks)
-      .innerJoin(
-        schema.documentVersions,
-        eq(schema.chunks.versionId, schema.documentVersions.id),
-      )
+      .innerJoin(schema.documentVersions, eq(schema.chunks.versionId, schema.documentVersions.id))
       .where(
         and(
           inArray(schema.chunks.versionId, versionIds),

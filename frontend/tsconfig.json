@@ -11,15 +11,19 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "preserve",
+    "moduleResolution": "bundler",
     "paths": {
+
       "@spartan-ng/helm/button": ["./src/app/shared/ui/button/src/index.ts"],
       "@spartan-ng/helm/utils": ["./src/app/shared/ui/utils/src/index.ts"],
       "@spartan-ng/helm/input": ["./src/app/shared/ui/input/src/index.ts"],
       "@spartan-ng/helm/dialog": ["./src/app/shared/ui/dialog/src/index.ts"],
       "@spartan-ng/helm/tabs": ["./src/app/shared/ui/tabs/src/index.ts"],
       "@spartan-ng/helm/card": ["./src/app/shared/ui/card/src/index.ts"],
-      "@spartan-ng/helm/checkbox": ["./src/app/shared/ui/checkbox/src/index.ts"]
+      "@spartan-ng/helm/checkbox": ["./src/app/shared/ui/checkbox/src/index.ts"],
+      "@spartan-ng/helm/*": ["./src/app/shared/ui/*/src/index.ts"]
     }
+
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

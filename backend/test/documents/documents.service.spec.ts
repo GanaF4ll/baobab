@@ -35,7 +35,9 @@ describe('DocumentsService', () => {
         },
       },
       select: jest.fn(),
-      selectDistinct: jest.fn().mockReturnValue({ from: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue([]) }) }),
+      selectDistinct: jest.fn().mockReturnValue({
+        from: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue([]) }),
+      }),
       update: jest.fn().mockReturnValue({ set: setMock }),
       delete: jest.fn().mockReturnValue({ where: jest.fn().mockResolvedValue([]) }),
     };

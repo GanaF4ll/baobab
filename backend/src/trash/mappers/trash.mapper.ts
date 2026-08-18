@@ -23,7 +23,7 @@ export class TrashMapper {
     conversationMetaMap: Map<string, number>,
   ): TrashItemDto[] {
     return items.map((item) => {
-      const deletedAt = item.deletedAt!;
+      const deletedAt = item.deletedAt ?? new Date();
       const expiresAt = new Date(deletedAt.getTime() + TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 
       let metadata: TrashItemMetadataDto | undefined;

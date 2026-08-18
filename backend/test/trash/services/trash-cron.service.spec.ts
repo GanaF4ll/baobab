@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TrashCronService } from 'src/trash/services/trash-cron.service';
 import { TrashService } from 'src/trash/services/trash.service';
+import { TrashCronService } from 'src/trash/services/trash-cron.service';
 
 describe('TrashCronService', () => {
   let cronService: TrashCronService;
@@ -37,7 +37,9 @@ describe('TrashCronService', () => {
 
     it('should propagate error if purgeAllRessourcesMarkedForDeletion fails', async () => {
       const error = new Error('Database connection failed');
-      (trashServiceMock.purgeAllRessourcesMarkedForDeletion as jest.Mock).mockRejectedValueOnce(error);
+      (trashServiceMock.purgeAllRessourcesMarkedForDeletion as jest.Mock).mockRejectedValueOnce(
+        error,
+      );
 
       await expect(cronService.removeSoftDeleted()).rejects.toThrow('Database connection failed');
     });

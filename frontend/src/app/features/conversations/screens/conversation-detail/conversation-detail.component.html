@@ -56,8 +56,6 @@
         </div>
       </div>
       <div class="flex items-center gap-sm">
-
-
         <a
           [routerLink]="['/workspace', workspaceIdParam()]"
           class="px-md py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded transition-colors font-label-technical text-label-technical font-medium cursor-pointer flex items-center gap-xs text-xs"
@@ -66,7 +64,7 @@
           Workspace Dashboard
         </a>
 
-                <!-- Toggle Sources Drawer Button -->
+        <!-- Toggle Sources Drawer Button -->
         <button
           type="button"
           (click)="isSourcesOpen.set(!isSourcesOpen())"

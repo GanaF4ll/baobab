@@ -11,11 +11,18 @@
     "backend": "cd backend && npm run start:dev",
     "frontend": "cd frontend && ng serve",
     "api:generate": "openapi-generator-cli generate -i backend/openapi.json -g typescript-angular -o frontend/src/api",
+    "build": "pnpm --filter backend build && pnpm --filter frontend build",
+    "test": "pnpm --filter backend test && pnpm --filter frontend test",
     "docker:up": "docker compose -f docker/docker-compose.dev.yml up --build",
     "docker:down": "docker compose -f docker/docker-compose.dev.yml down",
     "docker:reset": "docker compose -f docker/docker-compose.dev.yml down --volumes --remove-orphans",
-    "docker:logs": "docker compose -f docker/docker-compose.dev.yml logs -f"
+    "docker:logs": "docker compose -f docker/docker-compose.dev.yml logs -f",
+    "docker:prod:build": "docker compose -f docker/docker-compose.yml build",
+    "docker:prod:up": "docker compose -f docker/docker-compose.yml up -d --build",
+    "docker:prod:down": "docker compose -f docker/docker-compose.yml down",
+    "docker:prod:logs": "docker compose -f docker/docker-compose.yml logs -f"
   },
+
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
     "@openapitools/openapi-generator-cli": "^2.15.0"

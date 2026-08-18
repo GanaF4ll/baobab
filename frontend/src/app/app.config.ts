@@ -11,7 +11,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideDefaultClient({
-      basePath: 'http://localhost:2400',
+      basePath:
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+          ? 'http://localhost:2400'
+          : '',
     }),
+
   ],
 };
