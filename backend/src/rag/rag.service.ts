@@ -1,9 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { cosineDistance, inArray } from 'drizzle-orm';
+import { and, cosineDistance, eq, inArray, isNull } from 'drizzle-orm';
 import { map } from 'rxjs';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
+import { DocumentsService } from '../documents/documents.service';
 import { OllamaService } from '../ollama/ollama.service';
 import { SimilarChunkResponseDto } from './dto/output/similar-chunk-response.dto';
 import { getSystemInstructions } from './system-instructions';
@@ -15,6 +16,7 @@ export class RagService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDb,
     private readonly ollamaService: OllamaService,
+    private readonly documentsService: DocumentsService,
   ) {}
 
   /**
@@ -51,6 +53,8 @@ export class RagService {
       return [];
     }
 
+    await this.documentsService.ensureChunksExist(versionIds);
+
     const questionVector = await this.vectorizeQuestion(question);
 
     this.logger.debug(
@@ -68,7 +72,16 @@ export class RagService {
         distance: cosineDistance(schema.chunks.embedding, questionVector),
       })
       .from(schema.chunks)
-      .where(inArray(schema.chunks.versionId, versionIds))
+      .innerJoin(
+        schema.documentVersions,
+        eq(schema.chunks.versionId, schema.documentVersions.id),
+      )
+      .where(
+        and(
+          inArray(schema.chunks.versionId, versionIds),
+          isNull(schema.documentVersions.deletedAt),
+        ),
+      )
       .orderBy(cosineDistance(schema.chunks.embedding, questionVector))
       .limit(topK);
 

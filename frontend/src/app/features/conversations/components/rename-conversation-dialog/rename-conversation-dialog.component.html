@@ -10,12 +10,17 @@
         hlmInput
         type="text"
         name="title"
-        [(ngModel)]="title"
+        [value]="model().title"
+        (input)="onTitleInput($any($event.target).value)"
         placeholder="Titre de la conversation"
-        class="w-full bg-surface-container-lowest border border-outline-variant rounded px-md py-sm focus:border-primary text-body-md text-on-surface"
-        required
+        class="w-full bg-surface-container-lowest border rounded px-md py-sm text-body-md text-on-surface transition-colors"
+        [class.border-error]="renameForm.title().invalid() && (renameForm.title().dirty() || renameForm.title().touched())"
+        [class.border-outline-variant]="!(renameForm.title().invalid() && (renameForm.title().dirty() || renameForm.title().touched()))"
         autocomplete="off"
       >
+      @if (renameForm.title().invalid() && (renameForm.title().dirty() || renameForm.title().touched())) {
+        <p class="text-[12px] text-error">Le titre de la conversation est obligatoire.</p>
+      }
     </div>
 
     <!-- Action Buttons -->
@@ -34,7 +39,7 @@
       <button
         hlmBtn
         type="submit"
-        [disabled]="!title.trim()"
+        [disabled]="renameForm().invalid()"
         class="bg-primary text-on-primary hover:opacity-90 font-semibold py-1.5 px-4 cursor-pointer disabled:opacity-50"
       >
         Renommer

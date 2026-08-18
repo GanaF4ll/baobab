@@ -78,11 +78,12 @@ export class WorkspacesStateService {
     }
   }
 
-  createWorkspace(name: string, description: string) {
+  createWorkspace(name: string, description: string, icon?: string) {
     return this.workspacesService
       .workspacesControllerCreate({
         name,
         description,
+        icon,
       })
       .subscribe({
         next: (response) => {
@@ -100,6 +101,40 @@ export class WorkspacesStateService {
           this.showToast('Error', 'Failed to provision secure workspace silo.');
         },
       });
+  }
+
+  renameWorkspace(id: string, name: string, description?: string, icon?: string) {
+    return this.workspacesService
+      .workspacesControllerUpdate(id, { name, description, icon })
+      .subscribe({
+        next: () => {
+          this.workspacesQuery.reload();
+          this.showToast('Workspace Mis à Jour', `Le workspace '${name}' a été mis à jour.`);
+        },
+        error: (err) => {
+          console.error('Failed to update workspace', err);
+          this.showToast('Erreur', 'Impossible de mettre à jour le workspace.');
+        },
+      });
+  }
+
+  deleteWorkspace(id: string) {
+    const workspace = this.workspaces().find((w) => w.id === id);
+    const name = workspace ? workspace.name : 'Workspace';
+    return this.workspacesService.workspacesControllerRemove(id).subscribe({
+      next: () => {
+        if (this.activeWorkspaceId() === id) {
+          this.activeWorkspaceId.set(null);
+          localStorage.removeItem('activeWorkspaceId');
+        }
+        this.workspacesQuery.reload();
+        this.showToast('Workspace Supprimé', `Le workspace '${name}' a été supprimé.`);
+      },
+      error: (err) => {
+        console.error('Failed to delete workspace', err);
+        this.showToast('Erreur', 'Impossible de supprimer le workspace.');
+      },
+    });
   }
 
   showToast(title: string, message: string) {

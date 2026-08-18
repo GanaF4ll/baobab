@@ -62,6 +62,7 @@ export class WorkspacesService {
                 : [gte(workspaces.createdAt, cursorDate)]
               : []),
             ...(cursor ? [ne(workspaces.id, cursor)] : []),
+            isNull(workspaces.deletedAt),
           ),
 
         limit: take + 1,
@@ -75,6 +76,7 @@ export class WorkspacesService {
           and(
             eq(schema.workspaces.ownerId, ownerId),
             ilike(schema.workspaces.name, `%${rest.name ?? ''}%`),
+            isNull(schema.workspaces.deletedAt),
           ),
         ),
     ]);

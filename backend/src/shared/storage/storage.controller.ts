@@ -38,7 +38,6 @@ export class StorageController {
   @Public()
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Body() body: { filename: string }) {
-    const folder = StorageFolderName.DOCUMENTS;
-    return this.storageService.deleteFile(folder, body.filename);
+    return this.storageService.deleteFile(body.filename);
   }
 }

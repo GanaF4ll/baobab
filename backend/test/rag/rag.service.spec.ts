@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { DocumentsService } from 'src/documents/documents.service';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
 import { OllamaService } from 'src/ollama/ollama.service';
@@ -8,11 +9,13 @@ describe('RagService', () => {
   let service: RagService;
   let dbMock: any;
   let ollamaServiceMock: any;
+  let documentsServiceMock: any;
 
   beforeEach(async () => {
     dbMock = {
       select: jest.fn().mockReturnThis(),
       from: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
       limit: jest.fn(),
@@ -20,6 +23,10 @@ describe('RagService', () => {
 
     ollamaServiceMock = {
       generateSingleEmbedding: jest.fn(),
+    };
+
+    documentsServiceMock = {
+      ensureChunksExist: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -32,6 +39,10 @@ describe('RagService', () => {
         {
           provide: OllamaService,
           useValue: ollamaServiceMock,
+        },
+        {
+          provide: DocumentsService,
+          useValue: documentsServiceMock,
         },
       ],
     }).compile();

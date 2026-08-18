@@ -110,7 +110,6 @@ async function seed() {
           title: DOCUMENT_TITLES[i],
           mimeType: MIME_TYPES[i],
           workspaceId: workspace.id,
-          currentVersion: 3,
         })
         .returning();
 

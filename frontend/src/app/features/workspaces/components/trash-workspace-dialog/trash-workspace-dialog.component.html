@@ -1,0 +1,94 @@
+<div class="space-y-md">
+  <!-- Dialog Header -->
+  <hlm-dialog-header class="space-y-xs">
+    <div class="flex items-center gap-sm">
+      <div
+        class="w-10 h-10 rounded-xl bg-error-container/20 border border-error/30 flex items-center justify-center text-error flex-shrink-0"
+      >
+        <span class="material-symbols-outlined text-[22px]">delete_forever</span>
+      </div>
+      <div>
+        <h3 hlmDialogTitle class="text-headline-md font-bold text-on-surface">
+          Déplacer dans la corbeille
+        </h3>
+        <p hlmDialogDescription class="text-body-sm text-on-surface-variant/80">
+          Mise à la corbeille du workspace et de son contenu
+        </p>
+      </div>
+    </div>
+  </hlm-dialog-header>
+
+  <!-- Dialog Body -->
+  <div class="space-y-md pt-xs">
+    <!-- Workspace Info Card -->
+    <div
+      class="p-sm bg-surface-container-lowest border border-outline-variant/60 rounded-xl flex items-center gap-sm"
+    >
+      <div
+        class="w-10 h-10 rounded-lg bg-surface-container-high border border-outline-variant/50 flex items-center justify-center text-[20px] flex-shrink-0"
+      >
+        {{ workspaceIcon || '📁' }}
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="text-xs font-semibold text-on-surface truncate" [title]="workspaceName">
+          {{ workspaceName }}
+        </div>
+        <div class="text-[11px] text-on-surface-variant/70 font-mono">
+          {{ documentCount }}
+          document{{ documentCount > 1 ? 's' : '' }}
+          associé{{ documentCount > 1 ? 's' : '' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Prominent Warning Notice -->
+    <div
+      class="p-md bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 rounded-xl space-y-xs"
+    >
+      <div
+        class="flex items-center gap-xs text-amber-700 dark:text-amber-300 font-semibold text-xs uppercase tracking-wide"
+      >
+        <span class="material-symbols-outlined text-[18px]">warning</span>
+        <span>Suppression des documents et conversations</span>
+      </div>
+      <p class="text-xs text-on-surface-variant leading-relaxed">
+        Ce workspace contient actuellement
+        <strong>{{ documentCount }} document{{ documentCount > 1 ? 's' : '' }}</strong> ainsi que
+        ses fils de discussion. En déplaçant ce workspace dans la corbeille,
+        <strong
+          >l'ensemble de ses documents, versions et conversations seront également déplacés dans la
+          corbeille</strong
+        >.
+      </p>
+    </div>
+
+    <p class="text-[11px] text-on-surface-variant/70 italic">
+      Vous pourrez restaurer ce workspace ainsi que ses éléments associés ultérieurement depuis la
+      corbeille.
+    </p>
+  </div>
+
+  <!-- Dialog Footer -->
+  <hlm-dialog-footer
+    class="flex flex-col-reverse sm:flex-row justify-end gap-sm pt-md border-t border-outline-variant/40"
+  >
+    <button
+      hlmBtn
+      variant="ghost"
+      type="button"
+      (click)="cancel()"
+      class="border border-outline-variant text-on-surface hover:bg-surface-container-high font-semibold py-1.5 px-4 cursor-pointer"
+    >
+      Annuler
+    </button>
+    <button
+      hlmBtn
+      type="button"
+      (click)="confirm()"
+      class="bg-error text-on-error hover:opacity-90 font-semibold py-1.5 px-4 cursor-pointer flex items-center justify-center gap-xs"
+    >
+      <span class="material-symbols-outlined text-[16px]">delete</span>
+      Déplacer dans la corbeille
+    </button>
+  </hlm-dialog-footer>
+</div>

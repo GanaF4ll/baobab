@@ -38,6 +38,7 @@ import { DOCUMENTS_SWAGGER_TAG } from 'src/swagger.config';
 import { WorkspaceMemberGuard } from 'src/workspaces/guards/workspace-member.guard';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/input/create-document.dto';
+import { DeleteDocumentDto } from './dto/input/delete-document.dto';
 import { DeleteVersionDto } from './dto/input/delete-version.dto';
 import { DocumentFilterDto } from './dto/input/document-filter.dto';
 import { UpdateDocumentTitleDto } from './dto/input/update-document-title.dto';
@@ -153,6 +154,7 @@ export class DocumentsController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiForbiddenResponse({ description: 'You are not a member of this workspace' })
   @ApiNotFoundResponse({ description: 'Document not found' })
+  @HttpCode(HttpStatus.NO_CONTENT)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser('id') userId: string,
@@ -161,9 +163,79 @@ export class DocumentsController {
     return this.documentsService.updateTitle(id, userId, dto);
   }
 
+  @Patch('/restore')
+  @Protected()
+  @ApiOperation({ summary: 'restores a document from trash' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'You are not a member of this workspace' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  restoreDocument(@CurrentUser('id') userId: string, @Body() dto: DeleteDocumentDto) {
+    return this.documentsService.restoreDocument(dto.id, dto.workspaceId, userId);
+  }
+
+  @Patch('version/restore')
+  @Protected()
+  @ApiOperation({ summary: 'restore a document version' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'You are not a member of this workspace' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @ApiNotFoundResponse({ description: 'Version not found' })
+  @ApiNoContentResponse({ description: 'Document version restored' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async restoreVersion(
+    @Body() dto: DeleteVersionDto,
+    @CurrentUser('id') userId: string,
+  ): Promise<void> {
+    await this.documentsService.restoreVersion(dto.documentId, userId, dto.id, dto.workspaceId);
+  }
+
+  @Delete('trash')
+  @Protected()
+  @ApiOperation({ summary: 'soft delete a document and its versions (move to trash)' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @ApiNoContentResponse({ description: 'Document version deleted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async softDeleteDocument(
+    @Body() dto: DeleteDocumentDto,
+    @CurrentUser('id') userId: string,
+  ): Promise<void> {
+    await this.documentsService.softDeleteDocument(dto.id, dto.workspaceId, userId);
+  }
+
+  @Delete('')
+  @Protected()
+  @ApiOperation({ summary: 'remove a document and its versions permanently' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @ApiNoContentResponse({ description: 'Document deleted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeDocument(
+    @Body() dto: DeleteDocumentDto,
+    @CurrentUser('id') userId: string,
+  ): Promise<void> {
+    await this.documentsService.removeDocument(dto.id, dto.workspaceId, userId);
+  }
+
+  @Delete('version/trash')
+  @Protected()
+  @ApiOperation({ summary: 'soft delete a document version (move to trash)' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Document not found' })
+  @ApiNotFoundResponse({ description: 'Version not found' })
+  @ApiNoContentResponse({ description: 'Document version soft deleted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async softDeleteVersion(
+    @Body() dto: DeleteVersionDto,
+    @CurrentUser('id') userId: string,
+  ): Promise<void> {
+    await this.documentsService.softDeleteVersion(dto.documentId, userId, dto.id, dto.workspaceId);
+  }
+
   @Delete('version')
   @Protected()
-  @ApiOperation({ summary: 'remove a document version' })
+  @ApiOperation({ summary: 'remove a document version and its content from the bucket' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Document not found' })
   @ApiNotFoundResponse({ description: 'Version not found' })
