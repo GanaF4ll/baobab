@@ -8,7 +8,7 @@ export class TrashCronService {
 
   private readonly logger = new Logger(TrashCronService.name);
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async removeSoftDeleted() {
     this.logger.warn('Starting to purge all resources marked for deletion');
     await this.trashService.purgeAllRessourcesMarkedForDeletion();
