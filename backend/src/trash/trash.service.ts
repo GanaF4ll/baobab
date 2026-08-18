@@ -47,6 +47,7 @@ export class TrashService {
         workspaceId: sql<string | null>`NULL`.as('workspace_id'),
         workspaceName: sql<string | null>`NULL`.as('workspace_name'),
         deletedAt: schema.workspaces.deletedAt,
+        icon: schema.workspaces.icon,
       })
       .from(schema.workspaces)
       .where(and(...workspaceConditions));
@@ -68,6 +69,7 @@ export class TrashService {
         workspaceId: schema.documents.workspaceId,
         workspaceName: schema.workspaces.name,
         deletedAt: schema.documents.deletedAt,
+        icon: sql<string | null>`NULL`.as('icon'),
       })
       .from(schema.documents)
       .leftJoin(schema.workspaces, eq(schema.documents.workspaceId, schema.workspaces.id))
@@ -90,6 +92,7 @@ export class TrashService {
         workspaceId: schema.conversations.workspaceId,
         workspaceName: schema.workspaces.name,
         deletedAt: schema.conversations.deletedAt,
+        icon: sql<string | null>`NULL`.as('icon'),
       })
       .from(schema.conversations)
       .leftJoin(schema.workspaces, eq(schema.conversations.workspaceId, schema.workspaces.id))
@@ -144,7 +147,9 @@ export class TrashService {
 
     // Enrichment with metadata per type
     const documentIds = itemsToProcess.filter((i) => i.type === 'document').map((i) => i.id);
-    const conversationIds = itemsToProcess.filter((i) => i.type === 'conversation').map((i) => i.id);
+    const conversationIds = itemsToProcess
+      .filter((i) => i.type === 'conversation')
+      .map((i) => i.id);
 
     // Fetch mimeType for documents
     const documentMetaMap = new Map<string, string>();

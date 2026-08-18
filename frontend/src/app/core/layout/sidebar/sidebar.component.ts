@@ -1,9 +1,18 @@
-import { Component, computed, EventEmitter, inject, input, Output, HostListener, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  EventEmitter,
+  HostListener,
+  inject,
+  input,
+  Output,
+  signal,
+} from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmDialogService } from '@spartan-ng/helm/dialog';
-import { ConversationService } from '../../../features/conversations/services/conversation.service';
 import { RenameConversationDialogComponent } from '../../../features/conversations/components/rename-conversation-dialog/rename-conversation-dialog.component';
+import { ConversationService } from '../../../features/conversations/services/conversation.service';
 import { WorkspacesStateService } from '../../../features/workspaces/services/workspaces-state.service';
 import { SidebarService } from '../../services/sidebar.service';
 
@@ -73,7 +82,8 @@ export class SidebarComponent {
     this.activeMenuConversation.set(null);
     const dialogRef = this.hlmDialogService.open(RenameConversationDialogComponent, {
       context: { conversationTitle: conv.title },
-      contentClass: 'max-w-md p-6 bg-surface-container-low border border-outline-variant rounded-lg',
+      contentClass:
+        'max-w-md p-6 bg-surface-container-low border border-outline-variant rounded-lg',
     });
 
     dialogRef.closed$.subscribe((result) => {

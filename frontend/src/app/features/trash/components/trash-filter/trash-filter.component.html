@@ -1,0 +1,67 @@
+<div
+  class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-sm sm:p-md flex flex-col md:flex-row items-stretch md:items-center justify-between gap-md"
+>
+  <!-- Type Filter Buttons -->
+  <div class="flex items-center gap-xs overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+    @for (option of filterOptions; track option.key) {
+    <button
+      type="button"
+      (click)="selectType(option.key)"
+      [class.bg-primary]="state.selectedType() === option.key"
+      [class.text-on-primary]="state.selectedType() === option.key"
+      [class.shadow-xs]="state.selectedType() === option.key"
+      [class.bg-surface-container]="state.selectedType() !== option.key"
+      [class.text-on-surface]="state.selectedType() !== option.key"
+      [class.hover:bg-surface-container-high]="state.selectedType() !== option.key"
+      class="flex items-center gap-xs px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border border-outline-variant/40 whitespace-nowrap"
+    >
+      <span class="material-symbols-outlined text-[16px]">{{ option.icon }}</span>
+      <span>{{ option.label }}</span>
+    </button>
+    }
+  </div>
+
+  <!-- Search & Sort Controls -->
+  <div class="flex items-center gap-sm flex-1 md:justify-end">
+    <!-- Search Input -->
+    <div class="relative flex-1 md:max-w-xs">
+      <span
+        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/50 text-[18px] pointer-events-none"
+      >
+        search
+      </span>
+      <input
+        type="text"
+        [value]="state.searchQuery()"
+        (input)="onSearchChange($event)"
+        placeholder="Rechercher dans la corbeille..."
+        class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-1.5 pl-9 pr-8 text-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-on-surface/40"
+      >
+      @if (state.searchQuery()) {
+      <button
+        type="button"
+        (click)="clearSearch()"
+        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface/40 hover:text-on-surface flex items-center justify-center p-0.5 rounded cursor-pointer bg-transparent border-0"
+        title="Effacer la recherche"
+      >
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>
+      }
+    </div>
+
+    <!-- Sort Order Toggle Button -->
+    <button
+      type="button"
+      (click)="toggleSort()"
+      class="flex items-center gap-xs px-3 py-1.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant/60 rounded-lg text-xs font-medium text-on-surface transition-colors cursor-pointer shrink-0"
+      [title]="state.sortOrder() === 'desc' ? 'Tri : Plus récent en premier' : 'Tri : Plus ancien en premier'"
+    >
+      <span class="material-symbols-outlined text-[18px] text-primary">
+        {{ state.sortOrder() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}
+      </span>
+      <span class="hidden sm:inline font-geist-mono text-[11px]">
+        {{ state.sortOrder() === 'desc' ? 'Plus récent' : 'Plus ancien' }}
+      </span>
+    </button>
+  </div>
+</div>

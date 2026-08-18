@@ -30,6 +30,18 @@ export class TrashItemMetadataDto {
   @IsOptional()
   @ValidateIf((o) => o.type === 'conversation')
   messageCount?: number;
+
+  @ApiProperty({
+    description: 'Icon of the workspace',
+    required: false,
+    nullable: true,
+    example: '🐲',
+    type: String,
+  })
+  @ValidateIf((o) => o.type === 'workspace')
+  @IsOptional()
+  @IsString()
+  icon?: string | null;
 }
 
 export class TrashItemDto {

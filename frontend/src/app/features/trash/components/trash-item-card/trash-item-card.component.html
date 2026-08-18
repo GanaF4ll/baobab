@@ -1,0 +1,116 @@
+<div
+  hlmCard
+  class="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest p-md transition-all duration-300 hover:shadow-crisp hover:border-outline h-full min-h-[220px]"
+>
+  <div class="flex flex-col gap-sm">
+    <!-- Top Row: Icon & Type Badges -->
+    <div class="flex items-start justify-between gap-sm">
+      <div class="flex items-center gap-xs flex-wrap">
+        <!-- Type Badge -->
+        <span
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border font-geist-mono"
+          [class]="getTypeBadgeClasses()"
+        >
+          <span class="material-symbols-outlined text-[13px]">{{ getIcon() }}</span>
+          {{ getTypeLabel() }}
+        </span>
+        <!-- Workspace Origin Tag (for docs & conversations) -->
+        @if (item().workspaceName) {
+        <span
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-surface-container text-on-surface/70 border border-outline-variant/40 max-w-[140px] truncate"
+          [title]="'Workspace : ' + item().workspaceName"
+        >
+          <span class="material-symbols-outlined text-[12px] opacity-60">folder</span>
+          <span class="truncate">{{ item().workspaceName }}</span>
+        </span>
+        }
+        <!-- Message count (for conversations) -->
+        @if (item().metadata?.messageCount !== undefined) {
+        <span class="text-[11px] text-on-surface-variant/60 font-geist-mono">
+          {{ item().metadata?.messageCount }}
+          msg{{ (item().metadata?.messageCount || 0) > 1 ? 's' : '' }}
+        </span>
+        }
+      </div>
+
+      <!-- Icon Box Thumbnail -->
+      <div
+        class="w-8 h-8 rounded-lg flex items-center justify-center border shrink-0"
+        [class]="getIconWrapperClasses()"
+      >
+        <span class="material-symbols-outlined text-[18px]">
+          {{ getIcon() }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="min-w-0 mt-xs">
+      <h3
+        hlmCardTitle
+        class="font-headline-md text-sm font-bold text-on-surface line-clamp-2 leading-snug"
+        [title]="item().title"
+      >
+        {{ item().title }}
+      </h3>
+    </div>
+
+    <!-- Deletion Date & Expiration info -->
+    <div class="mt-xs space-y-1.5">
+      <div class="flex items-center justify-between text-[11px] text-on-surface-variant/70">
+        <span class="flex items-center gap-1 font-geist-mono">
+          <span class="material-symbols-outlined text-[12px] opacity-60">event</span>
+          {{ item().deletedAt | date: 'mediumDate' }}
+        </span>
+        <span
+          class="font-geist-mono font-medium"
+          [class.text-error]="daysLeft() <= 3"
+          [class.text-amber-600]="daysLeft() > 3 && daysLeft() <= 7"
+          [class.text-on-surface-variant]="daysLeft() > 7"
+          [class.opacity-70]="daysLeft() > 7"
+        >
+          @if (daysLeft() === 0) { Expire aujourd'hui } @else { Expire dans {{ daysLeft() }}j }
+        </span>
+      </div>
+
+      <!-- Retention Countdown Progress Bar -->
+      <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+        <div
+          class="h-full rounded-full transition-all duration-300"
+          [class.bg-error]="daysLeft() <= 3"
+          [class.bg-amber-500]="daysLeft() > 3 && daysLeft() <= 7"
+          [class.bg-primary]="daysLeft() > 7"
+          [style.width.%]="retentionPercent()"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Actions Footer -->
+  <div
+    class="mt-md pt-sm border-t border-outline-variant/30 flex items-center justify-between gap-xs"
+  >
+    <!-- Restore Button -->
+    <button
+      type="button"
+      (click)="onRestore($event)"
+      class="flex items-center gap-xs px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors cursor-pointer border border-outline-variant/60 shadow-xs"
+      title="Restaurer cet élément"
+    >
+      <span class="material-symbols-outlined text-[16px] text-primary">restore</span>
+      <span>Restaurer</span>
+    </button>
+    <!-- Permanent Delete Button (documents only) -->
+    @if (canPermanentlyDelete()) {
+    <button
+      type="button"
+      (click)="onPermanentDelete($event)"
+      class="flex items-center gap-xs px-2.5 py-1.5 rounded-lg text-xs font-semibold text-error/80 hover:text-error hover:bg-error-container/30 transition-colors cursor-pointer border border-transparent hover:border-error/20"
+      title="Supprimer définitivement"
+    >
+      <span class="material-symbols-outlined text-[16px]">delete_forever</span>
+      <span class="hidden sm:inline">Supprimer</span>
+    </button>
+    }
+  </div>
+</div>

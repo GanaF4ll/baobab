@@ -9,6 +9,7 @@ export interface RawTrashRow {
   workspaceId: string | null;
   workspaceName: string | null;
   deletedAt: Date | null;
+  icon: string | null;
 }
 
 export class TrashMapper {
@@ -35,6 +36,8 @@ export class TrashMapper {
       } else if (item.type === 'conversation') {
         const messageCount = conversationMetaMap.get(item.id) ?? 0;
         metadata = { messageCount };
+      } else if (item.type === 'workspace') {
+        metadata = { icon: item.icon };
       }
 
       const dto: TrashItemDto = {
