@@ -4,8 +4,8 @@ import { OrderFilter } from 'src/shared/constants';
 import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
 import { RessouceType, TrashFilterDto } from 'src/trash/dto/input/trash-filter.dto';
 import { TrashItemDto } from 'src/trash/dto/output/trash-response.dto';
+import { TrashService } from 'src/trash/services/trash.service';
 import { TrashController } from 'src/trash/trash.controller';
-import { TrashService } from 'src/trash/trash.service';
 
 const mockTrashItem: TrashItemDto = {
   id: 'item-uuid-1',

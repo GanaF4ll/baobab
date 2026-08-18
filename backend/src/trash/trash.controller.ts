@@ -13,7 +13,7 @@ import { TRASH_SWAGGER_TAG } from 'src/swagger.config';
 import { TrashFilterDto } from './dto/input/trash-filter.dto';
 import { TrashCollectionResponseDto } from './dto/output/trash-collection-response.dto';
 import { TrashItemDto } from './dto/output/trash-response.dto';
-import { TrashService } from './trash.service';
+import { TrashService } from './services/trash.service';
 
 @Controller('trash')
 @ApiTags(TRASH_SWAGGER_TAG)

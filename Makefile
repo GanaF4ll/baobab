@@ -14,7 +14,7 @@ frontend-logs:
 	docker compose -f docker/docker-compose.dev.yml logs -f baobab-frontend
 
 backend-logs:
-	docker compose -f docker/docker-compose.dev.yml logs -f baobab-backend
+	docker compose -f docker/docker-compose.dev.yml logs -f baobab-backend -d
 
 backend-restart:
 	docker compose -f docker/docker-compose.dev.yml up -d --build --no-deps baobab-backend

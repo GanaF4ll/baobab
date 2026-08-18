@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { OrderFilter } from 'src/shared/constants';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import * as schema from 'src/drizzle/schema';
+import { OrderFilter } from 'src/shared/constants';
 import { StorageService } from 'src/shared/storage/storage.service';
 import { RessouceType, TrashFilterDto } from 'src/trash/dto/input/trash-filter.dto';
-import { TrashService } from 'src/trash/trash.service';
+import { TrashService } from 'src/trash/services/trash.service';
 
 jest.mock('drizzle-orm/pg-core', () => {
   const actual = jest.requireActual('drizzle-orm/pg-core');
@@ -53,12 +53,24 @@ describe('TrashService', () => {
     rawRows?: any[];
     docMeta?: any[];
     convMeta?: any[];
+    expiredWorkspaces?: any[];
+    expiredDocuments?: any[];
+    expiredConversations?: any[];
+    workspaceDocs?: any[];
+    workspaceVersions?: any[];
+    docVersions?: any[];
   }) => {
     const {
       countValue = 3,
       rawRows = [mockDeletedConversation, mockDeletedDocument, mockDeletedWorkspace],
       docMeta = [{ id: 'doc-1', mimeType: 'application/pdf' }],
       convMeta = [{ conversationId: 'conv-1', messageCount: 5 }],
+      expiredWorkspaces = [],
+      expiredDocuments = [],
+      expiredConversations = [],
+      workspaceDocs = [],
+      workspaceVersions = [],
+      docVersions = [],
     } = options;
 
     const selectMock = jest.fn().mockImplementation((fields?: any) => {
@@ -101,14 +113,60 @@ describe('TrashService', () => {
       return qb;
     });
 
+    const deleteWhereMock = jest.fn().mockResolvedValue([]);
+    const deleteMock = jest.fn().mockReturnValue({
+      where: deleteWhereMock,
+    });
+
+    let docCallCount = 0;
+    const documentsFindManyMock = jest.fn().mockImplementation(() => {
+      docCallCount++;
+      // First call is expiredDocuments, subsequent calls are workspaceDocs
+      if (docCallCount === 1) {
+        return Promise.resolve(expiredDocuments);
+      }
+      return Promise.resolve(workspaceDocs);
+    });
+
+    let versionCallCount = 0;
+    const documentVersionsFindManyMock = jest.fn().mockImplementation(() => {
+      versionCallCount++;
+      // If workspaceVersions exist and it's first version call, return workspaceVersions
+      if (workspaceVersions.length > 0 && versionCallCount === 1) {
+        return Promise.resolve(workspaceVersions);
+      }
+      return Promise.resolve(docVersions);
+    });
+
+    const queryMock = {
+      workspaces: {
+        findMany: jest.fn().mockResolvedValue(expiredWorkspaces),
+      },
+      documents: {
+        findMany: documentsFindManyMock,
+      },
+      conversations: {
+        findMany: jest.fn().mockResolvedValue(expiredConversations),
+      },
+      documentVersions: {
+        findMany: documentVersionsFindManyMock,
+      },
+    };
+
     return {
       select: selectMock,
+      delete: deleteMock,
+      deleteWhereMock,
+      query: queryMock,
     };
   };
 
   beforeEach(async () => {
     dbMock = setupDbMock({});
-    storageServiceMock = {};
+    storageServiceMock = {
+      deleteBulk: jest.fn().mockResolvedValue(undefined),
+      deleteFile: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -291,6 +349,127 @@ describe('TrashService', () => {
       expect(result).toBeDefined();
       expect(result.items).toHaveLength(3);
       expect(result.totalCount).toBe(3);
+    });
+  });
+
+  describe('purgeAllRessourcesMarkedForDeletion', () => {
+    it('should do nothing when there are no expired resources', async () => {
+      const customDb = setupDbMock({
+        expiredWorkspaces: [],
+        expiredDocuments: [],
+        expiredConversations: [],
+      });
+      (service as any).db = customDb;
+
+      await service.purgeAllRessourcesMarkedForDeletion(30);
+
+      expect(storageServiceMock.deleteBulk).not.toHaveBeenCalled();
+      expect(customDb.delete).not.toHaveBeenCalled();
+    });
+
+    it('should purge expired workspaces along with their storage files and cascade deletion', async () => {
+      const customDb = setupDbMock({
+        expiredWorkspaces: [{ id: 'ws-expired-1' }],
+        expiredDocuments: [],
+        expiredConversations: [],
+        workspaceDocs: [{ id: 'doc-in-ws-1' }],
+        workspaceVersions: [
+          { storageKey: 'documents/doc-in-ws-1/1/file1.pdf' },
+          { storageKey: 'documents/doc-in-ws-1/2/file2.pdf' },
+        ],
+      });
+      (service as any).db = customDb;
+
+      await service.purgeAllRessourcesMarkedForDeletion(30);
+
+      expect(storageServiceMock.deleteBulk).toHaveBeenCalledWith([
+        'documents/doc-in-ws-1/1/file1.pdf',
+        'documents/doc-in-ws-1/2/file2.pdf',
+      ]);
+      expect(customDb.delete).toHaveBeenCalledTimes(1);
+      expect(customDb.delete).toHaveBeenCalledWith(schema.workspaces);
+    });
+
+    it('should purge standalone expired documents in active workspaces', async () => {
+      const customDb = setupDbMock({
+        expiredWorkspaces: [],
+        expiredDocuments: [{ id: 'doc-standalone-1', workspaceId: 'ws-active' }],
+        expiredConversations: [],
+        docVersions: [{ storageKey: 'documents/doc-standalone-1/1/report.pdf' }],
+      });
+      (service as any).db = customDb;
+
+      await service.purgeAllRessourcesMarkedForDeletion(30);
+
+      expect(storageServiceMock.deleteBulk).toHaveBeenCalledWith([
+        'documents/doc-standalone-1/1/report.pdf',
+      ]);
+      expect(customDb.delete).toHaveBeenCalledTimes(1);
+      expect(customDb.delete).toHaveBeenCalledWith(schema.documents);
+    });
+
+    it('should purge standalone expired conversations in active workspaces', async () => {
+      const customDb = setupDbMock({
+        expiredWorkspaces: [],
+        expiredDocuments: [],
+        expiredConversations: [{ id: 'conv-standalone-1', workspaceId: 'ws-active' }],
+      });
+      (service as any).db = customDb;
+
+      await service.purgeAllRessourcesMarkedForDeletion(30);
+
+      expect(storageServiceMock.deleteBulk).not.toHaveBeenCalled();
+      expect(customDb.delete).toHaveBeenCalledTimes(1);
+      expect(customDb.delete).toHaveBeenCalledWith(schema.conversations);
+    });
+
+    it('should handle mixed expired resources without duplicate deletions for documents in expired workspaces', async () => {
+      const customDb = setupDbMock({
+        expiredWorkspaces: [{ id: 'ws-expired-1' }],
+        // doc-1 is inside ws-expired-1 (should be filtered out from standalone delete)
+        // doc-2 is inside ws-active (should be kept for standalone delete)
+        expiredDocuments: [
+          { id: 'doc-1', workspaceId: 'ws-expired-1' },
+          { id: 'doc-2', workspaceId: 'ws-active' },
+        ],
+        // conv-1 is inside ws-expired-1 (should be filtered out)
+        // conv-2 is inside ws-active (should be kept)
+        expiredConversations: [
+          { id: 'conv-1', workspaceId: 'ws-expired-1' },
+          { id: 'conv-2', workspaceId: 'ws-active' },
+        ],
+        workspaceDocs: [{ id: 'doc-1' }],
+        workspaceVersions: [{ storageKey: 'ws1-file.pdf' }],
+        docVersions: [{ storageKey: 'standalone-doc2-file.pdf' }],
+      });
+      (service as any).db = customDb;
+
+      await service.purgeAllRessourcesMarkedForDeletion(30);
+
+      // Storage should delete both workspace files and standalone doc files
+      expect(storageServiceMock.deleteBulk).toHaveBeenCalledWith([
+        'ws1-file.pdf',
+        'standalone-doc2-file.pdf',
+      ]);
+
+      // DB delete should be called for workspaces (ws-expired-1), documents (doc-2 only), conversations (conv-2 only)
+      expect(customDb.delete).toHaveBeenCalledTimes(3);
+      expect(customDb.delete).toHaveBeenCalledWith(schema.workspaces);
+      expect(customDb.delete).toHaveBeenCalledWith(schema.documents);
+      expect(customDb.delete).toHaveBeenCalledWith(schema.conversations);
+    });
+
+    it('should default retention period to 30 days when not specified', async () => {
+      const customDb = setupDbMock({
+        expiredWorkspaces: [],
+        expiredDocuments: [],
+        expiredConversations: [],
+      });
+      (service as any).db = customDb;
+
+      await service.purgeAllRessourcesMarkedForDeletion();
+
+      expect(customDb.query.workspaces.findMany).toHaveBeenCalled();
     });
   });
 });

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { and, asc, count, desc, eq, inArray, isNotNull, like, sql } from 'drizzle-orm';
 import { unionAll } from 'drizzle-orm/pg-core';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
@@ -6,16 +6,18 @@ import * as schema from 'src/drizzle/schema';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { CollectionResponseData } from 'src/shared/dto/output/api-collection-response.dto';
 import { StorageService } from 'src/shared/storage/storage.service';
-import { TrashFilterDto } from './dto/input/trash-filter.dto';
-import { TrashItemDto } from './dto/output/trash-response.dto';
-import { RawTrashRow, TrashMapper } from './mappers/trash.mapper';
+import { TrashFilterDto } from '../dto/input/trash-filter.dto';
+import { TrashItemDto } from '../dto/output/trash-response.dto';
+import { RawTrashRow, TrashMapper } from '../mappers/trash.mapper';
 
 @Injectable()
 export class TrashService {
   constructor(
     @Inject(DRIZZLE) readonly db: DrizzleDb,
-    readonly _storage: StorageService,
+    readonly storage: StorageService,
   ) {}
+
+  private readonly logger = new Logger(TrashService.name);
 
   /**
    * Find all trashed items for a user
@@ -196,5 +198,95 @@ export class TrashService {
       totalCount,
       nextCursor,
     };
+  }
+
+  /**
+   * Purge all resources that were marked for deletion older than the specified retention period.
+   * Also deletes physical files on S3/storage.
+   * @param retentionDays Number of days before permanent deletion (defaults to 30)
+   */
+  async purgeAllRessourcesMarkedForDeletion(retentionDays = 30): Promise<void> {
+    const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
+
+    const expiredWorkspaces = await this.db.query.workspaces.findMany({
+      where: (ws, { and, isNotNull, lte }) =>
+        and(isNotNull(ws.deletedAt), lte(ws.deletedAt, cutoffDate)),
+      columns: { id: true },
+    });
+    const expiredWorkspaceIds = expiredWorkspaces.map((w) => w.id);
+
+    const expiredDocuments = await this.db.query.documents.findMany({
+      where: (doc, { and, isNotNull, lte }) =>
+        and(isNotNull(doc.deletedAt), lte(doc.deletedAt, cutoffDate)),
+      columns: { id: true, workspaceId: true },
+    });
+    const standaloneDocumentIds = expiredDocuments
+      .filter((d) => !expiredWorkspaceIds.includes(d.workspaceId))
+      .map((d) => d.id);
+
+    const expiredConversations = await this.db.query.conversations.findMany({
+      where: (conv, { and, isNotNull, lte }) =>
+        and(isNotNull(conv.deletedAt), lte(conv.deletedAt, cutoffDate)),
+      columns: { id: true, workspaceId: true },
+    });
+    const standaloneConversationIds = expiredConversations
+      .filter((c) => !expiredWorkspaceIds.includes(c.workspaceId))
+      .map((c) => c.id);
+
+    const storageKeysToDelete: string[] = [];
+
+    if (expiredWorkspaceIds.length > 0) {
+      const wsDocs = await this.db.query.documents.findMany({
+        where: (doc, { inArray }) => inArray(doc.workspaceId, expiredWorkspaceIds),
+        columns: { id: true },
+      });
+      const wsDocIds = wsDocs.map((d) => d.id);
+
+      if (wsDocIds.length > 0) {
+        const wsVersions = await this.db.query.documentVersions.findMany({
+          where: (v, { inArray }) => inArray(v.documentId, wsDocIds),
+          columns: { storageKey: true },
+        });
+        storageKeysToDelete.push(...wsVersions.map((v) => v.storageKey));
+      }
+    }
+
+    if (standaloneDocumentIds.length > 0) {
+      const docVersions = await this.db.query.documentVersions.findMany({
+        where: (v, { inArray }) => inArray(v.documentId, standaloneDocumentIds),
+        columns: { storageKey: true },
+      });
+      storageKeysToDelete.push(...docVersions.map((v) => v.storageKey));
+    }
+
+    // Delete physical files from S3/MinIO
+    if (storageKeysToDelete.length > 0) {
+      this.logger.log(`Deleting ${storageKeysToDelete.length} files from storage...`);
+      await this.storage.deleteBulk(storageKeysToDelete);
+    }
+
+    // Delete entities from the database
+    if (expiredWorkspaceIds.length > 0) {
+      this.logger.log(`Purging ${expiredWorkspaceIds.length} expired workspaces...`);
+      await this.db
+        .delete(schema.workspaces)
+        .where(inArray(schema.workspaces.id, expiredWorkspaceIds));
+    }
+
+    if (standaloneDocumentIds.length > 0) {
+      this.logger.log(`Purging ${standaloneDocumentIds.length} standalone expired documents...`);
+      await this.db
+        .delete(schema.documents)
+        .where(inArray(schema.documents.id, standaloneDocumentIds));
+    }
+
+    if (standaloneConversationIds.length > 0) {
+      this.logger.log(
+        `Purging ${standaloneConversationIds.length} standalone expired conversations...`,
+      );
+      await this.db
+        .delete(schema.conversations)
+        .where(inArray(schema.conversations.id, standaloneConversationIds));
+    }
   }
 }
