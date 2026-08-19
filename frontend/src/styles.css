@@ -232,6 +232,7 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-geist);
   }
 }
 

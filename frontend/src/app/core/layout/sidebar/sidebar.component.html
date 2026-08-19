@@ -15,11 +15,11 @@
     <!-- Brand -->
     <div class="px-lg py-md flex items-center gap-sm border-b border-outline-variant/60">
       <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-        <span class="material-symbols-outlined text-on-primary text-[20px]">psychology</span>
+        <img src="logo.png" alt="Baobab logo">
       </div>
       <div class="min-w-0">
-        <h1 class="text-[15px] font-bold text-on-surface leading-tight font-geist">Baobab AI</h1>
-        <p class="text-[11px] text-on-surface/50 font-geist-mono leading-tight">
+        <h1 class="text-body-sm font-bold text-on-surface leading-tight">Baobab AI</h1>
+        <p class="text-label-md text-on-surface/50 font-geist-mono leading-tight">
           Privacy-First RAG
         </p>
       </div>
@@ -34,7 +34,7 @@
         <span class="material-symbols-outlined text-[18px] text-primary flex-shrink-0"
           >arrow_back</span
         >
-        <span class="text-[13px] font-medium text-primary group-hover:underline"
+        <span class="text-mono-label font-medium text-primary group-hover:underline"
           >Change workspace</span
         >
       </a>
@@ -47,7 +47,7 @@
         <div class="flex items-center gap-xs">
           <span class="material-symbols-outlined text-[16px] text-on-surface/50">chat</span>
           <span
-            class="text-[11px] font-bold text-on-surface/50 uppercase tracking-wider font-geist-mono"
+            class="text-label-md font-bold text-on-surface/50 uppercase tracking-wider font-geist-mono"
           >
             Conversations
           </span>
@@ -64,14 +64,14 @@
       <!-- Conversation list -->
       <div class="flex-1 overflow-y-auto min-h-0 space-y-px sidebar-scrollbar">
         @if (conversationService.isLoading()) {
-        <div class="px-sm py-sm text-[13px] text-on-surface/50 animate-pulse">Loading…</div>
+        <div class="px-sm py-sm text-mono-label text-on-surface/50 animate-pulse">Loading…</div>
         } @else if (conversationService.conversations().length === 0) {
-        <div class="px-sm py-sm text-[13px] text-on-surface/40 italic">No conversations yet</div>
+        <div class="px-sm py-sm text-mono-label text-on-surface/40 italic">No conversations yet</div>
         } @else { @for (conv of conversationService.conversations(); track conv.id) {
         <a
           [routerLink]="['/workspace', state.activeWorkspaceId(), 'conversation', conv.id]"
           routerLinkActive="bg-surface-container text-primary font-semibold"
-          class="relative flex items-center gap-xs px-sm py-1.5 rounded-lg hover:bg-surface-container/60 transition-colors group text-on-surface/80 text-[13px] pr-8"
+          class="relative flex items-center gap-xs px-sm py-1.5 rounded-lg hover:bg-surface-container/60 transition-colors group text-on-surface/80 text-mono-label pr-8"
         >
           <span class="material-symbols-outlined text-[16px] opacity-60 flex-shrink-0"
             >chat_bubble</span
@@ -98,7 +98,7 @@
       <a
         [routerLink]="['/workspace', state.activeWorkspaceId(), 'documents']"
         routerLinkActive="bg-surface-container text-primary font-semibold"
-        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-[13px]"
+        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-mono-label"
       >
         <span class="material-symbols-outlined text-[18px] opacity-60">folder_open</span>
         <span>Documents</span>
@@ -110,7 +110,7 @@
       <button
         hlmBtn
         (click)="onUpload()"
-        class="w-full py-2.5 bg-primary text-on-primary rounded-lg text-[13px] font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer font-geist-mono border-0"
+        class="w-full py-2.5 bg-primary text-on-primary rounded-lg text-mono-label font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer font-geist-mono border-0"
       >
         <span class="material-symbols-outlined text-[18px]">upload_file</span>
         Upload Document
@@ -123,7 +123,7 @@
         routerLink="/"
         routerLinkActive="bg-surface-container text-primary font-semibold"
         [routerLinkActiveOptions]="{ exact: true }"
-        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-[13px]"
+        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-mono-label"
       >
         <span class="material-symbols-outlined text-[18px] opacity-60">workspaces</span>
         <span>Workspaces</span>
@@ -131,7 +131,7 @@
       <a
         routerLink="/trash"
         routerLinkActive="bg-surface-container text-primary font-semibold"
-        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-[13px]"
+        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-mono-label"
       >
         <span class="material-symbols-outlined text-[18px] opacity-60">delete</span>
         <span>Corbeille</span>
@@ -139,7 +139,7 @@
       <a
         href="#"
         (click)="$event.preventDefault()"
-        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-[13px]"
+        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-mono-label"
       >
         <span class="material-symbols-outlined text-[18px] opacity-60">settings</span>
         <span>Global Settings</span>
@@ -147,7 +147,7 @@
       <a
         href="#"
         (click)="$event.preventDefault()"
-        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-[13px]"
+        class="flex items-center gap-sm px-sm py-2 rounded-lg hover:bg-surface-container/60 transition-colors text-on-surface/80 text-mono-label"
       >
         <span class="material-symbols-outlined text-[18px] opacity-60">help_center</span>
         <span>Support</span>
@@ -159,7 +159,7 @@
       <button
         hlmBtn
         (click)="onUpload()"
-        class="w-full py-2.5 bg-primary text-on-primary rounded-lg text-[13px] font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer font-geist-mono border-0"
+        class="w-full py-2.5 bg-primary text-on-primary rounded-lg text-mono-label font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-xs shadow-sm cursor-pointer font-geist-mono border-0"
       >
         <span class="material-symbols-outlined text-[18px]">add</span>
         New Workspace
@@ -172,11 +172,11 @@
     (click)="$event.stopPropagation()"
     [style.top.px]="menuPosition()?.top"
     [style.left.px]="menuPosition()?.left"
-    class="fixed z-[100] min-w-[180px] bg-surface-container-high border border-outline-variant rounded-lg shadow-lg py-1 text-[13px] text-on-surface animate-in fade-in slide-in-from-top-1 duration-100"
+    class="fixed z-[100] min-w-[180px] bg-surface-container-high border border-outline-variant rounded-lg shadow-lg py-1 text-mono-label text-on-surface animate-in fade-in slide-in-from-top-1 duration-100"
   >
     <!-- <button
       (click)="shareConversation(conv)"
-      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-[13px]"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-mono-label"
     >
       <span class="material-symbols-outlined text-[16px] opacity-60">share</span>
       Partager
@@ -184,7 +184,7 @@
 
     <button
       (click)="pinConversation(conv)"
-      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-[13px]"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-mono-label"
     >
       <span class="material-symbols-outlined text-[16px] opacity-60">keep</span>
       Épingler
@@ -192,7 +192,7 @@
 
     <button
       (click)="openRenameDialog(conv)"
-      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-[13px]"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-mono-label"
     >
       <span class="material-symbols-outlined text-[16px] opacity-60">edit</span>
       Renommer
@@ -202,7 +202,7 @@
 
     <button
       (click)="deleteConversation(conv)"
-      class="w-full flex items-center gap-sm px-md py-2 hover:bg-error-container/40 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-[13px]"
+      class="w-full flex items-center gap-sm px-md py-2 hover:bg-error-container/40 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-mono-label"
     >
       <span class="material-symbols-outlined text-[16px] opacity-75 text-error">delete</span>
       Archiver

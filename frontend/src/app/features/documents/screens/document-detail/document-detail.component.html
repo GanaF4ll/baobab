@@ -139,7 +139,7 @@
 
             <!-- Badges and details -->
             <div
-              class="flex flex-wrap items-center gap-sm mt-xs text-[11px] font-medium text-on-surface-variant/80 font-label-technical"
+              class="flex flex-wrap items-center gap-sm mt-xs text-label-md font-medium text-on-surface-variant/80 font-label-technical"
             >
               <span
                 [class]="doc.mimeType === 'application/pdf' 
@@ -247,7 +247,7 @@
               <span class="text-xs font-bold font-label-technical text-primary"
                 >Markdown Editor</span
               >
-              <span class="text-[10px] text-on-surface-variant/60 font-mono"
+              <span class="text-label-md text-on-surface-variant/60 font-mono"
                 >Press Save to commit changes as a new version.</span
               >
             </div>
@@ -310,13 +310,13 @@
         >
           <div class="flex items-center justify-between pb-xs border-b border-outline-variant/30">
             <h3
-              class="font-headline-md text-xs font-bold text-on-surface flex items-center gap-xs uppercase tracking-wider"
+              class="font-headline-md text-label-md font-bold text-on-surface flex items-center gap-xs uppercase tracking-wider"
             >
               <span class="material-symbols-outlined text-[16px]">history</span>
               Version Log
             </h3>
             <span
-              class="px-xs py-xxs bg-surface-container-high text-on-surface border border-outline-variant rounded-md text-[10px] font-bold font-mono"
+              class="px-xs py-xxs bg-surface-container-high text-on-surface border border-outline-variant rounded-md text-label-md font-bold font-mono"
             >
               {{ versions().length }}
               total
@@ -368,7 +368,7 @@
                 </span>
                 @if (ver.versionNumber === currentVersionNumber()) {
                 <span
-                  class="px-xs py-xxs bg-primary/10 border border-primary/20 text-primary text-[8px] font-bold uppercase rounded-md"
+                  class="px-xs py-xxs bg-primary/10 border border-primary/20 text-primary text-label-md font-bold uppercase rounded-md"
                 >
                   Latest
                 </span>
@@ -376,7 +376,7 @@
               </div>
 
               <!-- Date -->
-              <div class="text-[9px] text-on-surface-variant/70 mt-xs font-label-technical">
+              <div class="text-label-md text-on-surface-variant/70 mt-xs font-label-technical">
                 {{ ver.createdAt | date: 'medium' }}
               </div>
               <!-- Actions (trash version) -->
@@ -393,7 +393,7 @@
 
           <!-- Hint text -->
           <p
-            class="text-[10px] text-on-surface-variant/60 leading-normal font-label-technical px-xs"
+            class="text-label-md text-on-surface-variant/60 leading-normal font-label-technical px-xs"
           >
             Select any past version log snapshot to read or view its content. Editing and saving new
             version commits can only be done on the active <strong>Latest</strong> version.

@@ -15,7 +15,7 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-xl gap-lg">
       <div class="flex-1 min-w-0">
         <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Workspaces</h2>
-        <p class="font-body-md text-body-md text-on-surface opacity-80 max-w-lg">
+        <p class="font-body-sm text-body-sm text-on-surface-variant/80 mt-1 max-w-2xl">
           Manage your secure RAG environments. Each workspace maintains isolated context and
           encryption keys for maximum data privacy.
         </p>
@@ -67,7 +67,7 @@
     <p class="font-label-technical text-label-technical font-bold text-on-surface">
       {{ state.toast().title }}
     </p>
-    <p class="text-[11px] text-on-surface opacity-70">{{ state.toast().message }}</p>
+    <p class="text-label-md text-on-surface opacity-70">{{ state.toast().message }}</p>
   </div>
   <button
     (click)="state.closeToast()"

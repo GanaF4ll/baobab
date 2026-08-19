@@ -34,7 +34,7 @@
         >
       </div>
       @if (renameForm.icon().invalid()) {
-      <p class="text-[12px] text-error mt-1">L'icône ne peut contenir que des emojis.</p>
+      <p class="text-label-md text-error mt-1">L'icône ne peut contenir que des emojis.</p>
       }
 
       <!-- Quick Emoji Picker List -->
@@ -74,7 +74,7 @@
       >
       @if (renameForm.name().invalid() && (renameForm.name().dirty() ||
       renameForm.name().touched())) {
-      <p class="text-[12px] text-error">Le nom du workspace est obligatoire.</p>
+      <p class="text-label-md text-error">Le nom du workspace est obligatoire.</p>
       }
     </div>
 

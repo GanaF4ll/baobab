@@ -14,7 +14,7 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md">
       <div>
         <div class="flex items-center gap-sm">
-          <h1 class="font-headline-lg text-headline-lg text-on-surface">Corbeille</h1>
+          <h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Corbeille</h2>
           @if (!state.isLoading() && state.totalCount() > 0) {
           <span
             class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface/80 border border-outline-variant font-geist-mono"
@@ -75,8 +75,8 @@
       >
         <span class="material-symbols-outlined text-[32px]">filter_alt_off</span>
       </div>
-      <h3 class="text-headline-md font-bold text-on-surface mb-xs">Aucun résultat trouvé</h3>
-      <p class="text-body-sm text-on-surface-variant/80 max-w-md mb-lg">
+      <h3 class="font-headline-md text-headline-md font-bold text-on-surface mb-xs">Aucun résultat trouvé</h3>
+      <p class="font-body-sm text-body-sm text-on-surface-variant/80 max-w-md mb-lg">
         Aucun élément dans la corbeille ne correspond à vos filtres actuels.
       </p>
       <button
@@ -93,8 +93,8 @@
       >
         <span class="material-symbols-outlined text-[32px]">delete_outline</span>
       </div>
-      <h3 class="text-headline-md font-bold text-on-surface mb-xs">La corbeille est vide</h3>
-      <p class="text-body-sm text-on-surface-variant/70 max-w-md">
+      <h3 class="font-headline-md text-headline-md font-bold text-on-surface mb-xs">La corbeille est vide</h3>
+      <p class="font-body-sm text-body-sm text-on-surface-variant/70 max-w-md">
         Aucun élément supprimé. Lorsque vous supprimez un workspace, un document ou une
         conversation, ils apparaissent ici pendant 30 jours avant leur suppression définitive.
       </p>
@@ -134,7 +134,7 @@
     <p class="font-label-technical text-label-technical font-bold text-on-surface">
       {{ state.toast().title }}
     </p>
-    <p class="text-[11px] text-on-surface/70 mt-0.5">{{ state.toast().message }}</p>
+    <p class="text-label-md text-on-surface/70 mt-0.5">{{ state.toast().message }}</p>
   </div>
   <button
     type="button"
