@@ -105,6 +105,9 @@ services:
     environment:
       NODE_ENV: development
       TZ: ${TZ:-Europe/Paris}
+      PORT: 3000
+      BACKEND_INTERNAL_URL: http://baobab-backend:2400
+      SWAGGER_URL: http://baobab-backend:2400/swagger-json
       API_URL: http://localhost:2400
     volumes:
       - ../frontend:/app/frontend

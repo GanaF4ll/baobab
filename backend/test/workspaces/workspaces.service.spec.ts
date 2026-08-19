@@ -38,6 +38,7 @@ const buildDbMock = () => {
       where: jest.fn().mockImplementation((...args) => {
         const promise = countWhereMock(...args);
         const thenable = {
+          // biome-ignore lint/suspicious/noThenProperty: intentional thenable mock for query builder
           then: (onFulfilled: any, onRejected: any) => {
             return Promise.resolve(promise)
               .then((val) => {

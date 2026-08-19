@@ -101,10 +101,23 @@ services:
     container_name: baobab-frontend
     restart: unless-stopped
     ports:
-      - '${FRONTEND_PORT:-3000}:80'
+      - '${FRONTEND_PORT:-3000}:3000'
+    env_file:
+      - ../.env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://baobab-backend:2400}
+      SWAGGER_URL: ${SWAGGER_URL:-http://baobab-backend:2400/swagger-json}
     depends_on:
       baobab-backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
     networks:
       - baobab-network
 

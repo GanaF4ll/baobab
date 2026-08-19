@@ -46,7 +46,7 @@ export class SidebarComponent {
 
   createNewConversation() {
     const title = prompt('Enter conversation title:');
-    if (title && title.trim()) {
+    if (title?.trim()) {
       this.conversationService.createConversation(title.trim());
     }
   }
@@ -88,7 +88,7 @@ export class SidebarComponent {
 
     dialogRef.closed$.subscribe((result) => {
       const title = result as string | undefined;
-      if (title && title.trim() && title.trim() !== conv.title) {
+      if (title?.trim() && title.trim() !== conv.title) {
         this.conversationService.renameConversation(conv.id, title.trim());
       }
     });

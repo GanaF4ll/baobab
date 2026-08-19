@@ -17,4 +17,3 @@ export const HlmTabsImports = [
   HlmTabsContent,
   HlmTabsContentLazy,
 ] as const;
-

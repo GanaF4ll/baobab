@@ -17,6 +17,5 @@ export const appConfig: ApplicationConfig = {
           ? 'http://localhost:2400'
           : '',
     }),
-
   ],
 };
