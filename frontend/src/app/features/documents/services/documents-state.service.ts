@@ -1,5 +1,4 @@
 import { computed, Injectable, inject, signal } from '@angular/core';
-import { DocumentsService } from '../../../../client';
 import { DocumentsResource } from '../../../../client/resources';
 import { WorkspacesStateService } from '../../workspaces/services/workspaces-state.service';
 
@@ -8,7 +7,6 @@ import { WorkspacesStateService } from '../../workspaces/services/workspaces-sta
 })
 export class DocumentsStateService {
   private readonly documentRessource = inject(DocumentsResource);
-  private readonly documentService = inject(DocumentsService);
   private readonly workspacesStateService = inject(WorkspacesStateService);
 
   public readonly activeWorkspaceId = computed(

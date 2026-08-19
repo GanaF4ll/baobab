@@ -1,6 +1,7 @@
 FROM node:26-alpine
 
-RUN npm install -g pnpm@10
+RUN npm install -g pnpm@10 && \
+    apk add --no-cache curl
 
 WORKDIR /app
 
@@ -16,9 +17,12 @@ RUN pnpm config set minimum-release-age 0 && \
 # Copy source code
 COPY frontend/ ./frontend/
 
+# Copy startup script
+COPY docker/scripts/start-frontend-local.sh /scripts/start-frontend-local.sh
+RUN sed -i 's/\r$//' /scripts/start-frontend-local.sh && chmod +x /scripts/start-frontend-local.sh
+
 WORKDIR /app/frontend
 
 EXPOSE 3000
 
-# Shell form to avoid Node.js entrypoint issues
-CMD pnpm run start --host 0.0.0.0 --port 3000
+CMD ["sh", "/scripts/start-frontend-local.sh"]

@@ -61,9 +61,9 @@ export function classes(computed: () => ClassValue[] | string, options: ClassesO
     const sourceId = sourceCounter++;
 
     // Get or create the class manager for this element
-    let manager = elementClassManagers.get(element);
+    let existingManager = elementClassManagers.get(element);
 
-    if (!manager) {
+    if (!existingManager) {
       // Initialize base classes from variation (host attribute 'class')
       const initialBaseClasses = new Set<string>();
 
@@ -73,7 +73,7 @@ export function classes(computed: () => ClassValue[] | string, options: ClassesO
         });
       }
 
-      manager = {
+      existingManager = {
         element,
         sources: new Map(),
         baseClasses: initialBaseClasses,
@@ -85,7 +85,7 @@ export function classes(computed: () => ClassValue[] | string, options: ClassesO
         previousTransition: '',
         previousTransitionPriority: '',
       };
-      elementClassManagers.set(element, manager);
+      elementClassManagers.set(element, existingManager);
 
       // Setup global observer if needed and register this element
       setupGlobalObserver(platformId);
@@ -95,12 +95,15 @@ export function classes(computed: () => ClassValue[] | string, options: ClassesO
       // the browser has painted them. This prevents CSS transition animations
       // during hydration when classes change from SSR state to client state.
       if (isPlatformBrowser(platformId)) {
-        manager.previousTransition = element.style.getPropertyValue('transition');
-        manager.previousTransitionPriority = element.style.getPropertyPriority('transition');
+        existingManager.previousTransition = element.style.getPropertyValue('transition');
+        existingManager.previousTransitionPriority =
+          element.style.getPropertyPriority('transition');
         element.style.setProperty('transition', 'none', 'important');
-        manager.transitionsSuppressed = true;
+        existingManager.transitionsSuppressed = true;
       }
     }
+
+    const manager = existingManager;
 
     // Assign order once at registration time
     const sourceOrder = manager.nextOrder++;
@@ -110,47 +113,47 @@ export function classes(computed: () => ClassValue[] | string, options: ClassesO
       const newClasses = toClassList(computed());
 
       // Update this source's classes, keeping the original order
-      manager!.sources.set(sourceId, {
+      manager.sources.set(sourceId, {
         classes: new Set(newClasses),
         order: sourceOrder,
       });
 
       // Update the element
-      updateElement(manager!);
+      updateElement(manager);
 
       // Re-enable transitions after the first effect writes correct classes.
       // Deferred to next animation frame so the browser paints the class change
       // with transitions disabled first, then re-enables them.
-      if (manager!.transitionsSuppressed) {
-        manager!.transitionsSuppressed = false;
-        manager!.restoreRafId = requestAnimationFrame(() => {
-          manager!.restoreRafId = null;
-          restoreTransitionSuppression(manager!);
+      if (manager.transitionsSuppressed) {
+        manager.transitionsSuppressed = false;
+        manager.restoreRafId = requestAnimationFrame(() => {
+          manager.restoreRafId = null;
+          restoreTransitionSuppression(manager);
         });
       }
     }
 
     // Register cleanup with DestroyRef
     destroyRef.onDestroy(() => {
-      if (manager!.restoreRafId !== null) {
-        cancelAnimationFrame(manager!.restoreRafId);
-        manager!.restoreRafId = null;
+      if (manager.restoreRafId !== null) {
+        cancelAnimationFrame(manager.restoreRafId);
+        manager.restoreRafId = null;
       }
 
-      if (manager!.transitionsSuppressed) {
-        manager!.transitionsSuppressed = false;
-        restoreTransitionSuppression(manager!);
+      if (manager.transitionsSuppressed) {
+        manager.transitionsSuppressed = false;
+        restoreTransitionSuppression(manager);
       }
 
       // Remove this source from the manager
-      manager!.sources.delete(sourceId);
+      manager.sources.delete(sourceId);
 
       // If no more sources, clean up the manager
-      if (manager!.sources.size === 0) {
+      if (manager.sources.size === 0) {
         cleanupManager(element);
       } else {
         // Update element without this source's classes
-        updateElement(manager!);
+        updateElement(manager);
       }
     });
 
@@ -299,8 +302,11 @@ const classListCache = new Map<string, string[]>();
 
 function toClassList(className: string | ClassValue[]): string[] {
   // For simple string inputs, use cache to avoid repeated parsing
-  if (typeof className === 'string' && classListCache.has(className)) {
-    return classListCache.get(className)!;
+  if (typeof className === 'string') {
+    const cached = classListCache.get(className);
+    if (cached) {
+      return cached;
+    }
   }
 
   const result = clsx(className)

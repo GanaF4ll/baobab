@@ -32,7 +32,7 @@ export class IsUnicodeEmojiConstraint implements ValidatorConstraintInterface {
 }
 
 export function IsUnicodeEmoji(validationOptions?: ValidationOptions) {
-  return (object: Object, propertyName: string) => {
+  return (object: object, propertyName: string) => {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
