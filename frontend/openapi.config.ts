@@ -1,8 +1,15 @@
+/// <reference types="node" />
 import { HttpResourcePlugin } from '@ng-openapi/http-resource';
-import { GeneratorConfig } from 'ng-openapi';
+import type { GeneratorConfig } from 'ng-openapi';
+
+const swaggerUrl =
+  process.env['SWAGGER_URL'] ||
+  (process.env['BACKEND_INTERNAL_URL']
+    ? `${process.env['BACKEND_INTERNAL_URL']}/swagger-json`
+    : 'http://localhost:2400/swagger-json');
 
 const config: GeneratorConfig = {
-  input: 'http://localhost:2400/swagger-json',
+  input: swaggerUrl,
   output: './src/client',
   plugins: [HttpResourcePlugin],
   options: {

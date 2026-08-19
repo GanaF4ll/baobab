@@ -31,26 +31,6 @@ PORT_NUM="${PORT:-2400}"
 pnpm run start:dev &
 pid="$!"
 
-# Background task to generate OpenAPI client once NestJS is ready
-(
-  echo "▶ Waiting for NestJS and Swagger JSON on port ${PORT_NUM} to generate OpenAPI client..."
-  max_attempts=30
-  attempt=0
-  until curl -sf "http://127.0.0.1:${PORT_NUM}/swagger-json" > /dev/null 2>&1 || curl -sf "http://localhost:${PORT_NUM}/swagger-json" > /dev/null 2>&1; do
-    attempt=$((attempt + 1))
-    if [ "$attempt" -ge "$max_attempts" ]; then
-      echo "⚠️ Timeout waiting for Swagger endpoint"
-      exit 0
-    fi
-    sleep 1
-  done
-
-  echo "✅ NestJS is ready. Generating OpenAPI client for frontend..."
-  if [ -f "/app/frontend/openapi.config.ts" ]; then
-    (cd /app/frontend && pnpm run generate:api) || echo "⚠️ Warning: Failed to generate OpenAPI client in /app/frontend"
-  elif [ -f "../frontend/openapi.config.ts" ]; then
-    (cd ../frontend && pnpm run generate:api) || echo "⚠️ Warning: Failed to generate OpenAPI client in ../frontend"
-  fi
-) &
+echo "NestJS running in dev mode on port ${PORT_NUM} (PID: $pid)"
 
 wait "$pid"

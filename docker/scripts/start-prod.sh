@@ -36,36 +36,7 @@ else
   exit 1
 fi
 
-# 4. Wait for NestJS server and Swagger to be ready
-echo "▶ Waiting for NestJS and Swagger JSON to be ready on port ${PORT_NUM}..."
-max_attempts=30
-attempt=0
-until curl -sf "http://127.0.0.1:${PORT_NUM}/swagger-json" > /dev/null 2>&1 || curl -sf "http://localhost:${PORT_NUM}/swagger-json" > /dev/null 2>&1; do
-  attempt=$((attempt + 1))
-  if [ "$attempt" -ge "$max_attempts" ]; then
-    echo "⚠️ Warning: Timeout waiting for Swagger endpoint at http://localhost:${PORT_NUM}/swagger-json"
-    break
-  fi
-  sleep 1
-done
+echo "NestJS running on port ${PORT_NUM} (PID: $pid)"
 
-# 5. Generate OpenAPI services for frontend if available
-if [ "$attempt" -lt "$max_attempts" ]; then
-  echo "✅ NestJS is ready and Swagger endpoint is available."
-
-  echo "▶ Generating OpenAPI client for frontend..."
-  if [ -f "/app/frontend/openapi.config.ts" ]; then
-    (cd /app/frontend && pnpm run generate:api) || echo "⚠️ Warning: Failed to generate OpenAPI client in /app/frontend"
-  elif [ -f "../frontend/openapi.config.ts" ]; then
-    (cd ../frontend && pnpm run generate:api) || echo "⚠️ Warning: Failed to generate OpenAPI client in ../frontend"
-  elif [ -f "frontend/openapi.config.ts" ]; then
-    (cd frontend && pnpm run generate:api) || echo "⚠️ Warning: Failed to generate OpenAPI client in frontend"
-  else
-    echo "ℹ️ Frontend config not found in current path, skipping OpenAPI generation."
-  fi
-fi
-
-echo "🚀 NestJS running on port ${PORT_NUM} (PID: $pid)"
-
-# 6. Keep container alive and attached to NestJS process
+# 4. Keep container alive and attached to NestJS process
 wait "$pid"

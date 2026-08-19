@@ -1,14 +1,14 @@
-# ==========================================
-# Stage 1: Build Frontend (Angular)
-# ==========================================
-FROM node:26-alpine AS builder
+FROM node:26-alpine
 
-RUN npm install -g pnpm@10
+RUN npm install -g pnpm@10 && \
+    apk add --no-cache curl
+
 WORKDIR /app
 
 ENV CI=true
+ENV NODE_ENV=production
 
-# Copy monorepo configuration and frontend package.json
+# Copy workspace-level dependency files (monorepo root lockfile)
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY frontend/package.json ./frontend/
 
@@ -19,27 +19,15 @@ RUN pnpm config set minimum-release-age 0 && \
 # Copy frontend source code
 COPY frontend/ ./frontend/
 
-# Build Angular application for production
+# Copy startup script
+COPY docker/scripts/start-frontend-prod.sh /scripts/start-frontend-prod.sh
+RUN chmod +x /scripts/start-frontend-prod.sh
+
 WORKDIR /app/frontend
-RUN pnpm run build
 
-# ==========================================
-# Stage 2: Production Nginx Server
-# ==========================================
-FROM nginx:1.27-alpine AS runner
+EXPOSE 3000
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 --start-period=30s \
+  CMD curl -f http://localhost:3000/ || exit 1
 
-# Copy custom Nginx configuration
-COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
-
-# Copy built Angular static assets
-COPY --from=builder /app/frontend/dist/frontend/browser /usr/share/nginx/html
-
-EXPOSE 80
-
-HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
-  CMD curl -f http://localhost:80/ || exit 1
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "/scripts/start-frontend-prod.sh"]
