@@ -52,7 +52,7 @@ COPY backend/src/drizzle /app/backend/src/drizzle
 
 # Copy startup script
 COPY docker/scripts/start-prod.sh /scripts/start-prod.sh
-RUN chmod +x /scripts/start-prod.sh
+RUN sed -i 's/\r$//' /scripts/start-prod.sh && chmod +x /scripts/start-prod.sh
 
 WORKDIR /app/backend
 

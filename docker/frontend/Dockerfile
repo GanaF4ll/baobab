@@ -19,7 +19,7 @@ COPY frontend/ ./frontend/
 
 # Copy startup script
 COPY docker/scripts/start-frontend-local.sh /scripts/start-frontend-local.sh
-RUN chmod +x /scripts/start-frontend-local.sh
+RUN sed -i 's/\r$//' /scripts/start-frontend-local.sh && chmod +x /scripts/start-frontend-local.sh
 
 WORKDIR /app/frontend
 
