@@ -209,8 +209,8 @@ export class ConversationDetailComponent implements OnInit {
 
     inputEl.value = '';
 
-    const userMsgId = 'user-' + Date.now();
-    const assistantMsgId = 'assistant-' + Date.now();
+    const userMsgId = `user-${Date.now()}`;
+    const assistantMsgId = `assistant-${Date.now()}`;
 
     const userMsg = {
       id: userMsgId,

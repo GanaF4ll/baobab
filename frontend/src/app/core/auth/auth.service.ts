@@ -115,7 +115,7 @@ export class AuthService {
         window
           .atob(base64)
           .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .map((c) => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
           .join(''),
       );
       return JSON.parse(jsonPayload);
@@ -126,7 +126,7 @@ export class AuthService {
 
   private isTokenExpired(): boolean {
     const user = this._currentUser();
-    if (!user || !user.exp) return true;
+    if (!user?.exp) return true;
     return Date.now() >= user.exp * 1000;
   }
 }

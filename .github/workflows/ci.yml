@@ -1,4 +1,4 @@
-name: CI - Lint, Test & Build
+name: CI
 
 on:
   push:
@@ -7,12 +7,12 @@ on:
     branches: [main, dev]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   lint:
-    name: Lint & Format Check
+    name: Lint & Format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -35,8 +35,9 @@ jobs:
       - name: Biome Check (Format & Lint)
         run: pnpm exec biome check .
 
-  backend-ci:
-    name: Backend (Tests & Build)
+  backend:
+    name: Backend
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -62,8 +63,19 @@ jobs:
       - name: Build Backend
         run: pnpm --filter backend build
 
-  frontend-ci:
-    name: Frontend (Tests & Build)
+      - name: Generate Swagger JSON
+        run: pnpm --filter backend swagger:generate
+
+      - name: Upload Swagger JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: swagger-json
+          path: backend/swagger.json
+          retention-days: 1
+
+  frontend:
+    name: Frontend
+    needs: backend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -82,6 +94,17 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Download Swagger JSON
+        uses: actions/download-artifact@v4
+        with:
+          name: swagger-json
+          path: backend
+
+      - name: Generate OpenAPI Client
+        run: pnpm --filter frontend generate:api
+        env:
+          SWAGGER_FILE: ${{ github.workspace }}/backend/swagger.json
 
       - name: Run Frontend Tests
         run: pnpm --filter frontend test -- --watch=false || echo "No tests run or passed"
