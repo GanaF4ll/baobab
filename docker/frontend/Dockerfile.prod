@@ -1,0 +1,33 @@
+FROM node:26-alpine
+
+RUN npm install -g pnpm@10 && \
+    apk add --no-cache curl
+
+WORKDIR /app
+
+ENV CI=true
+ENV NODE_ENV=production
+
+# Copy workspace-level dependency files (monorepo root lockfile)
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY frontend/package.json ./frontend/
+
+# Install frontend dependencies
+RUN pnpm config set minimum-release-age 0 && \
+    pnpm install --frozen-lockfile --filter frontend
+
+# Copy frontend source code
+COPY frontend/ ./frontend/
+
+# Copy startup script
+COPY docker/scripts/start-frontend-prod.sh /scripts/start-frontend-prod.sh
+RUN sed -i 's/\r$//' /scripts/start-frontend-prod.sh && chmod +x /scripts/start-frontend-prod.sh
+
+WORKDIR /app/frontend
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 --start-period=30s \
+  CMD curl -f http://localhost:3000/ || exit 1
+
+CMD ["sh", "/scripts/start-frontend-prod.sh"]

@@ -1,5 +1,7 @@
 import { relations } from 'drizzle-orm';
 import {
+  bigint,
+  boolean,
   index,
   integer,
   jsonb,
@@ -23,6 +25,8 @@ export const llmModelStatusEnum = pgEnum('model_status', [
   'ready',
 ]);
 
+//* ─── Tables ───────────────────────────────────────────────────────────────────
+
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
@@ -43,16 +47,18 @@ export const refreshTokens = pgTable('refresh_tokens', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// export const workspaces = pgTable('workspaces', {
-//   id: uuid('id').primaryKey().defaultRandom(),
-//   name: text('name').notNull(),
-//   description: text('description'),
-//   ownerId: uuid('owner_id')
-//     .notNull()
-//     .references(() => users.id, { onDelete: 'cascade' }),
-//   createdAt: timestamp('created_at').notNull().defaultNow(),
-//   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-// });
+export const workspaces = pgTable('workspaces', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description'),
+  ownerId: uuid('owner_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at'),
+  icon: text('icon'),
+});
 
 // export const workspaceMembers = pgTable('workspace_members', {
 //   id: uuid('id').primaryKey().defaultRandom(),
@@ -73,9 +79,12 @@ export const documents = pgTable('documents', {
     .references(() => users.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   mimeType: mimeTypeEnum('mime_type').notNull(),
-  currentVersion: integer('current_version').notNull().default(1),
+  workspaceId: uuid('workspace_id')
+    .notNull()
+    .references(() => workspaces.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 });
 
 export const documentVersions = pgTable('document_versions', {
@@ -87,6 +96,7 @@ export const documentVersions = pgTable('document_versions', {
   storageKey: text('storage_key').notNull(),
   changeSummary: text('change_summary'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 });
 
 /**
@@ -97,9 +107,9 @@ export const chunks = pgTable(
   'chunks',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    documentId: uuid('document_id')
+    workspaceId: uuid('workspace_id')
       .notNull()
-      .references(() => documents.id, { onDelete: 'cascade' }),
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
     versionId: uuid('version_id')
       .notNull()
       .references(() => documentVersions.id, { onDelete: 'cascade' }),
@@ -107,10 +117,11 @@ export const chunks = pgTable(
     content: text('content').notNull(),
     embedding: vector('embedding', { dimensions: 768 }),
     createdAt: timestamp('created_at').notNull().defaultNow(),
+    isDeleted: boolean('is_deleted').default(false),
   },
   (table) => [
     index('chunks_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
-    index('chunks_document_id_idx').on(table.documentId),
+    index('chunks_workspace_id_idx').on(table.workspaceId),
   ],
 );
 
@@ -119,11 +130,12 @@ export const conversations = pgTable('conversations', {
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  documentId: uuid('document_id')
+  workspaceId: uuid('workspace_id')
     .notNull()
-    .references(() => documents.id, { onDelete: 'cascade' }),
+    .references(() => workspaces.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at'),
 });
 
 export const messages = pgTable('messages', {
@@ -133,7 +145,7 @@ export const messages = pgTable('messages', {
     .references(() => conversations.id, { onDelete: 'cascade' }),
   role: messageRoleEnum('role').notNull(),
   content: text('content').notNull(),
-  sources: jsonb('sources'),
+  sources: jsonb('sources').$type<string[]>(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -141,7 +153,7 @@ export const llmModels = pgTable('llm_models', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull().unique(),
   status: llmModelStatusEnum('status').notNull().default('not_downloaded'),
-  sizeBytes: integer('size_bytes'),
+  sizeBytes: bigint('size_bytes', { mode: 'number' }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -152,9 +164,8 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const documentsRelations = relations(documents, ({ one, many }) => ({
   user: one(users, { fields: [documents.userId], references: [users.id] }),
+  workspace: one(workspaces, { fields: [documents.workspaceId], references: [workspaces.id] }),
   versions: many(documentVersions),
-  chunks: many(chunks),
-  conversations: many(conversations),
 }));
 
 export const documentVersionsRelations = relations(documentVersions, ({ one, many }) => ({
@@ -163,13 +174,13 @@ export const documentVersionsRelations = relations(documentVersions, ({ one, man
 }));
 
 export const chunksRelations = relations(chunks, ({ one }) => ({
-  document: one(documents, { fields: [chunks.documentId], references: [documents.id] }),
+  workspace: one(workspaces, { fields: [chunks.workspaceId], references: [workspaces.id] }),
   version: one(documentVersions, { fields: [chunks.versionId], references: [documentVersions.id] }),
 }));
 
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
   user: one(users, { fields: [conversations.userId], references: [users.id] }),
-  document: one(documents, { fields: [conversations.documentId], references: [documents.id] }),
+  workspace: one(workspaces, { fields: [conversations.workspaceId], references: [workspaces.id] }),
   messages: many(messages),
 }));
 

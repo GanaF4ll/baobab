@@ -3,6 +3,7 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "formatter": {
     "enabled": true,
+    "formatWithErrors": true,
     "indentStyle": "space",
     "indentWidth": 2,
     "lineWidth": 100,
@@ -11,7 +12,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
         "noUnusedVariables": "error",
         "noUnusedImports": {
@@ -39,22 +40,36 @@
     }
   },
   "json": { "formatter": { "lineWidth": 200 } },
+  "html": {
+    "parser": {
+      "interpolation": true
+    },
+    "formatter": {
+      "enabled": true
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    },
+    "formatter": {
+      "enabled": true
+    }
+  },
   "overrides": [
     {
-      "include": ["**/*.html"],
-      "formatter": { "lineWidth": 120 }
+      "includes": ["**/*.html"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": true }
     },
     {
-      "include": ["frontend/src/api/**"],
+      "includes": ["**/frontend/src/api/**", "**/frontend/src/client/**"],
       "linter": { "enabled": false },
       "formatter": { "enabled": false }
     }
   ],
+
   "files": {
-    "ignore": [
-      "**/node_modules/**",
-      "**/dist/**",
-      "frontend/.angular/**"
-    ]
+    "includes": ["**", "!**/node_modules", "!**/dist", "!**/frontend/.angular"]
   }
 }

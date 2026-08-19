@@ -1,0 +1,60 @@
+<form (submit)="onSubmit(); $event.preventDefault()" class="space-y-6">
+  <!-- Email -->
+  <div>
+    <label
+      class="text-label-md uppercase tracking-wider block mb-2 text-on-surface-variant font-semibold"
+    >
+      Email Address
+    </label>
+    <input
+      type="email"
+      [formField]="loginForm.email"
+      placeholder="name@example.com"
+      class="w-full border border-outline-variant focus:border-secondary focus:ring-1 focus:ring-secondary/20 outline-none rounded-md px-4 py-2.5 text-body-md bg-surface-container-lowest text-on-surface transition-all placeholder:text-outline/60"
+    >
+    @if (loginForm.email().touched() && loginForm.email().errors().length) {
+    <span class="text-error text-body-sm mt-1.5 block font-medium">
+      {{ loginForm.email().errors()[0].message }}
+    </span>
+    }
+  </div>
+
+  <!-- Password -->
+  <div>
+    <label
+      class="text-label-md uppercase tracking-wider block mb-2 text-on-surface-variant font-semibold"
+    >
+      Password
+    </label>
+    <input
+      type="password"
+      [formField]="loginForm.password"
+      placeholder="••••••••"
+      class="w-full border border-outline-variant focus:border-secondary focus:ring-1 focus:ring-secondary/20 outline-none rounded-md px-4 py-2.5 text-body-md bg-surface-container-lowest text-on-surface transition-all placeholder:text-outline/60"
+    >
+    @if (loginForm.password().touched() && loginForm.password().errors().length) {
+    <span class="text-error text-body-sm mt-1.5 block font-medium">
+      {{ loginForm.password().errors()[0].message }}
+    </span>
+    }
+  </div>
+  @if (error()) {
+  <div
+    class="p-3.5 bg-error-container text-on-error-container text-body-sm rounded-sm border border-error/20 font-medium"
+  >
+    {{ error() }}
+  </div>
+  }
+
+  <button
+    type="submit"
+    [disabled]="loginForm().invalid() || loginForm().pending() || loading()"
+    class="w-full bg-primary text-white hover:bg-primary-container font-semibold py-3 px-4 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 cursor-pointer shadow-sm hover:shadow-md"
+  >
+    @if (loading()) {
+    <span
+      class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+    ></span>
+    Signing in... } @else { Sign In }
+  </button>
+</form>

@@ -2,9 +2,9 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { FastifyRequest } from 'fastify';
 import { IS_PUBLIC_KEY } from 'src/auth/decorators/public.decorator';
 import { UsersService } from 'src/users/users.service';
-import { FastifyRequest } from 'fastify';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -47,6 +47,13 @@ export class AuthGuard implements CanActivate {
 
   private extractTokenFromHeader(request: FastifyRequest): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
+    if (type === 'Bearer') {
+      return token;
+    }
+    const query = request.query as Record<string, string> | undefined;
+    if (query?.['token']) {
+      return query['token'];
+    }
+    return undefined;
   }
 }

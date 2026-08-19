@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsJWT } from 'class-validator';
-import { ApiResponse } from 'src/shared/constants';
+import { ApiResponseDto } from 'src/shared/dto/output/api-response.dto';
 
 export class RegisterAndLoginResponseData {
   @ApiProperty({
@@ -20,4 +20,7 @@ export class RegisterAndLoginResponseData {
   readonly refreshToken: string;
 }
 
-export class RegisterAndLoginResponseDto extends ApiResponse<RegisterAndLoginResponseData> {}
+export class RegisterAndLoginResponseDto extends ApiResponseDto<RegisterAndLoginResponseData> {
+  @ApiProperty({ type: RegisterAndLoginResponseData })
+  declare data: RegisterAndLoginResponseData;
+}

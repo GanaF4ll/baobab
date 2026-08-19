@@ -1,10 +1,9 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
-import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import * as schema from 'src/drizzle/schema';
+import { DrizzleDb } from 'src/drizzle/types/drizzle';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -53,10 +52,6 @@ export class UsersService {
     });
 
     return existingUser;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
   }
 
   remove(id: number) {

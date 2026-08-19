@@ -1,0 +1,406 @@
+<!-- Sidebar Shell -->
+<app-sidebar [inWorkspace]="true" (uploadClick)="handleSidebarBottomClick()"></app-sidebar>
+
+<!-- Top App Bar Shell -->
+<app-header [inWorkspace]="true"></app-header>
+
+<main
+  [class.md:ml-64]="sidebarService.isOpen()"
+  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] overflow-y-auto technical-grid transition-all duration-300 ease-in-out ml-0"
+>
+  <div class="max-w-container-max mx-auto w-full flex flex-col gap-lg h-full">
+    <!-- Top Action / Navigation Bar -->
+    <div class="flex items-center justify-between pb-sm border-b border-outline-variant/30">
+      <a
+        [routerLink]="['/workspace', workspaceIdParam(), 'documents']"
+        class="group px-md py-sm bg-surface-container-low hover:bg-surface-container-high text-on-surface border border-outline-variant rounded-xl transition-all duration-200 font-label-technical text-xs font-semibold cursor-pointer flex items-center gap-xs"
+      >
+        <span
+          class="material-symbols-outlined text-[16px] transition-transform group-hover:-translate-x-0.5"
+          >arrow_back</span
+        >
+        Back to Documents
+      </a>
+
+      <div class="flex items-center gap-sm">
+        @if (document()?.mimeType === 'text/markdown') {
+        <button
+          (click)="toggleEditMode()"
+          [disabled]="isSaving() || isTrashingDocument()"
+          [class]="isEditMode() 
+              ? 'bg-surface-container-highest border border-outline-variant text-on-surface'
+              : 'bg-primary text-on-primary hover:opacity-90'"
+          class="px-md py-sm rounded-xl font-label-technical text-xs font-semibold transition-all duration-200 flex items-center gap-xs cursor-pointer disabled:opacity-50"
+        >
+          <span class="material-symbols-outlined text-[16px]"
+            >{{ isEditMode() ? 'close' : 'edit' }}</span
+          >
+          {{ isEditMode() ? 'Cancel Edit' : 'Edit Document' }}
+        </button>
+        }
+
+        <button
+          (click)="trashDocument()"
+          [disabled]="isTrashingDocument() || isSaving() || isUploadingVersion()"
+          class="px-md py-sm rounded-xl font-label-technical text-xs font-semibold transition-all duration-200 flex items-center gap-xs cursor-pointer border border-error/30 text-error hover:bg-error-container/20 hover:border-error/50 disabled:opacity-50"
+          title="Déplacer le document et toutes ses versions dans la corbeille"
+        >
+          @if (isTrashingDocument()) {
+          <span
+            class="w-4 h-4 border-2 border-error border-t-transparent rounded-full animate-spin"
+          ></span>
+          <span>Mise à la corbeille...</span>
+          } @else {
+          <span class="material-symbols-outlined text-[16px]">delete</span>
+          <span>Mettre à la corbeille</span>
+          }
+        </button>
+      </div>
+    </div>
+    <!-- Loading State -->
+    @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center flex-1 min-h-[400px]">
+      <div
+        class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"
+      ></div>
+      <p class="mt-md font-label-technical text-sm text-on-surface opacity-75">
+        Loading secure document vault...
+      </p>
+    </div>
+    } <!-- Error State --> @else if (error()) {
+    <div
+      class="bg-surface-container-low border border-error rounded-2xl p-xl flex flex-col items-center justify-center text-center max-w-md mx-auto my-lg"
+    >
+      <span class="material-symbols-outlined text-[48px] text-error mb-md">warning</span>
+      <h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Document Not Found</h3>
+      <p class="font-body-md text-body-md text-on-surface-variant/80 mb-lg">
+        The document could not be retrieved from the secure RAG silo. It may have been deleted or
+        access is restricted.
+      </p>
+      <a
+        [routerLink]="['/workspace', workspaceIdParam(), 'documents']"
+        class="px-md py-sm bg-primary text-on-primary rounded-xl font-label-technical text-xs font-bold hover:opacity-90"
+      >
+        Back to Documents
+      </a>
+    </div>
+    } <!-- Content Display --> @else if (document(); as doc) {
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-lg items-start">
+      <!-- Main Document Area (3 columns wide) -->
+      <div class="lg:col-span-3 flex flex-col gap-md">
+        <!-- Document Metadata Card -->
+        <div
+          class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-md shadow-crisp flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md"
+        >
+          <!-- Title Area -->
+          <div class="flex-1 w-full min-w-0">
+            @if (isEditingTitle()) {
+            <div class="flex items-center gap-xs w-full max-w-xl">
+              <input
+                type="text"
+                [(ngModel)]="editedTitle"
+                class="flex-1 px-sm py-xs bg-surface-container-low border border-primary/50 focus:border-primary focus:outline-none rounded-xl text-on-surface font-headline-md text-lg font-bold"
+                placeholder="Enter document title..."
+                (keyup.enter)="saveTitle()"
+                (keyup.esc)="cancelEditTitle()"
+                [disabled]="isSavingTitle()"
+              >
+              <button
+                (click)="saveTitle()"
+                [disabled]="isSavingTitle()"
+                class="px-sm py-sm bg-primary text-on-primary rounded-xl font-label-technical text-xs font-bold hover:opacity-95 disabled:opacity-50"
+              >
+                {{ isSavingTitle() ? '...' : 'Save' }}
+              </button>
+              <button
+                (click)="cancelEditTitle()"
+                [disabled]="isSavingTitle()"
+                class="px-sm py-sm bg-surface-container-high border border-outline-variant text-on-surface rounded-xl font-label-technical text-xs hover:bg-surface-container-highest"
+              >
+                Cancel
+              </button>
+            </div>
+            } @else {
+            <div class="flex items-center gap-sm group">
+              <h1
+                class="font-headline-lg text-lg sm:text-xl font-extrabold text-on-surface truncate"
+                [title]="doc.title"
+              >
+                {{ doc.title }}
+              </h1>
+              <button
+                (click)="startEditTitle()"
+                class="opacity-0 group-hover:opacity-100 p-xs text-on-surface-variant hover:text-primary transition-all duration-200 cursor-pointer rounded-full hover:bg-surface-variant/20"
+              >
+                <span class="material-symbols-outlined text-[16px]">edit</span>
+              </button>
+            </div>
+            }
+
+            <!-- Badges and details -->
+            <div
+              class="flex flex-wrap items-center gap-sm mt-xs text-[11px] font-medium text-on-surface-variant/80 font-label-technical"
+            >
+              <span
+                [class]="doc.mimeType === 'application/pdf' 
+                    ? 'text-error bg-error-container/10 border-error/20' 
+                    : 'text-secondary bg-secondary-container/10 border-secondary/20'"
+                class="px-xs py-xxs border rounded-md uppercase font-bold"
+              >
+                {{ doc.mimeType === 'application/pdf' ? 'PDF' : 'Markdown' }}
+              </span>
+              <span>•</span>
+              <span>Current version: v{{ doc.currentVersion }}</span>
+              <span>•</span>
+              <span>Uploaded: {{ doc.createdAt | date: 'mediumDate' }}</span>
+            </div>
+          </div>
+
+          <!-- Version Status indicator -->
+          <div class="flex items-center gap-xs font-label-technical text-xs">
+            <span
+              class="material-symbols-outlined text-xs"
+              [class.text-primary]="isLatestSelected()"
+            >
+              {{ isLatestSelected() ? 'verified' : 'history' }}
+            </span>
+            <span [class.text-primary]="isLatestSelected()" class="font-semibold">
+              {{ isLatestSelected() ? 'Viewing Latest Version' : 'Viewing Historical Version' }}
+              (v{{ selectedVersion()?.versionNumber }})
+            </span>
+          </div>
+        </div>
+
+        <!-- Document Viewer Card -->
+        <div
+          class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl shadow-crisp overflow-hidden flex flex-col min-h-[500px]"
+        >
+          <!-- PDF Tabs (only for PDFs) -->
+          @if (doc.mimeType === 'application/pdf') {
+          <div
+            class="flex items-center gap-xs px-md pt-md pb-xs border-b border-outline-variant/30 bg-surface-container-low/20"
+          >
+            <button
+              (click)="activeTab.set('visual')"
+              [class]="activeTab() === 'visual'
+                    ? 'bg-primary text-on-primary shadow-sm'
+                    : 'bg-transparent text-on-surface-variant hover:bg-surface-container-high'"
+              class="px-sm py-xs rounded-lg font-label-technical text-xs font-semibold transition-all duration-200 cursor-pointer"
+            >
+              Visual (PDF)
+            </button>
+            <button
+              (click)="activeTab.set('text')"
+              [class]="activeTab() === 'text'
+                    ? 'bg-primary text-on-primary shadow-sm'
+                    : 'bg-transparent text-on-surface-variant hover:bg-surface-container-high'"
+              class="px-sm py-xs rounded-lg font-label-technical text-xs font-semibold transition-all duration-200 cursor-pointer"
+            >
+              Extracted Text
+            </button>
+          </div>
+          }
+          <!-- PDF Display -->
+          @if (doc.mimeType === 'application/pdf') { @if (activeTab() === 'visual') {
+          <div class="w-full">
+            <iframe
+              [src]="safePdfUrl()"
+              class="w-full h-[70vh] block border-none"
+              title="PDF Viewer"
+            >
+              <p class="p-md text-xs font-label-technical text-on-surface-variant/80">
+                Your browser does not support embedding PDFs. You can
+                <a [href]="safePdfUrl()" target="_blank" class="text-primary underline"
+                  >download the PDF directly</a
+                >.
+              </p>
+            </iframe>
+          </div>
+          } @else {
+          <!-- Extracted Text Reader (for PDF) -->
+          <div class="flex-1 flex flex-col p-md sm:p-lg">
+            @if (documentContentResource.isLoading()) {
+            <div class="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+              <div
+                class="w-8 h-8 border-3 border-secondary border-t-transparent rounded-full animate-spin"
+              ></div>
+              <p class="mt-sm font-label-technical text-xs text-on-surface-variant/80">
+                Fetching text snapshots...
+              </p>
+            </div>
+            } @else {
+            <div
+              [innerHTML]="renderMarkdown(documentContentResource.value() || '')"
+              class="prose prose-sm max-w-none text-on-surface select-text overflow-y-auto leading-relaxed max-h-[70vh]"
+            ></div>
+            }
+          </div>
+          } }
+          <!-- Markdown / Text Display -->
+          @else if (doc.mimeType === 'text/markdown') {
+          <!-- Editor Mode -->
+          @if (isEditMode()) {
+          <div class="flex-1 flex flex-col p-md bg-surface-container-low/30">
+            <div
+              class="flex items-center justify-between px-xs pb-xs mb-sm border-b border-outline-variant/20"
+            >
+              <span class="text-xs font-bold font-label-technical text-primary"
+                >Markdown Editor</span
+              >
+              <span class="text-[10px] text-on-surface-variant/60 font-mono"
+                >Press Save to commit changes as a new version.</span
+              >
+            </div>
+            <textarea
+              [(ngModel)]="editedText"
+              [disabled]="isSaving()"
+              class="w-full flex-1 min-h-[55vh] p-md bg-surface-container-lowest text-on-surface border border-outline-variant rounded-xl font-mono text-sm leading-relaxed focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 resize-none transition-all duration-200"
+              placeholder="Write your markdown content here..."
+            ></textarea>
+
+            <div class="flex items-center justify-end gap-sm mt-md">
+              <button
+                (click)="toggleEditMode()"
+                [disabled]="isSaving()"
+                class="px-md py-sm bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant rounded-xl font-label-technical text-xs font-semibold cursor-pointer disabled:opacity-50"
+              >
+                Discard
+              </button>
+              <button
+                (click)="saveContent()"
+                [disabled]="isSaving()"
+                class="px-md py-sm bg-primary hover:opacity-95 text-on-primary rounded-xl font-label-technical text-xs font-bold shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-xs"
+              >
+                <span class="material-symbols-outlined text-[16px]"
+                  >{{ isSaving() ? 'pending' : 'save' }}</span
+                >
+                {{ isSaving() ? 'Saving changes...' : 'Save New Version' }}
+              </button>
+            </div>
+          </div>
+          }
+          <!-- Reader/Preview Mode -->
+          @else {
+          <div class="flex-1 flex flex-col p-md sm:p-lg">
+            @if (documentContentResource.isLoading()) {
+            <div class="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+              <div
+                class="w-8 h-8 border-3 border-secondary border-t-transparent rounded-full animate-spin"
+              ></div>
+              <p class="mt-sm font-label-technical text-xs text-on-surface-variant/80">
+                Fetching text snapshots...
+              </p>
+            </div>
+            } @else {
+            <!-- Markdown Render Output -->
+            <div
+              [innerHTML]="renderMarkdown(documentContentResource.value() || '')"
+              class="prose prose-sm max-w-none text-on-surface select-text overflow-y-auto leading-relaxed"
+            ></div>
+            }
+          </div>
+          } }
+        </div>
+      </div>
+
+      <!-- Version History Sidebar (1 column wide) -->
+      <div class="lg:col-span-1 flex flex-col gap-md">
+        <div
+          class="bg-surface-container-low border border-outline-variant/50 rounded-2xl p-md shadow-crisp flex flex-col gap-md"
+        >
+          <div class="flex items-center justify-between pb-xs border-b border-outline-variant/30">
+            <h3
+              class="font-headline-md text-xs font-bold text-on-surface flex items-center gap-xs uppercase tracking-wider"
+            >
+              <span class="material-symbols-outlined text-[16px]">history</span>
+              Version Log
+            </h3>
+            <span
+              class="px-xs py-xxs bg-surface-container-high text-on-surface border border-outline-variant rounded-md text-[10px] font-bold font-mono"
+            >
+              {{ versions().length }}
+              total
+            </span>
+          </div>
+
+          <!-- Upload New Version Button -->
+          <div class="flex flex-col gap-xs">
+            <input
+              #fileInput
+              type="file"
+              (change)="uploadNewVersion(fileInput.files)"
+              class="hidden"
+              [accept]="document()?.mimeType === 'application/pdf' ? '.pdf' : '.md,.txt'"
+            >
+            <button
+              (click)="fileInput.click()"
+              [disabled]="isUploadingVersion() || isSaving() || isSavingTitle()"
+              class="w-full py-sm bg-primary text-on-primary hover:opacity-90 rounded-xl transition-all duration-200 font-label-technical text-xs font-semibold cursor-pointer flex items-center justify-center gap-xs disabled:opacity-50"
+            >
+              @if (isUploadingVersion()) {
+              <span
+                class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"
+              ></span>
+              <span>Uploading...</span>
+              } @else {
+              <span class="material-symbols-outlined text-[16px]">upload_file</span>
+              <span>Upload New Version</span>
+              }
+            </button>
+          </div>
+
+          <!-- List of Versions -->
+          <div class="flex flex-col gap-sm max-h-[60vh] overflow-y-auto pr-xs">
+            @for (ver of versions(); track ver.id) {
+            <div
+              (click)="selectedVersionId.set(ver.id)"
+              [class]="(selectedVersion()?.id === ver.id) 
+                    ? 'border-primary bg-primary-container/10 dark:bg-primary-container/20' 
+                    : 'border-outline-variant bg-surface-container-lowest hover:border-outline hover:bg-surface-container-low/40'"
+              class="group flex flex-col justify-between p-sm border rounded-xl transition-all duration-200 cursor-pointer relative"
+            >
+              <div class="flex items-center justify-between">
+                <span
+                  [class]="(selectedVersion()?.id === ver.id) ? 'text-primary font-bold' : 'text-on-surface font-semibold'"
+                  class="text-xs font-label-technical"
+                >
+                  Version v{{ ver.versionNumber }}
+                </span>
+                @if (ver.versionNumber === currentVersionNumber()) {
+                <span
+                  class="px-xs py-xxs bg-primary/10 border border-primary/20 text-primary text-[8px] font-bold uppercase rounded-md"
+                >
+                  Latest
+                </span>
+                }
+              </div>
+
+              <!-- Date -->
+              <div class="text-[9px] text-on-surface-variant/70 mt-xs font-label-technical">
+                {{ ver.createdAt | date: 'medium' }}
+              </div>
+              <!-- Actions (trash version) -->
+              <button
+                (click)="trashVersion(ver, $event)"
+                title="Déplacer cette version dans la corbeille"
+                class="absolute right-xs bottom-xs opacity-0 group-hover:opacity-100 hover:text-error hover:bg-error-container/10 p-xxs rounded transition-all duration-150 cursor-pointer text-on-surface-variant"
+              >
+                <span class="material-symbols-outlined text-[14px]">delete</span>
+              </button>
+            </div>
+            }
+          </div>
+
+          <!-- Hint text -->
+          <p
+            class="text-[10px] text-on-surface-variant/60 leading-normal font-label-technical px-xs"
+          >
+            Select any past version log snapshot to read or view its content. Editing and saving new
+            version commits can only be done on the active <strong>Latest</strong> version.
+          </p>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</main>

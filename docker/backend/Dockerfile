@@ -20,7 +20,7 @@ COPY backend/ ./backend/
 
 # Copy startup scripts
 COPY docker/scripts/start-local.sh /scripts/start-local.sh
-RUN chmod +x /scripts/start-local.sh
+RUN sed -i 's/\r$//' /scripts/start-local.sh && chmod +x /scripts/start-local.sh
 
 WORKDIR /app/backend
 

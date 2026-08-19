@@ -1,0 +1,15 @@
+<div class="flex justify-end gap-md">
+  <div class="max-w-[85%] md:max-w-[70%] p-md rounded-lg shadow-sm bg-primary text-on-primary">
+    <p class="font-body-md text-body-md leading-relaxed whitespace-pre-wrap">
+      {{ message().content }}
+    </p>
+    <div class="text-[9px] mt-xs opacity-50 text-right text-on-primary">
+      {{ message().createdAt | date:'shortTime' }}
+    </div>
+  </div>
+  <div
+    class="w-8 h-8 rounded bg-secondary-container flex items-center justify-center text-on-secondary-container flex-shrink-0"
+  >
+    <span class="material-symbols-outlined text-[18px]">person</span>
+  </div>
+</div>

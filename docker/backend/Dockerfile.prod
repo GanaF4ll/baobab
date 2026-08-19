@@ -1,0 +1,64 @@
+# ==========================================
+# Stage 1: Build Backend
+# ==========================================
+FROM node:26-alpine AS builder
+
+RUN npm install -g pnpm@10
+WORKDIR /app
+
+ENV CI=true
+
+# Copy monorepo configuration and backend package.json
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY backend/package.json ./backend/
+
+# Install all dependencies (including devDependencies for Nest CLI & TypeScript)
+RUN pnpm config set minimum-release-age 0 && \
+    pnpm install --frozen-lockfile --filter backend
+
+# Copy backend source code
+COPY backend/ ./backend/
+
+# Build NestJS application
+WORKDIR /app/backend
+RUN pnpm run build
+
+# ==========================================
+# Stage 2: Production Runner
+# ==========================================
+FROM node:26-alpine AS runner
+
+RUN npm install -g pnpm@10 && \
+    apk add --no-cache curl
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV CI=true
+
+# Copy monorepo manifests
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY backend/package.json ./backend/
+
+# Install dependencies needed for runtime and migrations
+RUN pnpm config set minimum-release-age 0 && \
+    pnpm install --frozen-lockfile --filter backend
+
+# Copy compiled files and migration configs from builder
+COPY --from=builder /app/backend/dist /app/backend/dist
+COPY backend/generated /app/backend/generated
+COPY backend/drizzle.config.ts /app/backend/drizzle.config.ts
+COPY backend/src/drizzle /app/backend/src/drizzle
+
+# Copy startup script
+COPY docker/scripts/start-prod.sh /scripts/start-prod.sh
+RUN sed -i 's/\r$//' /scripts/start-prod.sh && chmod +x /scripts/start-prod.sh
+
+WORKDIR /app/backend
+
+EXPOSE 2400
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=5 --start-period=30s \
+  CMD curl -f http://localhost:2400/health || exit 1
+
+CMD ["sh", "/scripts/start-prod.sh"]

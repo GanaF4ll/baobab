@@ -1,0 +1,87 @@
+<header
+  [class.md:left-64]="sidebarService.isOpen()"
+  class="fixed top-0 right-0 h-16 bg-background border-b border-outline-variant flex justify-between items-center px-md sm:px-lg z-40 transition-all duration-300 ease-in-out left-0"
+>
+  <!-- Sidebar Toggle & Tabs Navigation -->
+  <div class="flex items-center gap-md">
+    <button
+      (click)="sidebarService.toggle()"
+      class="p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors cursor-pointer flex items-center justify-center mr-xs"
+      aria-label="Toggle sidebar"
+    >
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+    @if(inWorkspace()) {
+
+    <div class="flex items-center gap-xs min-w-0">
+      <span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0"
+        >{{ activeWorkspace()?.icon || 'workspaces' }}</span
+      >
+      <span class="font-label-technical text-label-technical font-bold text-on-surface truncate">
+        {{ activeWorkspace()?.name || 'Workspace' }}
+      </span>
+    </div>
+    }
+    <!-- <nav class="hidden sm:flex gap-md">
+      <a
+        class="font-label-technical text-label-technical text-on-surface font-bold border-b-2 border-primary pb-1"
+        href="#"
+        (click)="$event.preventDefault()"
+        >Documents</a
+      >
+      <a
+        class="font-label-technical text-label-technical text-on-surface opacity-60 font-medium hover:opacity-100 transition-opacity"
+        href="#"
+        (click)="$event.preventDefault()"
+        >Logs</a
+      >
+      <a
+        class="font-label-technical text-label-technical text-on-surface opacity-60 font-medium hover:opacity-100 transition-opacity"
+        href="#"
+        (click)="$event.preventDefault()"
+        >Security</a
+      >
+    </nav> -->
+  </div>
+
+  <!-- Search and Actions -->
+  <div class="flex items-center gap-md">
+    <div class="relative group">
+      <span
+        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-50 text-[18px]"
+        >search</span
+      >
+      <input
+        hlmInput
+        type="text"
+        (input)="onSearch($event)"
+        class="bg-surface-container-low border border-outline-variant rounded-full py-1.5 pl-10 pr-4 text-body-md focus:border-primary focus:ring-0 w-28 sm:w-48 md:w-64 transition-all placeholder:text-on-surface/40"
+        placeholder="Search..."
+      >
+    </div>
+
+    <!-- Notifications icon -->
+    <button
+      class="text-on-surface opacity-60 hover:opacity-100 transition-opacity relative bg-transparent border-0 cursor-pointer p-1"
+    >
+      <span class="material-symbols-outlined">notifications</span>
+      <span
+        class="absolute top-0 right-0 w-2 h-2 bg-secondary-container rounded-full border border-background"
+      ></span>
+    </button>
+
+    <!-- Logout / Profile Action -->
+    <div class="flex items-center gap-sm pl-2 border-l border-outline-variant">
+      <span class="text-body-sm font-medium text-on-surface hidden sm:inline">
+        {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}
+      </span>
+      <button
+        (click)="logout()"
+        title="Logout"
+        class="text-on-surface opacity-60 hover:opacity-100 transition-opacity bg-transparent border-0 cursor-pointer p-1 flex items-center justify-center"
+      >
+        <span class="material-symbols-outlined text-[20px]">logout</span>
+      </button>
+    </div>
+  </div>
+</header>

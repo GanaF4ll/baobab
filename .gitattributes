@@ -1,0 +1,16 @@
+# Auto-detect text files, normalize to LF
+* text=auto eol=lf
+
+# Explicitement forcer LF sur les fichiers sensibles
+*.sh text eol=lf
+*.env text eol=lf
+.env text eol=lf
+*.env.* text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binaires à ne jamais toucher
+*.png binary
+*.jpg binary
+*.ico binary

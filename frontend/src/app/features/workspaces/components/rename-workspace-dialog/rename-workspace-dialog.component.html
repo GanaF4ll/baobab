@@ -1,0 +1,122 @@
+<div class="space-y-md">
+  <hlm-dialog-header>
+    <h3 hlmDialogTitle class="text-headline-md font-bold text-on-surface">Renommer le workspace</h3>
+    <p hlmDialogDescription class="text-body-sm text-on-surface opacity-70">
+      Modifiez l'icône, le nom et la description de votre workspace.
+    </p>
+  </hlm-dialog-header>
+
+  <form (submit)="submit(); $event.preventDefault()" class="space-y-lg pt-sm">
+    <!-- Emoji Selection & Icon Preview -->
+    <div class="space-y-xs">
+      <label
+        class="font-label-technical text-label-technical block text-on-surface-variant font-semibold"
+      >
+        Icône / Emoji
+      </label>
+      <div class="flex items-center gap-md">
+        <!-- Preview / Selected Emoji box -->
+        <div
+          class="w-12 h-12 rounded-lg bg-surface-container-lowest border border-outline-variant flex items-center justify-center text-[24px] flex-shrink-0"
+        >
+          {{ model().icon || '📁' }}
+        </div>
+        <input
+          hlmInput
+          type="text"
+          name="icon"
+          [value]="model().icon"
+          (input)="onIconInput($any($event.target).value)"
+          placeholder="Entrer un emoji (ex: 🚀)"
+          class="w-full bg-surface-container-lowest border rounded px-md py-sm text-body-md text-on-surface transition-colors"
+          [class.border-error]="renameForm.icon().invalid()"
+          [class.border-outline-variant]="!renameForm.icon().invalid()"
+        >
+      </div>
+      @if (renameForm.icon().invalid()) {
+      <p class="text-[12px] text-error mt-1">L'icône ne peut contenir que des emojis.</p>
+      }
+
+      <!-- Quick Emoji Picker List -->
+      <div class="flex flex-wrap gap-xs pt-xs">
+        @for (e of popularEmojis; track e) {
+        <button
+          type="button"
+          (click)="selectEmoji(e)"
+          [class.border-primary]="model().icon === e"
+          [class.bg-surface-container-high]="model().icon === e"
+          class="w-8 h-8 rounded border border-outline-variant/60 hover:border-primary hover:bg-surface-container transition-colors flex items-center justify-center text-[16px] cursor-pointer bg-transparent"
+        >
+          {{ e }}
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Workspace Name -->
+    <div class="space-y-sm">
+      <label
+        class="font-label-technical text-label-technical block text-on-surface-variant font-semibold"
+      >
+        Nom du workspace *
+      </label>
+      <input
+        hlmInput
+        type="text"
+        name="name"
+        [value]="model().name"
+        (input)="onNameInput($any($event.target).value)"
+        placeholder="Ex: Legal Docs"
+        class="w-full bg-surface-container-lowest border rounded px-md py-sm text-body-md text-on-surface transition-colors"
+        [class.border-error]="renameForm.name().invalid() && (renameForm.name().dirty() || renameForm.name().touched())"
+        [class.border-outline-variant]="!(renameForm.name().invalid() && (renameForm.name().dirty() || renameForm.name().touched()))"
+        autocomplete="off"
+      >
+      @if (renameForm.name().invalid() && (renameForm.name().dirty() ||
+      renameForm.name().touched())) {
+      <p class="text-[12px] text-error">Le nom du workspace est obligatoire.</p>
+      }
+    </div>
+
+    <!-- Description -->
+    <div class="space-y-sm">
+      <label
+        class="font-label-technical text-label-technical block text-on-surface-variant font-semibold"
+      >
+        Description
+      </label>
+      <textarea
+        hlmInput
+        name="description"
+        [value]="model().description"
+        (input)="onDescriptionInput($any($event.target).value)"
+        placeholder="Brève description..."
+        rows="3"
+        class="w-full bg-surface-container-lowest border border-outline-variant rounded px-md py-sm focus:border-primary text-body-md text-on-surface resize-none"
+      ></textarea>
+    </div>
+
+    <!-- Action Buttons -->
+    <hlm-dialog-footer
+      class="flex flex-col-reverse sm:flex-row justify-end gap-sm pt-md border-t border-outline-variant"
+    >
+      <button
+        hlmBtn
+        variant="ghost"
+        type="button"
+        (click)="cancel()"
+        class="border border-outline-variant text-on-surface hover:bg-surface-container-high font-semibold py-1.5 px-4 cursor-pointer"
+      >
+        Annuler
+      </button>
+      <button
+        hlmBtn
+        type="submit"
+        [disabled]="renameForm().invalid()"
+        class="bg-primary text-on-primary hover:opacity-90 font-semibold py-1.5 px-4 cursor-pointer disabled:opacity-50"
+      >
+        Enregistrer
+      </button>
+    </hlm-dialog-footer>
+  </form>
+</div>

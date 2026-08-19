@@ -1,0 +1,72 @@
+<!-- Sidebar Shell -->
+<app-sidebar [inWorkspace]="true" (uploadClick)="handleSidebarBottomClick()"></app-sidebar>
+
+<!-- Top App Bar Shell -->
+<app-header [inWorkspace]="true"></app-header>
+
+<main
+  [class.md:ml-64]="sidebarService.isOpen()"
+  class="mt-16 p-md sm:p-lg h-[calc(100vh-4rem)] overflow-y-auto technical-grid transition-all duration-300 ease-in-out ml-0"
+>
+  <div class="max-w-container-max mx-auto w-full flex flex-col gap-lg">
+    <!-- Header Title Area -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md">
+      <div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface">Workspace Documents</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant/80">
+          Manage and search through all documents uploaded to this secure RAG silo.
+        </p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <app-document-filter (selectedMimeType)="onMimeTypeSelected($event)"></app-document-filter>
+    <!-- Main Results View -->
+    @if (documentsQuery.isLoading()) {
+    <div
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-md mt-sm"
+    >
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div
+        class="border border-outline-variant/40 bg-surface-container-lowest/50 rounded-xl p-sm flex flex-col justify-between h-[200px] animate-pulse"
+      >
+        <div class="flex flex-col gap-sm w-full">
+          <div class="h-20 w-full rounded-lg bg-surface-variant/20 shrink-0"></div>
+          <div class="space-y-xs px-xs">
+            <div class="h-3.5 bg-surface-variant/30 rounded w-5/6"></div>
+            <div class="h-3 bg-surface-variant/20 rounded w-1/2"></div>
+          </div>
+        </div>
+        <div
+          class="flex justify-between items-center border-t border-outline-variant/20 pt-sm mt-md px-xs"
+        >
+          <div class="h-2.5 bg-surface-variant/20 rounded w-1/3"></div>
+          <div class="h-2.5 bg-surface-variant/30 rounded w-8"></div>
+        </div>
+      </div>
+      }
+    </div>
+    } @else {
+    <div
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-md mt-sm"
+    >
+      <!-- Dropzone is always shown as the first card in the grid -->
+      <app-document-dropzone (fileSelected)="uploadFile($event)"></app-document-dropzone>
+      @for (doc of documents(); track doc.id) {
+      <app-document-card [document]="doc"></app-document-card>
+      }
+    </div>
+    @if (documents().length === 0 && selectedMimeType()) {
+    <!-- Info text indicating filter has no results -->
+    <p class="text-center font-body-sm text-xs text-on-surface-variant/70 mt-lg">
+      No files matching the selected filter.
+      <button
+        (click)="onMimeTypeSelected(null)"
+        class="text-primary underline font-bold cursor-pointer hover:opacity-85"
+      >
+        Clear Filter
+      </button>
+    </p>
+    } }
+  </div>
+</main>

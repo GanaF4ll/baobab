@@ -1,16 +1,22 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { ApiConflictResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { RegisterAndLoginResponseDto } from './dto/output/register-and-login-response.dto';
-import { LoginDto } from './dto/input/login.dto';
+import { Body, Controller, Post } from '@nestjs/common';
+import {
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { Public } from 'src/auth/decorators/public.decorator';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { AuthGuard } from './guards/auth.guard';
-import { RefreshTokenDto } from './dto/input/refresh-token.dto';
 import { AUTH_SWAGGER_TAG } from 'src/swagger.config';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/input/login.dto';
+import { RefreshTokenDto } from './dto/input/refresh-token.dto';
+import { RegisterAndLoginResponseDto } from './dto/output/register-and-login-response.dto';
 
-@Controller(AUTH_SWAGGER_TAG)
+@Controller('auth')
+@ApiTags(AUTH_SWAGGER_TAG)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -20,6 +26,7 @@ export class AuthController {
     summary: 'Register a new user',
   })
   @ApiConflictResponse({ description: 'User with email "email" already exists' })
+  @ApiCreatedResponse({ type: RegisterAndLoginResponseDto })
   async register(@Body() dto: CreateUserDto): Promise<RegisterAndLoginResponseDto> {
     const res = await this.authService.register(dto);
 
@@ -34,6 +41,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Login with existing user',
   })
+  @ApiResponse({ type: RegisterAndLoginResponseDto })
   async login(@Body() dto: LoginDto): Promise<RegisterAndLoginResponseDto> {
     const res = await this.authService.login(dto);
 
@@ -43,19 +51,15 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Public()
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
   @ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
+  @ApiCreatedResponse({ type: RegisterAndLoginResponseDto })
   async refresh(@Body() dto: RefreshTokenDto): Promise<RegisterAndLoginResponseDto> {
     const res = await this.authService.refresh(dto.refreshToken);
 
     return {
       data: res,
     };
-  }
-
-  @Get('test')
-  @UseGuards(AuthGuard)
-  async test(@CurrentUser('email') email: string): Promise<string> {
-    return email;
   }
 }

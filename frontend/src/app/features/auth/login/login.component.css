@@ -1,0 +1,12 @@
+.tab-button {
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tab-button.active {
+  background-color: var(--color-surface-container-low);
+  border-bottom-color: var(--color-primary);
+  font-weight: 600;
+}
+.tab-button:not(.active) {
+  border-bottom-color: transparent;
+}
