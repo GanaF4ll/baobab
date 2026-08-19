@@ -7,10 +7,10 @@
 
   <div class="flex-1 min-w-0">
     <div class="flex items-center gap-xs mb-xs">
-      <span class="font-label-technical text-[12px] font-bold text-on-surface">Assistant IA</span>
+      <span class="font-label-technical text-label-md font-bold text-on-surface">Assistant IA</span>
       @if (message().isStreaming) {
       <span
-        class="inline-flex items-center gap-1 text-[10px] text-primary font-label-technical animate-pulse"
+        class="inline-flex items-center gap-1 text-label-md text-primary font-label-technical animate-pulse"
       >
         <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
         Génération...
@@ -36,7 +36,7 @@
     @if (message().sources && message().sources.length > 0) {
     <div class="mt-sm pt-xs border-t border-outline-variant/40">
       <p
-        class="text-[11px] font-label-technical font-semibold text-on-surface/70 mb-xs flex items-center gap-xs"
+        class="text-label-md font-label-technical font-semibold text-on-surface/70 mb-xs flex items-center gap-xs"
       >
         <span class="material-symbols-outlined text-[14px]">description</span>
         Sources :
@@ -44,7 +44,7 @@
       <div class="flex flex-wrap gap-xs">
         @for (source of message().sources; track $index) {
         <span
-          class="px-xs py-0.5 rounded bg-surface-container-high border border-outline-variant text-[10px] font-label-technical text-on-surface/80"
+          class="px-xs py-0.5 rounded bg-surface-container-high border border-outline-variant text-label-md font-label-technical text-on-surface/80"
         >
           {{ typeof source === 'string' ? source : (source.title || source.documentName || 'Document #' + ($index + 1)) }}
         </span>
@@ -58,7 +58,7 @@
     </div>
     }
 
-    <span class="text-[9px] text-on-surface opacity-40 mt-xs block font-label-technical">
+    <span class="text-label-md text-on-surface opacity-40 mt-xs block font-label-technical">
       {{ message().createdAt | date:'shortTime' }}
     </span>
   </div>

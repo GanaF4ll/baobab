@@ -21,7 +21,7 @@
       <div class="h-10 flex items-start">
         <h3
           hlmCardTitle
-          class="font-headline-md text-sm font-bold text-on-surface line-clamp-2 group-hover:text-primary transition-colors duration-200"
+          class="text-body-sm font-bold text-on-surface line-clamp-2 group-hover:text-primary transition-colors duration-200"
           [title]="document().title"
         >
           {{ document().title }}
@@ -29,7 +29,7 @@
       </div>
       <p
         hlmCardDescription
-        class="mt-xs font-label-technical text-[10px] text-on-surface-variant/70 flex items-center gap-xs"
+        class="mt-xs font-label-technical text-label-md text-on-surface-variant/70 flex items-center gap-xs"
       >
         <span class="font-semibold">{{ getFileTypeLabel(document().mimeType) }}</span>
         @if(document().currentVersion > 1) {
@@ -48,7 +48,7 @@
     class="mt-md flex items-center justify-between border-t border-outline-variant/30 pt-sm px-xs"
   >
     <span
-      class="font-label-technical text-[9px] text-on-surface-variant/60 flex items-center gap-xs"
+      class="font-label-technical text-label-md text-on-surface-variant/60 flex items-center gap-xs"
     >
       <span class="material-symbols-outlined text-[10px]">calendar_today</span>
       {{ document().createdAt | date: 'mediumDate' }}
@@ -58,7 +58,7 @@
       class="flex items-center gap-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200"
     >
       <span
-        class="font-label-technical text-[10px] font-semibold text-primary flex items-center gap-xs"
+        class="font-label-technical text-label-md font-semibold text-primary flex items-center gap-xs"
       >
         View
         <span

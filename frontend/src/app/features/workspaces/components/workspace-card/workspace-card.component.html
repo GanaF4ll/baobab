@@ -54,12 +54,12 @@
   (click)="$event.stopPropagation()"
   [style.top.px]="menuPosition()?.top"
   [style.left.px]="menuPosition()?.left"
-  class="fixed z-[100] min-w-[180px] bg-surface-container-high border border-outline-variant rounded-lg shadow-lg py-1 text-[13px] text-on-surface animate-in fade-in slide-in-from-top-1 duration-100"
+  class="fixed z-[100] min-w-[180px] bg-surface-container-high border border-outline-variant rounded-lg shadow-lg py-1 text-mono-label text-on-surface animate-in fade-in slide-in-from-top-1 duration-100"
 >
   <button
     type="button"
     (click)="openRenameDialog($event)"
-    class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-[13px]"
+    class="w-full flex items-center gap-sm px-md py-2 hover:bg-surface-container/80 transition-colors text-left cursor-pointer text-on-surface/85 border-0 bg-transparent text-mono-label"
   >
     <span class="material-symbols-outlined text-[16px] opacity-60">edit</span>
     Renommer
@@ -70,7 +70,7 @@
   <button
     type="button"
     (click)="onDeleteWorkspace($event)"
-    class="w-full flex items-center gap-sm px-md py-2 hover:bg-error-container/40 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-[13px]"
+    class="w-full flex items-center gap-sm px-md py-2 hover:bg-error-container/40 transition-colors text-left cursor-pointer text-error font-medium border-0 bg-transparent text-mono-label"
   >
     <span class="material-symbols-outlined text-[16px] opacity-75 text-error">delete</span>
     Archiver
