@@ -691,7 +691,7 @@ todo: method updateContent which allows to replace the content of a document wit
     await this.db.insert(schema.chunks).values(valuesToInsert);
 
     this.logger.debug(
-      `Chunks et vecteurs stockés pour la version [${versionId}], ${chunks.length} chunks insérés.`,
+      `Chunks and embeddings stored for version [${versionId}], ${chunks.length} chunks inserted.`,
     );
   }
 

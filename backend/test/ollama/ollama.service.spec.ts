@@ -117,4 +117,47 @@ describe('OllamaService', () => {
       );
     });
   });
+
+  describe('chat', () => {
+    it('should call fetch with non-streaming parameters and return json', async () => {
+      const mockChatResponse = {
+        message: { role: 'assistant', content: 'Hello there' },
+      };
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockChatResponse),
+      } as any);
+
+      const messages = [{ role: 'user', content: 'Hi' }];
+      const result = await service.chat(messages, 'test-model');
+
+      expect(fetchSpy).toHaveBeenCalledWith('http://mock-ollama:11434/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'test-model',
+          messages,
+          stream: false,
+        }),
+      });
+      expect(result).toEqual(mockChatResponse);
+    });
+
+    it('should throw error if response is not ok', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: false,
+        statusText: 'Internal Server Error',
+      } as any);
+
+      await expect(service.chat([{ role: 'user', content: 'Hi' }])).rejects.toThrow(
+        'Ollama API error: Internal Server Error',
+      );
+    });
+  });
+
+  describe('getRewriteModel', () => {
+    it('should return the configured rewrite model or fallback to chat model', () => {
+      expect(service.getRewriteModel()).toBe('mistral:7b');
+    });
+  });
 });

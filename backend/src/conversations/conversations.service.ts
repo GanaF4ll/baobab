@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { and, count, eq, ilike, isNull } from 'drizzle-orm';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
 import { DrizzleDb } from 'src/drizzle/types/drizzle';
@@ -17,7 +18,14 @@ import { ConversationEntity } from './entities/conversation.entity';
 @Injectable()
 export class ConversationsService {
   private readonly logger = new Logger(ConversationsService.name);
-  constructor(@Inject(DRIZZLE) private readonly drizzle: DrizzleDb) {}
+  private readonly defaultLimit;
+  constructor(
+    @Inject(DRIZZLE) private readonly drizzle: DrizzleDb,
+    private readonly config: ConfigService,
+  ) {
+    this.defaultLimit = this.config.get<number>('CHAT_HISTORY_LIMIT') ?? 10;
+  }
+
   async create(
     createConversationDto: CreateConversationDto,
     userId: string,
@@ -245,5 +253,23 @@ export class ConversationsService {
     });
 
     this.logger.debug(`Saved a message from [${dto.role}] for conversation [${conversationId}]`);
+  }
+
+  async getRecentMessages(
+    conversationId: string,
+  ): Promise<Array<{ role: 'user' | 'assistant'; content: string }>> {
+    const messages = await this.drizzle.query.messages.findMany({
+      where: (messages, { eq }) => eq(messages.conversationId, conversationId),
+      orderBy: (messages, { desc }) => desc(messages.createdAt),
+      limit: this.defaultLimit,
+      columns: {
+        content: true,
+        role: true,
+      },
+    });
+
+    this.logger.debug('messages', messages);
+
+    return messages.reverse() as Array<{ role: 'user' | 'assistant'; content: string }>;
   }
 }
