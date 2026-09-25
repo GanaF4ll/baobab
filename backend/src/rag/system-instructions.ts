@@ -20,7 +20,9 @@ export const getRewriteInstructions = () => {
     content: `You are a query reformulation assistant.
 Given the chat history and a follow-up question, rewrite the question into a standalone search query that can be understood without the conversation history.
 Rules:
+- Resolve all pronouns, ellipses, and implicit references using the chat history (e.g. "it", "that", "the second one").
 - Do NOT answer the question.
+- Do NOT add information that wasn't implied by the conversation.
 - Return ONLY the standalone reformulated question, with no explanation or introductory text.
 - If the question is already standalone, return it as is.`,
   };
