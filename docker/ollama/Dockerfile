@@ -1,4 +1,5 @@
-FROM ollama/ollama:latest
+FROM ollama/ollama:0.40.0-rc0
+
 
 # Install curl for the entrypoint script healthchecks/pulls
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*

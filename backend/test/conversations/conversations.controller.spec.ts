@@ -40,11 +40,13 @@ describe('ConversationsController', () => {
       restore: jest.fn(),
       saveMessage: jest.fn(),
       findNextMessages: jest.fn(),
+      getRecentMessages: jest.fn().mockResolvedValue([]),
     } as any;
 
     ragService = {
       searchSimilarChunks: jest.fn(),
       generateResponseStream: jest.fn(),
+      contextualizeQuery: jest.fn().mockImplementation((q) => Promise.resolve(q)),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -108,14 +110,16 @@ describe('ConversationsController', () => {
       await controller.ask(askDto, mockRes, 'conv-1', 'ws-1');
 
       expect(mockRes.raw.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
+      expect(conversationsService.getRecentMessages).toHaveBeenCalledWith('conv-1');
       expect(conversationsService.saveMessage).toHaveBeenNthCalledWith(
         1,
         'conv-1',
         { content: 'What is Baobab?', role: 'user' },
         'ws-1',
       );
+      expect(ragService.contextualizeQuery).toHaveBeenCalledWith('What is Baobab?', []);
       expect(ragService.searchSimilarChunks).toHaveBeenCalledWith('What is Baobab?', ['v1']);
-      expect(ragService.generateResponseStream).toHaveBeenCalledWith('What is Baobab?', chunks);
+      expect(ragService.generateResponseStream).toHaveBeenCalledWith('What is Baobab?', chunks, []);
 
       expect(mockRes.raw.write).toHaveBeenNthCalledWith(1, 'data: {"content":"Baobab "}\n\n');
       expect(mockRes.raw.write).toHaveBeenNthCalledWith(2, 'data: {"content":"is a tree."}\n\n');

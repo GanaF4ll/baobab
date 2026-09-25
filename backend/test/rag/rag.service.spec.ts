@@ -111,4 +111,67 @@ describe('RagService', () => {
       expect(dbMock.limit).toHaveBeenCalledWith(4);
     });
   });
+
+  describe('contextualizeQuery', () => {
+    it('should return raw question if history is empty', async () => {
+      const result = await service.contextualizeQuery('What is baobab?', []);
+      expect(result).toBe('What is baobab?');
+      expect(ollamaServiceMock.chat).toBeUndefined();
+    });
+
+    it('should call ollamaService.chat to reformulate query when history is provided', async () => {
+      ollamaServiceMock.getRewriteModel = jest.fn().mockReturnValue('mistral:7b');
+      ollamaServiceMock.chat = jest.fn().mockResolvedValue({
+        message: { content: 'Tell me about baobab tree characteristics' },
+      });
+
+      const history = [
+        { role: 'user' as const, content: 'What is a baobab?' },
+        { role: 'assistant' as const, content: 'A baobab is a tree.' },
+      ];
+
+      const result = await service.contextualizeQuery('What are its characteristics?', history);
+
+      expect(result).toBe('Tell me about baobab tree characteristics');
+      expect(ollamaServiceMock.chat).toHaveBeenCalled();
+    });
+
+    it('should fallback to raw question if ollama chat fails', async () => {
+      ollamaServiceMock.getRewriteModel = jest.fn().mockReturnValue('mistral:7b');
+      ollamaServiceMock.chat = jest.fn().mockRejectedValue(new Error('LLM error'));
+
+      const history = [{ role: 'user' as const, content: 'Hello' }];
+      const result = await service.contextualizeQuery('Tell me more', history);
+
+      expect(result).toBe('Tell me more');
+    });
+  });
+
+  describe('generateResponseStream', () => {
+    it('should assemble system instructions, history and question into streamChat', async () => {
+      const { of } = await import('rxjs');
+      ollamaServiceMock.streamChat = jest
+        .fn()
+        .mockReturnValue(
+          of(
+            { message: { content: 'Hello' }, done: false },
+            { message: { content: ' world' }, done: true },
+          ),
+        );
+
+      const history = [{ role: 'user' as const, content: 'Hi' }];
+      const chunks = [{ chunkIndex: 0, versionId: 'v1', content: 'Doc content' }];
+
+      const stream$ = await service.generateResponseStream('How are you?', chunks, history);
+      const results: any[] = [];
+      stream$.subscribe((val) => results.push(val));
+
+      expect(ollamaServiceMock.streamChat).toHaveBeenCalled();
+      const calledMessages = ollamaServiceMock.streamChat.mock.calls[0][0];
+      expect(calledMessages[0].role).toBe('system');
+      expect(calledMessages[1]).toEqual({ role: 'user', content: 'Hi' });
+      expect(calledMessages[2]).toEqual({ role: 'user', content: 'How are you?' });
+      expect(results).toHaveLength(2);
+    });
+  });
 });

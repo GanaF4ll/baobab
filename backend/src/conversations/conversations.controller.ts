@@ -100,6 +100,8 @@ export class ConversationsController {
     res.raw.setHeader('Cache-Control', 'no-cache');
     res.raw.setHeader('Connection', 'keep-alive');
 
+    const history = await this.conversationsService.getRecentMessages(conversationId);
+
     await this.conversationsService.saveMessage(
       conversationId,
       {
@@ -109,8 +111,16 @@ export class ConversationsController {
       workspaceId,
     );
 
-    const chunks = await this.ragService.searchSimilarChunks(askDto.question, askDto.versionIds);
-    const stream$ = await this.ragService.generateResponseStream(askDto.question, chunks);
+    const contextualizedQuestion = await this.ragService.contextualizeQuery(
+      askDto.question,
+      history,
+    );
+
+    const chunks = await this.ragService.searchSimilarChunks(
+      contextualizedQuestion,
+      askDto.versionIds,
+    );
+    const stream$ = await this.ragService.generateResponseStream(askDto.question, chunks, history);
 
     let fullAiResponse = '';
 

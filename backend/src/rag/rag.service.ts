@@ -7,7 +7,8 @@ import { DrizzleDb } from 'src/drizzle/types/drizzle';
 import { DocumentsService } from '../documents/documents.service';
 import { OllamaService } from '../ollama/ollama.service';
 import { SimilarChunkResponseDto } from './dto/output/similar-chunk-response.dto';
-import { getSystemInstructions } from './system-instructions';
+
+import { getRewriteInstructions, getSystemInstructions } from './system-instructions';
 
 @Injectable()
 export class RagService {
@@ -86,14 +87,63 @@ export class RagService {
   }
 
   /**
+   * @description Reformulate a user follow-up question into a standalone query taking history into account
+   * @param {string} question - The user's current question
+   * @param {Array<{ role: 'user' | 'assistant'; content: string }>} history - Recent chat history
+   * @returns {Promise<string>} Standalone search query
+   */
+  async contextualizeQuery(
+    question: string,
+    history: Array<{ role: 'user' | 'assistant'; content: string }> = [],
+  ): Promise<string> {
+    if (!history || history.length === 0) {
+      return question;
+    }
+
+    try {
+      this.logger.debug(
+        `Contextualizing query for RAG: "${question}" with ${history.length} history messages`,
+      );
+
+      const rewritePrompt = [
+        getRewriteInstructions(),
+        ...history,
+        { role: 'user', content: question },
+      ];
+
+      const rewriteModel = this.ollamaService.getRewriteModel();
+      const response = await this.ollamaService.chat(rewritePrompt, rewriteModel);
+      const reformulated = response?.message?.content?.trim();
+
+      if (reformulated && reformulated.length > 0) {
+        this.logger.debug(`Query reformulated: "${question}" -> "${reformulated}"`);
+        return reformulated;
+      }
+
+      return question;
+    } catch (error) {
+      this.logger.warn(`Failed to rewrite query, falling back to original question: ${error}`);
+      return question;
+    }
+  }
+
+  /**
    * @description Build the final prompt and stream the response
    * @param {string} question - Current user question
    * @param {any[]} contextChunks - Chunks retrieved from pgvector
+   * @param {Array<{ role: 'user' | 'assistant'; content: string }>} history - Prior chat history
    */
-  async generateResponseStream(question: string, contextChunks: any[]) {
+  async generateResponseStream(
+    question: string,
+    contextChunks: any[],
+    history: Array<{ role: 'user' | 'assistant'; content: string }> = [],
+  ) {
     //? Construct the context string from retrieved chunks
     const contextText = contextChunks
-      .map((c) => `[Source: Chunk ${c.chunkIndex} of Doc ${c.documentId}]\n${c.content}`)
+      .map(
+        (c) =>
+          `[Source: Chunk ${c.chunkIndex} of Doc ${c.versionId || c.documentId}]\n${c.content}`,
+      )
       .join('\n\n---\n\n');
 
     //* Build the System Prompt
@@ -101,7 +151,7 @@ export class RagService {
 
     //* Assemble the full message list for the Chat API
     //* Format: [System, ...History, Current Question]
-    const messages = [systemInstructions, { role: 'user', content: question }];
+    const messages = [systemInstructions, ...history, { role: 'user', content: question }];
 
     //* Return the observable mapped for NestJS SSE format
     return this.ollamaService.streamChat(messages).pipe(
@@ -109,7 +159,7 @@ export class RagService {
         data: {
           content: chunk.message?.content || '',
           done: chunk.done,
-          ...(chunk.done ? { sources: contextChunks.map((c) => c.documentId) } : {}),
+          ...(chunk.done ? { sources: contextChunks.map((c) => c.versionId || c.documentId) } : {}),
         },
       })),
     );

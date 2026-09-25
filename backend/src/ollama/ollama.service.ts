@@ -8,12 +8,18 @@ export class OllamaService {
   private readonly ollamaUrl: string;
   private readonly embeddingModel: string;
   private readonly chatModel: string;
+  private readonly rewriteModel: string;
+  // private readonly options: {};
 
   constructor(private configService: ConfigService) {
     this.ollamaUrl = this.configService.get<string>('OLLAMA_URL') || 'http://localhost:11434';
     this.embeddingModel =
       this.configService.get<string>('OLLAMA_EMBED_MODEL') || 'nomic-embed-text';
     this.chatModel = this.configService.get<string>('OLLAMA_LLM_MODEL') || 'mistral:7b';
+    this.rewriteModel = this.configService.get<string>('OLLAMA_REWRITE_MODEL') || this.chatModel;
+    // this.options = {
+    //   repeat_penalty: 1.15,
+    // };
   }
 
   /**
@@ -24,7 +30,7 @@ export class OllamaService {
   async generateEmbeddings(texts: string[]): Promise<number[][]> {
     try {
       this.logger.debug(
-        `Génération d'embeddings pour ${texts.length} chunks via ${this.embeddingModel}...`,
+        `Embedding generation for ${texts.length} chunks using model ${this.embeddingModel}...`,
       );
 
       const response = await fetch(`${this.ollamaUrl}/api/embed`, {
@@ -44,11 +50,8 @@ export class OllamaService {
 
       return data.embeddings;
     } catch (error) {
-      this.logger.error('Erreur lors de la communication avec Ollama', error);
-      throw new HttpException(
-        'Erreur lors de la génération des embeddings',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      this.logger.error('Error while embedding => ', error);
+      throw new HttpException('Error while embedding', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -78,6 +81,7 @@ export class OllamaService {
           model: this.chatModel,
           messages,
           stream: true,
+          // options: this.options,
         }),
       })
         .then(async (response) => {
@@ -114,5 +118,43 @@ export class OllamaService {
           observer.error(err);
         });
     });
+  }
+
+  /**
+   * @description Call Ollama chat API in non-streaming mode
+   * @param {any[]} messages - Array of chat messages { role, content }
+   * @param {string} [model] - Optional model override (defaults to chatModel)
+   * @returns {Promise<{ message?: { role: string; content: string } }>}
+   */
+  async chat(
+    messages: any[],
+    model: string = this.chatModel,
+  ): Promise<{ message?: { role: string; content: string } }> {
+    try {
+      this.logger.debug(`Calling Ollama chat (non-streaming) using model: ${model}`);
+
+      const response = await fetch(`${this.ollamaUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          messages,
+          stream: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      this.logger.error('Error in Ollama chat call', error);
+      throw error;
+    }
+  }
+
+  getRewriteModel(): string {
+    return this.rewriteModel;
   }
 }
