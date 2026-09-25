@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { DRIZZLE } from 'src/drizzle/drizzle.module';
@@ -72,6 +73,12 @@ describe('ConversationsService', () => {
         {
           provide: DRIZZLE,
           useValue: db,
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue(10),
+          },
         },
       ],
     }).compile();
@@ -296,6 +303,20 @@ describe('ConversationsService', () => {
 
       expect(db.query.conversations.findFirst).toHaveBeenCalled();
       expect(db.insert).toHaveBeenCalledWith(schema.messages);
+    });
+  });
+
+  describe('getRecentMessages', () => {
+    it('should return recent messages reversed in chronological order', async () => {
+      const msg1 = { role: 'user' as const, content: 'First message' };
+      const msg2 = { role: 'assistant' as const, content: 'Second message' };
+      // Database returns newest first (desc)
+      db.query.messages.findMany.mockResolvedValueOnce([msg2, msg1]);
+
+      const result = await service.getRecentMessages('conv-uuid-1');
+
+      expect(db.query.messages.findMany).toHaveBeenCalled();
+      expect(result).toEqual([msg1, msg2]);
     });
   });
 });
